@@ -25,5 +25,4 @@ Add support for:
 - Harvester?
 5 - Command line arguments?
 6 - Output tools and arguments in file..
-
-
+7 - Disable SSL scans if http specified ...
