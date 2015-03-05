@@ -1,0 +1,29 @@
+TODO
+
+0 - What if the target doesn't have a domain name? Temp fix: IP in both fields (Y)
+0b) Review target file format..
+0c) Create another tool to specify targets and save in file..
+1 - Stop using os.system()
+2 - Get shot down by 14 year old Python devs,
+    who've been coding for "over 20 years", on how I'm
+    doing everything wrong, like not just import'ing autopwn
+3 - TDD? :\ :/ :( :X
+3b) Have online repo where users can share yaml
+    configs
+4 - What if tool requires root? Make check for this
+Add support for:
+- enum4linux
+- nbtscan
+- sslyze
+- smb_scan
+- w3af ?
+- snmpwalk/check/etc
+- dotdotpwn
+- wp-scan
+- davtest?
+- DNS tools
+- Harvester?
+5 - Command line arguments?
+6 - Output tools and arguments in file..
+
+

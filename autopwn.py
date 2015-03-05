@@ -10,39 +10,7 @@ from collections import OrderedDict
 from time import gmtime, strftime
 
 # Aidan Marlin @ NCC Group
-# Work started around 201502
-
-# TODO
-# 0 - What if the target doesn't have a domain name? Temp fix: IP in both fields (Y)
-# 1 - Stop using os.system()
-# 2 - Get shot down by 14 year old Python devs,
-#     who've been coding for "over 20 years", on how I'm
-#     doing everything wrong, like not just import'ing autopwn
-# 3 - TDD? :\ :/ :( :X
-# 4 - Configuration for individual tools? Hmmmm.
-# 4a) Allow users to easily change the command
-#     they want run
-# 4b) Have online repo where users can share yaml
-#     configs
-# 5 - What if tool requires root? Make check for this
-# Add support for:
-# - enum4linux
-# - nbtscan
-# - sslyze
-# - smb_scan
-# - w3af ?
-# - snmpwalk/check/etc
-# - dotdotpwn
-# - wp-scan
-# - davtest?
-# - DNS tools
-# - Harvester?
-# 6 - Command line arguments?
-# 7 - Option not to run tools in parallel?
-# 8 - Assessment type selection then just run tools?
-#     Why should user be able to select tools? If a new combo
-#     is needed why not just create it?
-# 9 - Output tools and arguments in file..
+# Project born 201502
 
 class executeToolThread (threading.Thread):
    def __init__(self, thread_ID, tool_name, tool_binary_location, tool_arguments):
@@ -83,8 +51,8 @@ def showHelp():
    print "missing, mention it on GitHub or email me and I might add it."
    print
    print "autopwn also uses assessments/ for assessment definitions."
-   print "Before you would have to specify which menu a tool should appear"
-   print "in the tool configuration file - this was a bad approach. Now,"
+   print "Before you would have to specify which menu a tool should appear in"
+   print "in the tool configuration's file - this was a bad approach. Now,"
    print "the tools are decoupled and you can specify them in multiple"
    print "places via the assessments configuration files (examples of"
    print "which are provided)."
@@ -126,7 +94,12 @@ def determineAssessment(config_tools, menu_items):
       if item != 0:
          print str(index) + ") " + str(item)
 
-   as_type = raw_input('Choose > ')
+   try:
+      as_type = raw_input('Choose > ')
+   except (KeyboardInterrupt, SystemExit):
+      print
+      print "Abandon ship!"
+      sys.exit(1)
    if as_type == '':
       print config_tools
       print menu_items
@@ -174,14 +147,20 @@ def runTools(tools, config_assessments, target):
          time.sleep (50.0 / 1000.0);
          #                           Thread ID  Name     Bin loc  args
          thread.append(executeToolThread(index, tool[0], tool[1], tool[2]))
+         # If main process dies, everything else will as well
+         thread[index].daemon = True
          # Start threads
          thread[index].start()
 
          # Parallel or singular?
-         if config_assessments[3] == 1:
+         if config_assessments[3] != 1:
             thread[index].join()
 
          index = index + 1
+
+   if config_assessments[3] == 1:
+      for tid in thread:
+         tid.join()
 
 def getCurrentUser():
    if 0 != os.getuid():

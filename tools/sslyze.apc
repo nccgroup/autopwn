@@ -2,10 +2,10 @@
 # 201503 v0.2
 
 # The name as it will appear in the autopwn menu
-name: udp-proto-scanner
+name: sslyze
 
 # Location of the file on filesystem
-binary_location: /usr/local/bin/udp-proto-scanner.pl
+binary_location: /usr/bin/sslyze
 
 # Tool arguments
 # Python's str.format() is used for variable replacement. Valid entries are:
@@ -14,4 +14,4 @@ binary_location: /usr/local/bin/udp-proto-scanner.pl
 # * target_protocol (returns 'http' or 'https')
 # * date (current date in format 20150226_213959) # date =  strftime("%Y%m%d_%H%M%S")
 # * port_number (if target port number has been specified)
-arguments: "{target_ip} > {date}_udp-proto-scanner_{target_ip} >/dev/null"
+arguments: "--regular {target_domain_name} > {date}_sslyze_{target_domain_name} 2>/dev/null"
