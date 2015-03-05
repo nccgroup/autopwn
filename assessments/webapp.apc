@@ -14,10 +14,13 @@ tools:
    - nmap
    - nikto
    - sslyze
+   - sslscan
    - udp-proto-scanner
+   - testsslserver
+   - dirb
 
 # Menu name
-menu_name: Web Application
+menu_name: Web Application (Parallel)
 
 # Run tools in parallel?
 parallel: 0

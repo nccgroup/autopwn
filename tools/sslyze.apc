@@ -1,7 +1,7 @@
 # autopwn yaml tool config file
 # 201503 v0.2
 
-# The name as it will appear in the autopwn menu
+# The name as it will be referenced by in assessments
 name: sslyze
 
 # Location of the file on filesystem

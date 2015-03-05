@@ -2,10 +2,10 @@
 # 201503 v0.2
 
 # The name as it will be referenced by in assessments
-name: sslscan
+name: testsslserver
 
 # Location of the file on filesystem
-binary_location: /usr/bin/sslscan
+binary_location: /usr/bin/java
 
 # Tool arguments
 # Python's str.format() is used for variable replacement. Valid entries are:
@@ -14,4 +14,4 @@ binary_location: /usr/bin/sslscan
 # * target_protocol (returns 'http' or 'https')
 # * date (current date in format 20150226_213959) # date =  strftime("%Y%m%d_%H%M%S")
 # * port_number (if target port number has been specified)
-arguments: "{target_domain_name}:{port_number} > {date}_sslscan_{target_domain_name} 2>/dev/null"
+arguments: "-jar /root/Downloads/TestSSLServer.jar {target_domain_name} {port_number} > {date}_testsslserver_{target_domain_name} 2>/dev/null"

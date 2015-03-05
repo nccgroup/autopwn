@@ -16,6 +16,8 @@ tools:
    - sslyze
    - sslscan
    - udp-proto-scanner
+   - testsslserver
+   - dirb
 
 # Menu name
 menu_name: Web Application (Parallel)
