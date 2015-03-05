@@ -1,5 +1,5 @@
 # autopwn yaml tool config file
-# 201502 v0.1
+# 201503 v0.2
 
 # The name as it will appear in the autopwn menu
 name: sslscan

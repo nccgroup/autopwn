@@ -1,5 +1,5 @@
 # autopwn yaml tool config file
-# 201502 v0.1
+# 201503 v0.2
 
 # The name as it will appear in the autopwn menu
 name: udp-proto-scanner
@@ -14,4 +14,4 @@ binary_location: /usr/local/bin/udp-proto-scanner.pl
 # * target_protocol (returns 'http' or 'https')
 # * date (current date in format 20150226_213959) # date =  strftime("%Y%m%d_%H%M%S")
 # * port_number (if target port number has been specified)
-arguments: "{target_domain_name} > {date}_udp-proto-scanner_{target_domain_name} >/dev/null 2>&1"
+arguments: "{target_ip} > {date}_udp-proto-scanner_{target_ip} >/dev/null 2>&1"

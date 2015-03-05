@@ -1,5 +1,5 @@
-# autopwn yaml tool config file
-# 201502 v0.1
+# autopwn assessment config file
+# 201503 v0.1
 
 # TODO
 # 1 - Parallel? Specified in assessments config
@@ -18,4 +18,4 @@ tools:
 menu_name: Web Application1
 
 # Run tools in parallel?
-thread: 1
+parallel: 0

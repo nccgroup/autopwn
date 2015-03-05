@@ -42,6 +42,7 @@ from time import gmtime, strftime
 # 8 - Assessment type selection then just run tools?
 #     Why should user be able to select tools? If a new combo
 #     is needed why not just create it?
+# 9 - Output tools and arguments in file..
 
 class executeToolThread (threading.Thread):
    def __init__(self, thread_ID, tool_name, tool_binary_location, tool_arguments):
@@ -61,7 +62,7 @@ def executeTool(thread_ID, tool_name, tool_binary_location, tool_arguments):
    os.system(tool_binary_location + " " + tool_arguments)
 
 def showHelp():
-   print "autopwn v0.2"
+   print "autopwn v0.3"
    print "By Aidan Marlin (email: aidan [dot] marlin [at] nccgroup [dot] com)."
    print
    print "autopwn expects one argument, the name of the file containing"
@@ -80,6 +81,13 @@ def showHelp():
    print "to load tool definitions, which are yaml files. You can find"
    print "some examples in the directory already. If you think one is"
    print "missing, mention it on GitHub or email me and I might add it."
+   print
+   print "autopwn also uses assessments/ for assessment definitions."
+   print "Before you would have to specify which menu a tool should appear"
+   print "in the tool configuration file - this was a bad approach. Now,"
+   print "the tools are decoupled and you can specify them in multiple"
+   print "places via the assessments configuration files (examples of"
+   print "which are provided)."
    print
    print "Have fun!"
    print "Legal purposes only.."
@@ -144,7 +152,7 @@ def checkToolExists(tool):
          print tool[1] + " was not found. Quitting.."
          sys.exit(1)
 
-def runTools(tools, target):
+def runTools(tools, config_assessments, target):
    thread = []
    index = 0
 
@@ -168,6 +176,11 @@ def runTools(tools, target):
          thread.append(executeToolThread(index, tool[0], tool[1], tool[2]))
          # Start threads
          thread[index].start()
+
+         # Parallel or singular?
+         if config_assessments[3] == 1:
+            thread[index].join()
+
          index = index + 1
 
 def getCurrentUser():
@@ -215,7 +228,7 @@ def getConfig(config_tools,config_assessments,menu_items):
          k = k + 1
          config_assessments[i][k] = objects['menu_name']
          k = k + 1
-         config_assessments[i][k] = objects['thread']
+         config_assessments[i][k] = objects['parallel']
 
       i = i + 1
 
@@ -257,7 +270,7 @@ def main():
 
    if run_tools.lower() == "y":
       dry_run = 0
-      runTools(tools,target)
+      runTools(tools,config_assessments[as_type],target)
       sys.exit(0)
    else:
       print "Alright, I quit.."
