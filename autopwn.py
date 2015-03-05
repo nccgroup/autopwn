@@ -24,6 +24,7 @@ class executeToolThread (threading.Thread):
       print "[+] Launching " + self.tool_name
       executeTool(self.thread_ID, self.tool_name, self.tool_binary_location, self.tool_arguments)
       print "[-] " + self.tool_name + " is done.."
+      logAutopwn(self.tool_name + " has finished")
 
 #executeToolThread(1, tool[0], tool[1], tool[2])
 def executeTool(thread_ID, tool_name, tool_binary_location, tool_arguments):
@@ -125,9 +126,18 @@ def checkToolExists(tool):
          print tool[1] + " was not found. Quitting.."
          sys.exit(1)
 
+def logAutopwn(log_string):
+   date =  strftime("%Y%m%d")
+   date_time =  strftime("%Y%m%d %H:%M:%S")
+   log_file = open(date + "_autopwn_commands.log","a")
+   log_file.write("# " + date_time + "\n")
+   log_file.write(log_string + "\n")
+   log_file.close()
+
 def runTools(tools, config_assessments, target):
    thread = []
    index = 0
+   tool_string = ""
 
    # Check all the tools exist
    for tool in tools:
@@ -144,6 +154,10 @@ def runTools(tools, config_assessments, target):
 
          # Let's do it
          tool[2] = tool[2].format(target_domain_name=target_domain_name, target_ip=target_ip, date=date, port_number=port_number, target_protocol=target_protocol)
+         # Log tool run
+         tool_string = tool[1] + " " + tool[2]
+         logAutopwn(tool_string)
+
          time.sleep (50.0 / 1000.0);
          #                           Thread ID  Name     Bin loc  args
          thread.append(executeToolThread(index, tool[0], tool[1], tool[2]))

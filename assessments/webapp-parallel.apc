@@ -18,6 +18,7 @@ tools:
    - udp-proto-scanner
    - testsslserver
    - dirb
+   - skipfish
 
 # Menu name
 menu_name: Web Application (Parallel)
