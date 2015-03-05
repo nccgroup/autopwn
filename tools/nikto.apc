@@ -7,10 +7,6 @@ name: nikto
 # Location of the file on filesystem
 binary_location: /usr/bin/nikto
 
-# Menu where tool will exist
-# If the menu doesn't exist it will be created
-menu: Web Application
-
 # Tool arguments
 # Python's str.format() is used for variable replacement. Valid entries are:
 # * target_domain_name
@@ -18,4 +14,4 @@ menu: Web Application
 # * target_protocol (returns 'http' or 'https')
 # * date (current date in format 20150226_213959) # date =  strftime("%Y%m%d_%H%M%S")
 # * port_number (if target port number has been specified)
-arguments: "-h {target_domain_name} -o {date}_nikto_{target_domain_name}"
+arguments: "-h {target_domain_name} -o {date}_nikto_{target_domain_name} >/dev/null 2>&1"

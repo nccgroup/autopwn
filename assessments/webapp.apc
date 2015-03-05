@@ -1,0 +1,23 @@
+# autopwn yaml tool config file
+# 201502 v0.1
+
+# TODO
+# 1 - Parallel? Specified in assessments config
+# 2 - stdout stderr? Specified in tools config?
+# 3 - Order / priority? Specified in assessments config
+
+# The assessment name as it will be specifiable by the command line
+name: webapp
+
+# Tools which will be used in this assessment
+tools:
+   - nmap
+   - nikto
+   - sslyze
+   - udp-proto-scanner
+
+# Menu name
+menu_name: Web Application
+
+# Run tools in parallel?
+thread: 1
