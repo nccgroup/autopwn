@@ -1,6 +1,7 @@
 #!/usr/bin/python2
 
 import sys
+import getopt
 import re
 import os
 import threading
@@ -24,18 +25,22 @@ class executeToolThread (threading.Thread):
       print "[+] Launching " + self.tool_name
       executeTool(self.thread_ID, self.tool_name, self.tool_binary_location, self.tool_arguments)
       print "[-] " + self.tool_name + " is done.."
-      logAutopwn(self.tool_name + " has finished")
+      logAutopwn("# " + self.tool_name + " has finished")
 
 #executeToolThread(1, tool[0], tool[1], tool[2])
 def executeTool(thread_ID, tool_name, tool_binary_location, tool_arguments):
    os.system(tool_binary_location + " " + tool_arguments)
 
 def showHelp():
-   print "autopwn v0.3"
+   print "autopwn v0.4"
    print "By Aidan Marlin (email: aidan [dot] marlin [at] nccgroup [dot] com)."
    print
-   print "autopwn expects one argument, the name of the file containing"
-   print "targets to be pwned. Format of file should be"
+   print "-t <target_file>       Required. The file containing the targets"
+   print "-a <assessment_type>   Optional. Specify assessment name to run."
+   print "                       Autopwn will not prompt to run tools with"
+   print "                       this option"
+   print
+   print "Format of the target file should be:"
    print "<ip>#<domain name>#[port-for-dirb]#[ssl-for-dirb] where"
    print "[ssl-for-dirb] would be 'http' or 'https'."
    print
@@ -52,44 +57,43 @@ def showHelp():
    print "missing, mention it on GitHub or email me and I might add it."
    print
    print "autopwn also uses assessments/ for assessment definitions."
-   print "Before you would have to specify which menu a tool should appear in"
-   print "in the tool configuration's file - this was a bad approach. Now,"
-   print "the tools are decoupled and you can specify them in multiple"
-   print "places via the assessments configuration files (examples of"
-   print "which are provided)."
+   print "Instead of selecting which tools you would like to run, you"
+   print "can specify which assessment you would like to run instead."
+   print "Assessment configuration files contain lists of tools which"
+   print "will be run as a result."
    print
    print "Have fun!"
    print "Legal purposes only.."
    print
 
-def getTargets(target):
-   fileTargets = ''
-
-   if len(sys.argv) != 2:
+def getTargets(target_file,target_list):
+   if len(sys.argv) == 1:
       showHelp()
       sys.exit(1)
-   else:
-      fileTargets = sys.argv[1];
 
-   if fileTargets == '':
-      print "[E] You need to specify a targets file"
+   if target_file == 0:
+      print "[E] You need to specify a target file"
       sys.exit(1)
 
-   fdTargets = open(fileTargets, 'r')
-   lines = fdTargets.read().split('\n')
+   try:
+      fd_targets = open(target_file, 'r')
+      lines = fd_targets.read().split('\n')
+      fd_targets.close()
+   except IOError as e:
+      print "[E] Error processing target file: {1}".format(e.errno, e.strerror)
+      sys.exit(1)
 
    for x in lines:
-      target.append(re.split(r'#',x))
-      # print len(x) TODO DETERMINE ALL OPTIONS SPECIFIED HERE
+      target_list.append(re.split(r'#',x))
 
    # Remove empty elements from list, could probably improve this
-   for x in target:
+   for x in target_list:
       if x[0] == '':
-         target.remove(x)
+         target_list.remove(x)
 
-   return target
+   return target_list
 
-def determineAssessment(config_tools, menu_items):
+def determineAssessment(config_tools,menu_items):
    print "What assessment do you want to run?"
    for index, item in enumerate(menu_items):
       if item != 0:
@@ -101,7 +105,7 @@ def determineAssessment(config_tools, menu_items):
       print
       print "[E] Abandon ship!"
       sys.exit(1)
-   if as_type == '':
+   if as_type == '': # TODO - Review
       print config_tools
       print menu_items
       sys.exit(1)
@@ -134,7 +138,7 @@ def logAutopwn(log_string):
    log_file.write(log_string + "\n")
    log_file.close()
 
-def runTools(tools, config_assessments, target, dry_run):
+def runTools(tools, config_assessments, target_list, dry_run):
    thread = []
    index = 0
    tool_string = ""
@@ -146,7 +150,7 @@ def runTools(tools, config_assessments, target, dry_run):
    if dry_run == 1:
       print "[I] The following tools will be run:"
 
-   for host in target:
+   for host in target_list:
       for tool in tools:
          # Variable declaration for placeholder replacements
          date =  strftime("%Y%m%d_%H%M%S")
@@ -248,38 +252,86 @@ def fixMenuItems(menu_items):
    # Remove dupes and sort
    return list(OrderedDict.fromkeys(menu_items))
 
-def main():
+def processArguments(argv):
+   argument = [0 for x in range(16)]
+
+   try:
+      opts, args = getopt.getopt(argv,"a:t:",["assessment=","target="])
+   except getopt.GetoptError:
+      print "./autopwn.py [-a <assessment_type>] -t <target_file>"
+      sys.exit(2)
+
+   for opt, arg in opts:
+      if opt in ("-a", "--assessment"):
+         # Assessment type
+         argument[0] = arg
+      if opt in ("-t", "--target"):
+         # Target file
+         argument[1] = arg
+
+   return argument
+
+def translateAssessmentType(as_type_str,config_assessments):
+   # Do some ugly shit here
+   for index, assessment in enumerate(config_assessments):
+      if as_type_str == assessment[0]:
+         return index
+
+   print "[E] Assessment name not found. Is it spelt correctly?"
+   sys.exit(1)
+
+def main(argv):
    # Variable declarations
-   target = []
+   target_list = []
    tools = []
+   argument = []
    dry_run = 1
    config_tools = [[0 for x in range(16)] for x in range(256)] 
    config_assessments = [[0 for x in range(16)] for x in range(256)] 
    as_type = 0
    menu_items = []
 
+   # Process arguments
+   argument = processArguments(argv)
+   as_type_str = argument[0]
+   target_file = argument[1]
+
    # Function calls
-   getTargets(target)
+   getTargets(target_file,target_list)
 
    # Get config_toolss
    getConfig(config_tools,config_assessments,menu_items)
-   # Remove dupes and sort menu
-   menu_items = fixMenuItems(menu_items)
 
-   as_type = determineAssessment(config_tools,menu_items)
+   # Was assessment type specified on the command line?
+   # Didn't want to use many if statements in main, oh well
+   if as_type_str == 0:
+      # Remove dupes and sort menu
+      menu_items = fixMenuItems(menu_items)
+      as_type = determineAssessment(config_tools,menu_items)
+   else:
+      # User specified assessment type on command line
+      # Need to translate into int...
+      # Good lord this is horrible
+      # TODO - Improve
+      as_type = translateAssessmentType(as_type_str,config_assessments)
+      tools = determineTools(config_tools,config_assessments,as_type,menu_items)
+      dry_run = 0
+      runTools(tools,config_assessments[as_type],target_list,dry_run)
+      sys.exit(0)
+
    tools = determineTools(config_tools,config_assessments,as_type,menu_items)
 
    # Tools to be run
-   runTools(tools,config_assessments[as_type],target,dry_run)
+   runTools(tools,config_assessments[as_type],target_list,dry_run)
    run_tools = raw_input('Run tools? [Ny] ')
 
    if run_tools.lower() == "y":
       dry_run = 0
-      runTools(tools,config_assessments[as_type],target,dry_run)
+      runTools(tools,config_assessments[as_type],target_list,dry_run)
       sys.exit(0)
    else:
       print "[E] Alright, I quit.."
       sys.exit(1)
 
 if __name__ == "__main__":
-   main()
+   main(sys.argv[1:])

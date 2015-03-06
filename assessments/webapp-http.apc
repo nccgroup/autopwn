@@ -7,7 +7,7 @@
 # 3 - Order / priority? Specified in assessments config
 
 # The assessment name as it will be specifiable by the command line
-name: webapp
+name: webapp-no-ssl
 
 # Tools which will be used in this assessment
 tools:
