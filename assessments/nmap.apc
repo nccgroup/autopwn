@@ -7,21 +7,14 @@
 # 3 - Order / priority? Specified in assessments config
 
 # The assessment name as it will be specifiable by the command line
-name: webapp
+name: nmap
 
 # Tools which will be used in this assessment
 tools:
    - nmap
-   - nikto
-   - sslyze
-   - sslscan
-   - udp-proto-scanner
-   - testsslserver
-   - dirb
-   - skipfish
 
 # Menu name
-menu_name: Web Application
+menu_name: Nmap Scan (All TCP Ports)
 
 # Run tools in parallel?
 parallel: 0

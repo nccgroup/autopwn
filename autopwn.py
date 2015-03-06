@@ -72,7 +72,7 @@ def getTargets(target):
       fileTargets = sys.argv[1];
 
    if fileTargets == '':
-      print "You need to specify a targets file"
+      print "[E] You need to specify a targets file"
       sys.exit(1)
 
    fdTargets = open(fileTargets, 'r')
@@ -99,7 +99,7 @@ def determineAssessment(config_tools, menu_items):
       as_type = raw_input('Choose > ')
    except (KeyboardInterrupt, SystemExit):
       print
-      print "Abandon ship!"
+      print "[E] Abandon ship!"
       sys.exit(1)
    if as_type == '':
       print config_tools
@@ -123,7 +123,7 @@ def checkToolExists(tool):
    #                                      Don't judge me
    if 0 != os.system("which " + tool[1] + " >/dev/null 2>&1"):
       if 0 != os.system("ls " + tool[1] + " >/dev/null 2>&1"):
-         print tool[1] + " was not found. Quitting.."
+         print "[E] " + tool[1] + " was not found. Quitting.."
          sys.exit(1)
 
 def logAutopwn(log_string):
@@ -134,7 +134,7 @@ def logAutopwn(log_string):
    log_file.write(log_string + "\n")
    log_file.close()
 
-def runTools(tools, config_assessments, target):
+def runTools(tools, config_assessments, target, dry_run):
    thread = []
    index = 0
    tool_string = ""
@@ -142,6 +142,9 @@ def runTools(tools, config_assessments, target):
    # Check all the tools exist
    for tool in tools:
       checkToolExists(tool)
+
+   if dry_run == 1:
+      print "[I] The following tools will be run:"
 
    for host in target:
       for tool in tools:
@@ -154,31 +157,43 @@ def runTools(tools, config_assessments, target):
 
          # Let's do it
          tool[2] = tool[2].format(target_domain_name=target_domain_name, target_ip=target_ip, date=date, port_number=port_number, target_protocol=target_protocol)
-         # Log tool run
-         tool_string = tool[1] + " " + tool[2]
-         logAutopwn(tool_string)
 
-         time.sleep (50.0 / 1000.0);
-         #                           Thread ID  Name     Bin loc  args
-         thread.append(executeToolThread(index, tool[0], tool[1], tool[2]))
-         # If main process dies, everything else will as well
-         thread[index].daemon = True
-         # Start threads
-         thread[index].start()
+         # Not a dry run?
+         if dry_run == 0:
+            # Log tool run
+            tool_string = tool[1] + " " + tool[2]
+            logAutopwn(tool_string)
 
-         # Parallel or singular?
-         if config_assessments[3] != 1:
-            thread[index].join()
+            time.sleep (50.0 / 1000.0);
+            #                           Thread ID  Name     Bin loc  args
+            thread.append(executeToolThread(index, tool[0], tool[1], tool[2]))
+            # If main process dies, everything else will as well
+            thread[index].daemon = True
+            # Start threads
+            thread[index].start()
 
-         index = index + 1
+            # Parallel or singular?
+            if config_assessments[3] != 1:
+               thread[index].join()
 
-   if config_assessments[3] == 1:
-      for tid in thread:
-         tid.join()
+            index = index + 1
+
+         elif dry_run == 1:
+            # Dry run, output tools only
+            print tool[1] + " " + tool[2]
+         else:
+            print "[E] runTools method expects dry_run parameter to be 1 or 0"
+            sys.exit(1)
+
+   if dry_run == 0:
+      # Parallel
+      if config_assessments[3] == 1:
+         for tid in thread:
+            tid.join()
 
 def getCurrentUser():
    if 0 != os.getuid():
-      print "nmap requires uid 0 (root)"
+      print "[E] nmap requires uid 0 (root)"
       sys.exit(1)
 
 def getConfig(config_tools,config_assessments,menu_items):
@@ -233,14 +248,11 @@ def fixMenuItems(menu_items):
    # Remove dupes and sort
    return list(OrderedDict.fromkeys(menu_items))
 
-def showTools(tools,target):
-   for tool in tools:
-      print tool[1] + " " + tool[2]
-
 def main():
    # Variable declarations
    target = []
    tools = []
+   dry_run = 1
    config_tools = [[0 for x in range(16)] for x in range(256)] 
    config_assessments = [[0 for x in range(16)] for x in range(256)] 
    as_type = 0
@@ -258,15 +270,15 @@ def main():
    tools = determineTools(config_tools,config_assessments,as_type,menu_items)
 
    # Tools to be run
-   showTools(tools,target)
+   runTools(tools,config_assessments[as_type],target,dry_run)
    run_tools = raw_input('Run tools? [Ny] ')
 
    if run_tools.lower() == "y":
       dry_run = 0
-      runTools(tools,config_assessments[as_type],target)
+      runTools(tools,config_assessments[as_type],target,dry_run)
       sys.exit(0)
    else:
-      print "Alright, I quit.."
+      print "[E] Alright, I quit.."
       sys.exit(1)
 
 if __name__ == "__main__":
