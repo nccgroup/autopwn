@@ -20,7 +20,7 @@ class executeToolThread (threading.Thread):
       self.tool_name = tool_name
       self.tool_binary_location = tool_binary_location
       self.tool_arguments = tool_arguments
-        
+
    def run(self):
       print "[+] Launching " + self.tool_name
       executeTool(self.thread_ID, self.tool_name, self.tool_binary_location, self.tool_arguments)
@@ -84,7 +84,12 @@ def getTargets(target_file,target_list):
       sys.exit(1)
 
    for x in lines:
-      target_list.append(re.split(r'#',x))
+      tmp = x.split("#")
+      if len(tmp) == 3:
+         tmp.insert(1, tmp[0])
+         target_list.append(tmp)
+      else:
+         target_list.append(tmp)
 
    # Remove empty elements from list, could probably improve this
    for x in target_list:
@@ -286,8 +291,8 @@ def main(argv):
    tools = []
    argument = []
    dry_run = 1
-   config_tools = [[0 for x in range(16)] for x in range(256)] 
-   config_assessments = [[0 for x in range(16)] for x in range(256)] 
+   config_tools = [[0 for x in range(16)] for x in range(256)]
+   config_assessments = [[0 for x in range(16)] for x in range(256)]
    as_type = 0
    menu_items = []
 
