@@ -85,7 +85,7 @@ def getTargets(target_file,target_list):
 
    for x in lines:
       tmp = x.split("#")
-      if (len(tmp) == 3):
+      if len(tmp) == 3:
          tmp.insert(1, tmp[0])
          target_list.append(tmp)
       else:
