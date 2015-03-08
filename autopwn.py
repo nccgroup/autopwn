@@ -129,7 +129,7 @@ def checkToolExists(tool):
    if 0 != os.system("which " + tool[1] + " >/dev/null 2>&1"):
       if 0 != os.system("ls " + tool[1] + " >/dev/null 2>&1"):
          print "[E] " + tool[1] + " was not found. Quitting.."
-         sys.exit(1)
+         #sys.exit(1)
 
 def logAutopwn(log_string):
    date =  strftime("%Y%m%d")
@@ -152,6 +152,7 @@ def runTools(tools, config_assessments, target_list, dry_run):
       print "[I] The following tools will be run:"
 
    for host in target_list:
+      #print host
       for tool in tools:
          # Variable declaration for placeholder replacements
          date =  strftime("%Y%m%d_%H%M%S")
@@ -160,18 +161,23 @@ def runTools(tools, config_assessments, target_list, dry_run):
          port_number = host[2]
          target_protocol = host[3]
 
+         #print tool
+         #print "tdn " + target_domain_name
+         #print host[0] + " " + host[1] + " " + " " + host[2] + " " + host[3]
+
          # Let's do it
-         tool[2] = tool[2].format(target_domain_name=target_domain_name, target_ip=target_ip, date=date, port_number=port_number, target_protocol=target_protocol)
+         tool_instance = tool[2].format(target_domain_name=target_domain_name, target_ip=target_ip, date=date, port_number=port_number, target_protocol=target_protocol)
+         #print tool[2]
 
          # Not a dry run?
          if dry_run == 0:
             # Log tool run
-            tool_string = tool[1] + " " + tool[2]
+            tool_string = tool[1] + " " + tool_instance
             logAutopwn(tool_string)
 
             time.sleep (50.0 / 1000.0);
             #                           Thread ID  Name     Bin loc  args
-            thread.append(executeToolThread(index, tool[0], tool[1], tool[2]))
+            thread.append(executeToolThread(index, tool[0], tool[1], tool_instance))
             # If main process dies, everything else will as well
             thread[index].daemon = True
             # Start threads
@@ -185,7 +191,7 @@ def runTools(tools, config_assessments, target_list, dry_run):
 
          elif dry_run == 1:
             # Dry run, output tools only
-            print tool[1] + " " + tool[2]
+            print tool[1] + " " + tool_instance
          else:
             print "[E] runTools method expects dry_run parameter to be 1 or 0"
             sys.exit(1)
