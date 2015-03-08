@@ -41,20 +41,16 @@ def showHelp():
    print "                       this option"
    print
    print "Format of the target file should be:"
-   print "<ip>#<domain name>#[port-for-dirb]#[ssl-for-dirb] where"
-   print "[ssl-for-dirb] would be 'http' or 'https'."
-   print
-   print "If target does not have a domain name, specify IP in both fields.."
-   print "This might be fixed later.."
+   print "<ip>#[domain name]#<port>#<ssl> where"
+   print "<ssl> would be 'http' or 'https'."
    print
    print "Examples:"
    print "195.95.131.71#nccgroup.com#443#https"
-   print "216.58.208.78#google.com#80#http"
+   print "216.58.208.78#80#http"
    print
    print "autopwn uses the tools/ directory located where this script is"
    print "to load tool definitions, which are yaml files. You can find"
-   print "some examples in the directory already. If you think one is"
-   print "missing, mention it on GitHub or email me and I might add it."
+   print "some examples in the directory already."
    print
    print "autopwn also uses assessments/ for assessment definitions."
    print "Instead of selecting which tools you would like to run, you"

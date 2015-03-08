@@ -1,20 +1,18 @@
 TODO
 
-0 - What if the target doesn't have a domain name? Temp fix: IP in both fields (Y)
-0b) Review target file format..
-0c) Create another tool to specify targets and save in file..
+0) Review target file format..
+0b) Create another tool to specify targets and save in file..
 1 - Stop using os.system()
 2 - Get shot down by 14 year old Python devs,
     who've been coding for "over 20 years", on how I'm
     doing everything wrong, like not just import'ing autopwn
 3 - TDD? :\ :/ :( :X
 3b) Have online repo where users can share yaml
-    configs
-4 - What if tool requires root? Make check for this
-Add support for:
+    configs?
+4 - What if tool requires root?
+5 - Add support for:
 - enum4linux
 - nbtscan
-- sslyze
 - smb_scan
 - w3af ?
 - snmpwalk/check/etc
@@ -23,6 +21,10 @@ Add support for:
 - davtest?
 - DNS tools
 - Harvester?
-5 - Command line arguments?
+- recon tools?
 6 - Disable SSL scans if http specified ... Or just have non-SSL assessments B-)
-7 - showTools(?) method should print tool info as it would be run (not with placeholders)
+7 - Flags
+7b) Add option to run assessment if some tools don't exist?
+7c) Verbose flag?
+8 - Windows support?
+9 - Process tool output?
