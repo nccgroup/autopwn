@@ -28,3 +28,4 @@ TODO
 7c) Verbose flag?
 8 - Windows support?
 9 - Process tool output?
+10 - When Ctrl+c pressed on singular scan, bail (don't run next scan)
