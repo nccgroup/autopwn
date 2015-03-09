@@ -3,7 +3,9 @@
 import sys
 import getopt
 import re
+import subprocess
 import os
+import shlex
 import threading
 import time
 import yaml
@@ -56,7 +58,8 @@ class Run:
 
                # Parallel or singular?
                if assessment_type['parallel'] != 1:
-                  self.thread[self.index].join()
+                  while threading.activeCount()>1:
+                     pass
 
                self.index = self.index + 1
             else:
@@ -64,21 +67,29 @@ class Run:
 
       if dry_run != 1:
          if assessment_type['parallel'] == 1:
-            for tid in self.thread:
-               tid.join()
+            while threading.activeCount()>1:
+               pass
+            #for tid in self.thread:
+            #   tid.join(1)
 
 class RunThreads (threading.Thread):
-   #executeToolThread(1, tool[0], tool[1], tool[2])
-   def executeTool(self, thread_ID, tool_name, tool_binary_location, tool_arguments):
-      os.system(tool_binary_location + " " + tool_arguments)
-      #print tool_binary_location + " " + tool_arguments
-
    def __init__(self, thread_ID, tool_name, tool_binary_location, tool_arguments):
       threading.Thread.__init__(self)
+      self.kill_received = False
       self.thread_ID = thread_ID
       self.tool_name = tool_name
       self.tool_binary_location = tool_binary_location
       self.tool_arguments = tool_arguments
+
+   #executeToolThread(1, tool[0], tool[1], tool[2])
+   def executeTool(self, thread_ID, tool_name, tool_binary_location, tool_arguments):
+      #os.system(tool_binary_location + " " + tool_arguments)
+      # Using shell = True can be a security risk,
+      # and this will be fixed at some point. For now
+      # (and always), check any tools provided by
+      # community members
+      subprocess.call(tool_binary_location + " " + tool_arguments,shell = True)
+      #print tool_binary_location + " " + tool_arguments
 
    def run(self):
       print "[+] Launching " + self.tool_name
@@ -151,6 +162,10 @@ class Assessments:
          self.assessment_type = config.assessments_config[menu.item_selected]
 
 class Print:
+   def __init__(self, display_text, file_descriptor):
+      if display_text == 'help':
+         self.displayHelp(file_descriptor)
+
    def displayHelp(self, file_descriptor):
       # Not doing anything with file_descriptor yet
       print "autopwn v0.4"
@@ -187,10 +202,6 @@ class Print:
       print "Legal purposes only.."
       print
       sys.exit(1)
-
-   def __init__(self, display_text, file_descriptor):
-      if display_text == 'help':
-         self.displayHelp(file_descriptor)
 
 class Arguments:
    argument = {'assessment':'', 'target_file':''}
@@ -291,6 +302,10 @@ class Configuration:
             self.target_list.remove(x)
 
 class Prompt:
+   def __init__(self, prompt, config, tools, assessment):
+      if prompt == 'run_tools':
+         self.runTools(config,tools,assessment)
+
    def runTools(self, config, tools, assessment):
       run_tools = raw_input('Run tools? [Ny] ')
 
@@ -301,10 +316,6 @@ class Prompt:
       else:
          print "[E] Alright, I quit.."
          sys.exit(1)
-
-   def __init__(self, prompt, config, tools, assessment):
-      if prompt == 'run_tools':
-         self.runTools(config,tools,assessment)
 
 def main():
    # Process arguments
@@ -321,4 +332,9 @@ def main():
       prompt = Prompt('run_tools',config,tools,assessment)
 
 if __name__ == "__main__":
-   main()
+   try:
+      main()
+   except KeyboardInterrupt:
+      print
+      print "[E] Quitting!"
+      sys.exit(1)
