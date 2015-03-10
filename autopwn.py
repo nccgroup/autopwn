@@ -168,7 +168,7 @@ class Print:
 
    def displayHelp(self, file_descriptor):
       # Not doing anything with file_descriptor yet
-      print "autopwn v0.4"
+      print "autopwn v0.5"
       print "By Aidan Marlin (email: aidan [dot] marlin [at] nccgroup [dot] com)."
       print
       print "-t <target_file>       Required. The file containing the targets"
@@ -177,15 +177,12 @@ class Print:
       print "                       this option"
       print
       print "Format of the target file should be:"
-      print "<ip>#<domain name>#[port-for-dirb]#[ssl-for-dirb] where"
-      print "[ssl-for-dirb] would be 'http' or 'https'."
-      print
-      print "If target does not have a domain name, specify IP in both fields.."
-      print "This might be fixed later.."
+      print "<ip>#[domain name]#<port>#<ssl> where"
+      print "<ssl> would be 'http' or 'https'."
       print
       print "Examples:"
       print "195.95.131.71#nccgroup.com#443#https"
-      print "216.58.208.78#google.com#80#http"
+      print "216.58.208.78#80#http"
       print
       print "autopwn uses the tools/ directory located where this script is"
       print "to load tool definitions, which are yaml files. You can find"
@@ -194,9 +191,9 @@ class Print:
       print
       print "autopwn also uses assessments/ for assessment definitions."
       print "Instead of selecting which tools you would like to run, you"
-      print "can specify which assessment you would like to run instead."
-      print "Assessment configuration files contain lists of tools which"
-      print "will be run as a result."
+      print "specify which assessment you would like to run. Assessment"
+      print "configuration files contain lists of tools which will be run"
+      print "as a result."
       print
       print "Have fun!"
       print "Legal purposes only.."
