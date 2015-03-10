@@ -1,3 +1,3 @@
-1 - If an assessment is created which focuses on port scanning different ports on the same host then there was a chance that files would be overwritten in parallel mode. The fix (time.sleep()) is not a permanent one.
+1 - If an assessment is created which focuses on port scanning different ports on the same host then there was a chance that files would be overwritten in parallel mode. Temporary fix is to have target directories.
 
 What probably needs to happen is in the tools config file, an output file placeholder should be defined so that autopwn knows where tool output goes. In this case, autopwn can check if the file exists or not, and then make decision (file_name + "_" + some_int probably)

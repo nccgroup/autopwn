@@ -14,4 +14,5 @@ binary_location: /usr/bin/skipfish
 # * target_protocol (returns 'http' or 'https')
 # * date (current date in format 20150226_213959) # date =  strftime("%Y%m%d_%H%M%S")
 # * port_number (if target port number has been specified)
-arguments: "-o {date}_skipfish_{target_domain_name} -u -U -O {target_protocol}://{target_domain_name} >/dev/null 2>&1"
+# * output_dir (directory where tool output will be saved for specific target)
+arguments: "-o {output_dir}/{date}_skipfish_{target_domain_name} -u -U -O {target_protocol}://{target_domain_name} >/dev/null 2>&1"

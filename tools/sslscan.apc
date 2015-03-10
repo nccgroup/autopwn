@@ -14,4 +14,5 @@ binary_location: /usr/bin/sslscan
 # * target_protocol (returns 'http' or 'https')
 # * date (current date in format 20150226_213959) # date =  strftime("%Y%m%d_%H%M%S")
 # * port_number (if target port number has been specified)
-arguments: "{target_domain_name}:{port_number} > {date}_sslscan_{target_domain_name} 2>/dev/null"
+# * output_dir (directory where tool output will be saved for specific target)
+arguments: "{target_domain_name}:{port_number} > {output_dir}/{date}_sslscan_{target_domain_name} 2>/dev/null"

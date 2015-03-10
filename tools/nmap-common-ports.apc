@@ -14,4 +14,5 @@ binary_location: /usr/bin/nmap
 # * target_protocol (returns 'http' or 'https')
 # * date (current date in format 20150226_213959) # date =  strftime("%Y%m%d_%H%M%S")
 # * port_number (if target port number has been specified)
-arguments: "-A -sS -sC -sV {target_domain_name} -oA {date}_nmap_{target_domain_name}_full_range >/dev/null 2>&1"
+# * output_dir (directory where tool output will be saved for specific target)
+arguments: "-A -sS -sC -sV {target_domain_name} -oA {output_dir}/{date}_nmap_{target_domain_name}_full_range >/dev/null 2>&1"

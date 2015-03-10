@@ -34,13 +34,23 @@ class Run:
          for tool in tools_subset:
             # Variable declaration for placeholder replacements
             date =  strftime("%Y%m%d_%H%M%S")
+            date_day =  strftime("%Y%m%d")
             target_ip = host[0]
             target_domain_name = host[1]
             port_number = host[2]
             target_protocol = host[3]
+            output_dir = date_day + "_autopwn_" + target_ip + "_" + target_domain_name + "_" + port_number + "_" + target_protocol
+
+            # Create log directory in CWD
+            if not os.path.exists(output_dir):
+               try:
+                  os.makedirs(output_dir)
+               except OSError as e:
+                  print "[E] Error creating output directory: " + e
+                  sys.exit(1)
 
             # Let's do it
-            tool_arguments_instance = tool['arguments'].format(target_domain_name=target_domain_name, target_ip=target_ip, date=date, port_number=port_number, target_protocol=target_protocol)
+            tool_arguments_instance = tool['arguments'].format(target_domain_name=target_domain_name, target_ip=target_ip, date=date, port_number=port_number, target_protocol=target_protocol, output_dir=output_dir)
 
             tool_string = tool['binary_location'] + " " + tool_arguments_instance
 
@@ -48,8 +58,7 @@ class Run:
             if dry_run != 1:
                log = Log('tool_string',tool_string)
 
-               # Stop files being overwritten. See BUG list item #1
-               time.sleep (1.1);
+               time.sleep (0.1);
                #                                  Thread ID  Name     Bin loc  args
                self.thread.append(RunThreads(self.index, tool['name'], tool['binary_location'], tool_arguments_instance))
                # If main process dies, everything else will as well
@@ -169,7 +178,7 @@ class Print:
 
    def displayHelp(self, file_descriptor):
       # Not doing anything with file_descriptor yet
-      print "autopwn v0.5"
+      print "autopwn v0.6"
       print "By Aidan Marlin (email: aidan [dot] marlin [at] nccgroup [dot] com)."
       print
       print "-t <target_file>       Required. The file containing the targets"
