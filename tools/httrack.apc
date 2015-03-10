@@ -1,0 +1,17 @@
+# autopwn yaml tool config file
+# 201503 v0.2
+
+# The name as it will be referenced by in assessments
+name: httrack
+
+# Location of the file on filesystem
+binary_location: /usr/bin/httrack
+
+# Tool arguments
+# Python's str.format() is used for variable replacement. Valid entries are:
+# * target_domain_name
+# * target_ip
+# * target_protocol (returns 'http' or 'https')
+# * date (current date in format 20150226_213959) # date =  strftime("%Y%m%d_%H%M%S")
+# * port_number (if target port number has been specified)
+arguments: "{target_protocol}://{target_domain_name} > {date}_httrack_{target_domain_name} 2>/dev/null"

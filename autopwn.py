@@ -48,7 +48,8 @@ class Run:
             if dry_run != 1:
                log = Log('tool_string',tool_string)
 
-               time.sleep (50.0 / 1000.0);
+               # Stop files being overwritten. See BUG list item #1
+               time.sleep (1.1);
                #                                  Thread ID  Name     Bin loc  args
                self.thread.append(RunThreads(self.index, tool['name'], tool['binary_location'], tool_arguments_instance))
                # If main process dies, everything else will as well
