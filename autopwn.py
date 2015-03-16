@@ -16,12 +16,25 @@ from time import gmtime, strftime
 # Project born 201502
 
 class Log:
-   def __init__(self, log_type, log_string):
+   def __init__(self, directory, log_type, log_string):
+      date =  strftime("%Y%m%d")
+      date_time =  strftime("%Y%m%d %H:%M:%S")
+
       if log_type == 'tool_string':
-         date =  strftime("%Y%m%d")
-         date_time =  strftime("%Y%m%d %H:%M:%S")
-         log_file = open(date + "_autopwn_commands.log","a")
+         try:
+            log_file = open(date + "_autopwn_commands.log","a")
+         except OSError as e:
+            print "[E] Error creating log file: " + e
+            sys.exit(1)
          log_file.write("# " + date_time + "\n")
+         log_file.write(log_string + "\n")
+         log_file.close()
+      if log_type == 'individual_target':
+         try:
+            log_file = open(directory + "/target","w")
+         except OSError as e:
+            print "[E] Error creating log file: " + e
+            sys.exit(1)
          log_file.write(log_string + "\n")
          log_file.close()
 
@@ -49,6 +62,9 @@ class Run:
                   print "[E] Error creating output directory: " + e
                   sys.exit(1)
 
+            # Create target file in new directory
+            Log(output_dir,'individual_target',target_ip + '#' + target_domain_name + '#' + port_number + '#' + target_protocol)
+
             # Let's do it
             tool_arguments_instance = tool['arguments'].format(target_domain_name=target_domain_name, target_ip=target_ip, date=date, port_number=port_number, target_protocol=target_protocol, output_dir=output_dir)
 
@@ -56,7 +72,7 @@ class Run:
 
             # Run for real
             if dry_run != 1:
-               log = Log('tool_string',tool_string)
+               log = Log(os.getcwd(),'tool_string',tool_string)
 
                time.sleep (0.1);
                #                                  Thread ID  Name     Bin loc  args
