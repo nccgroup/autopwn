@@ -107,9 +107,7 @@ class RunThreads (threading.Thread):
       self.tool_binary_location = tool_binary_location
       self.tool_arguments = tool_arguments
 
-   #executeToolThread(1, tool[0], tool[1], tool[2])
-   def executeTool(self, thread_ID, tool_name, tool_binary_location, tool_arguments):
-      #os.system(tool_binary_location + " " + tool_arguments)
+   def execute_tool(self, thread_ID, tool_name, tool_binary_location, tool_arguments):
       # Using shell = True can be a security risk,
       # and this will be fixed at some point. For now
       # (and always), check any tools provided by
@@ -119,9 +117,9 @@ class RunThreads (threading.Thread):
 
    def run(self):
       print "[+] Launching " + self.tool_name
-      self.executeTool(self.thread_ID, self.tool_name, self.tool_binary_location, self.tool_arguments)
+      self.execute_tool(self.thread_ID, self.tool_name, self.tool_binary_location, self.tool_arguments)
       print "[-] " + self.tool_name + " is done.."
-      log = Log('tool_string',"# " + self.tool_name + " has finished")
+      log = Log(os.getcwd(),'tool_string',"# " + self.tool_name + " has finished")
 
 class Tools:
    tool_subset = []
@@ -137,9 +135,9 @@ class Menus:
 
    def __init__(self, menu_items, menu_name):
       if menu_name == 'assessment':
-         self.displayAssessmentMenu(menu_items)
+         self.display_assessment_menu(menu_items)
 
-   def displayAssessmentMenu(self, menu_items):
+   def display_assessment_menu(self, menu_items):
       valid_option_index = 0
 
       print "What assessment do you want to run?"
@@ -190,9 +188,9 @@ class Assessments:
 class Print:
    def __init__(self, display_text, file_descriptor):
       if display_text == 'help':
-         self.displayHelp(file_descriptor)
+         self.display_help(file_descriptor)
 
-   def displayHelp(self, file_descriptor):
+   def display_help(self, file_descriptor):
       # Not doing anything with file_descriptor yet
       print "autopwn v0.6"
       print "By Aidan Marlin (email: aidan [dot] marlin [at] nccgroup [dot] com)."
@@ -327,9 +325,9 @@ class Configuration:
 class Prompt:
    def __init__(self, prompt, config, tools, assessment):
       if prompt == 'run_tools':
-         self.runTools(config,tools,assessment)
+         self.run_tools(config,tools,assessment)
 
-   def runTools(self, config, tools, assessment):
+   def run_tools(self, config, tools, assessment):
       run_tools = raw_input('Run tools? [Ny] ')
 
       if run_tools.lower() == "y":

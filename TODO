@@ -2,15 +2,14 @@ TODO
 
 0) Review target file format..
 0b) Create another tool to specify targets and save in file..
-1 - Stop using os.system()
-2 - Get shot down by 14 year old Python devs,
+1 - Get shot down by 14 year old Python devs,
     who've been coding for "over 20 years", on how I'm
     doing everything wrong, like not just import'ing autopwn
-3 - TDD? :\ :/ :( :X
-3b) Have online repo where users can share yaml
+2 - TDD? :\ :/ :( :X
+2b) Have online repo where users can share yaml
     configs?
-4 - What if tool requires root?
-5 - Add support for:
+3 - What if tool requires root?
+4 - Add support for:
 - enum4linux
 - nbtscan
 - smb_scan
@@ -22,11 +21,10 @@ TODO
 - DNS tools
 - Harvester?
 - recon tools?
-6 - Disable SSL scans if http specified ... Or just have non-SSL assessments B-)
-7 - Flags
-7b) Add option to run assessment if some tools don't exist?
-7c) Verbose flag?
-8 - Windows support?
-9 - Process tool output?
-10 - Improve Ctrl+c support
-10b) Clean up files?
+5 - Disable SSL scans if http specified ... Or just have non-SSL assessments B-)
+6 - Flags
+6b) Add option to run assessment if some tools don't exist?
+6c) Verbose flag?
+7 - Windows support?
+8 - Improve Ctrl+c support
+8b) Clean up files?
