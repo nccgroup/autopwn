@@ -5,6 +5,6 @@ url: https://github.com/iSECPartners/sslyze
 rules:
    equals:
       'target_protocol': 'https'
-   target-parameter-exists: ['target_port_number']
+   target-parameter-exists: ['target_ip','target_port_number']
 
 arguments: "--regular {target_domain_name} > {output_dir}/{date}_sslyze_{target_domain_name} 2>/dev/null"

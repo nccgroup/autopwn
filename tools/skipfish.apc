@@ -2,4 +2,7 @@ name: skipfish
 binary_location: /usr/bin/skipfish
 url: https://code.google.com/p/skipfish/
 
-arguments: "-o {output_dir}/{date}_skipfish_{target_domain_name} -u -U -O {target_protocol}://{target_domain_name} >/dev/null 2>&1"
+rules:
+   target-parameter-exists: ['target_ip','target_port_number']
+
+arguments: "-o {output_dir}/{date}_skipfish_{target_domain_name}:{target_port_number}/{target_url} -u -U -O {target_protocol}://{target_domain_name} >/dev/null 2>&1"

@@ -2,4 +2,7 @@ name: nmap-common-ports
 binary_location: /usr/bin/nmap
 url: http://nmap.org/
 
+rules:
+   target-parameter-exists: ['target_ip']
+
 arguments: "-A -sS -sC -sV {target_domain_name} -oA {output_dir}/{date}_nmap_{target_domain_name}_full_range >/dev/null 2>&1"

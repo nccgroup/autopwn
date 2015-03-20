@@ -2,4 +2,7 @@ name: udp-proto-scanner
 binary_location: /usr/local/bin/udp-proto-scanner.pl
 url: https://labs.portcullis.co.uk/tools/udp-proto-scanner/
 
+rules:
+   target-parameter-exists: ['target_ip']
+
 arguments: "{target_ip} > {output_dir}/{date}_udp-proto-scanner_{target_ip} 2>/dev/null"

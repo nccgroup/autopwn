@@ -9,5 +9,5 @@ tool will also be useful during certain exams I suspect..
 Core concepts of this project are:
 
 1. Quickness - Specify targets and run pre-defined assessments against them
-2. Easiness - Tool should be easy to use and write tool and assessment configurations for
-3. Recon - This tool should be considered for recon purposes only. I wouldn't rely on this script to automatically identify and exploit issues (even though the tool name sort of implies such skiddy concepts)
+2. Easiness - autopwn should be easy to use and write tool and assessment configurations for
+3. Recon - autopwn should be considered for recon purposes only. I wouldn't rely on this script to automatically identify and exploit issues (even though the tool name sort of implies such skiddy concepts)

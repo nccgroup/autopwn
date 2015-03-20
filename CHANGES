@@ -1,3 +1,9 @@
+autopwn v0.8 - 20150320
+
+* Changed target file format (had to happen)
+* Included URL path option
+* Bug fixes
+
 autopwn v0.7 - 20150320
 
 * Added rulesets to tools

@@ -3,6 +3,6 @@ binary_location: /usr/bin/httrack
 url: http://www.httrack.com/
 
 rules:
-   target-parameter-exists: ['target_protocol','target_port_number']
+   target-parameter-exists: ['target_ip','target_protocol','target_port_number']
 
-arguments: "{target_protocol}://{target_domain_name}:{target_port_number} > {output_dir}/{date}_httrack_{target_domain_name} 2>/dev/null"
+arguments: "{target_protocol}://{target_domain_name}:{target_port_number}/{target_url} > {output_dir}/{date}_httrack_{target_domain_name} 2>/dev/null"

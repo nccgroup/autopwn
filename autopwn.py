@@ -17,7 +17,7 @@ from time import gmtime, strftime
 # Project born 201502
 
 class Log:
-   def __init__(self, directory, log_type, log_string):
+   def __init__(self, config, directory, log_type, log_string):
       date =  strftime("%Y%m%d")
       date_time =  strftime("%Y%m%d %H:%M:%S") # TODO Offset time
 
@@ -27,6 +27,12 @@ class Log:
          except OSError as e:
             print "[E] Error creating log file: " + e
             sys.exit(1)
+         try:
+            if config.log_started != 1:
+               log_file.write("## autopwn v0.8 command output\n")
+               config.log_started = 1
+         except:
+            pass
          log_file.write("# " + date_time + "\n")
          log_file.write(log_string + "\n")
          log_file.close()
@@ -52,11 +58,11 @@ class Run:
          # Run for real
          if config.dry_run != 1:
             try:
-               log = Log(os.getcwd(),'tool_string',"# Executing " + \
+               log = Log(config,os.getcwd(),'tool_string',"# Executing " + \
                      tool['name'] + " tool (" + tool['url'] + "):\n" + \
                      tool['execute_string'])
             except:
-               log = Log(os.getcwd(),'tool_string',"# Executing " + \
+               log = Log(config,os.getcwd(),'tool_string',"# Executing " + \
                      tool['name'] + " tool:\n# " + \
                      tool['execute_string'])
 
@@ -108,7 +114,7 @@ class RunThreads (threading.Thread):
       self.execute_tool(self.thread_ID, self.tool_name,
                         self.tool_execute_string)
       print "[-] " + self.tool_name + " is done.."
-      log = Log(os.getcwd(),'tool_string',"# " + self.tool_name + \
+      log = Log(False,os.getcwd(),'tool_string',"# " + self.tool_name + \
             " has finished")
 
 class Tools:
@@ -118,7 +124,7 @@ class Tools:
          if tool['name'] in assessment['tools']:
             config.tool_subset.append(tool)
 
-      print "autopwn v0.7 by Aidan Marlin"
+      print "autopwn v0.8 by Aidan Marlin"
       print "email: aidan [dot] marlin [at] nccgroup [dot] com"
       print
       self.replace_placeholders(config, assessment)
@@ -147,14 +153,7 @@ class Tools:
             # Variable declaration for placeholder replacements
             date =  strftime("%Y%m%d_%H%M%S")
             date_day =  strftime("%Y%m%d")
-            try:
-               output_dir = date_day + "_autopwn_" + host['target_ip'] + \
-                           "_" + host['target_domain_name'] + "_" + \
-                           host['target_port_number'] + "_" + \
-                           host['target_protocol']
-            except:
-               # Not all target arguments specified
-               output_dir = date_day + "_autopwn_" + host['target_ip']
+            output_dir = date_day + "_autopwn_" + host['target_ip'] + "_" + host['target_name']
 
             # Create log directory in CWD
             if not os.path.exists(output_dir):
@@ -166,13 +165,13 @@ class Tools:
 
             # Create target file in new directory
             try:
-               Log(output_dir,'individual_target',host['target_ip'] + '#' + \
+               Log(config,output_dir,'individual_target',host['target_ip'] + '#' + \
                   host['target_domain_name'] + '#' + \
                   host['target_port_number'] + '#' + \
                   host['target_protocol'])
             except:
                # Not all target arguments specified
-               Log(output_dir,'individual_target',host['target_ip'])
+               Log(config,output_dir,'individual_target',host['target_ip'])
 
             # Replace placeholders for tool argument string
             tool_arguments_instance = config.tool_subset_evaluated[-1]['arguments'].format(
@@ -180,27 +179,33 @@ class Tools:
                                        target_ip=host['target_ip'], date=date,
                                        target_port_number=host['target_port_number'],
                                        target_protocol=host['target_protocol'],
+                                       target_url=host['target_url'],
+                                       target_name=host['target_name'],
                                        output_dir=output_dir)
 
             config.tool_subset_evaluated[-1]['execute_string'] = config.tool_subset_evaluated[-1]['binary_location'] + " " + \
                                     tool_arguments_instance
 
             # Replace placeholders for pre tool command string
-            if 'pre_tool_execution' in config.tool_subset_evaluated:
+            if 'pre_tool_execution' in config.tool_subset_evaluated[-1]:
                config.tool_subset_evaluated[-1]['pre_tool_execution'] = config.tool_subset_evaluated[-1]['pre_tool_execution'].format(
                                        target_domain_name=host['target_domain_name'],
                                        target_ip=host['target_ip'], date=date,
                                        target_port_number=host['target_port_number'],
                                        target_protocol=host['target_protocol'],
+                                       target_url=host['target_url'],
+                                       target_name=host['target_name'],
                                        output_dir=output_dir)
 
             # Replace placeholders for post tool command string
-            if 'post_tool_execution' in config.tool_subset_evaluated:
+            if 'post_tool_execution' in config.tool_subset_evaluated[-1]:
                config.tool_subset_evaluated[-1]['post_tool_execution'] = config.tool_subset_evaluated[-1]['post_tool_execution'].format(
                                        target_domain_name=host['target_domain_name'],
                                        target_ip=host['target_ip'], date=date,
                                        target_port_number=host['target_port_number'],
                                        target_protocol=host['target_protocol'],
+                                       target_url=host['target_url'],
+                                       target_name=host['target_name'],
                                        output_dir=output_dir)
 
 class Menus:
@@ -222,6 +227,7 @@ class Menus:
 
       try:
          self.item_selected = raw_input('Choose > ')
+         print
       except (KeyboardInterrupt, SystemExit):
          print
          print "[E] Abandon ship!"
@@ -269,7 +275,7 @@ class Print:
 
    def display_help(self, file_descriptor):
       # Not doing anything with file_descriptor yet
-      print "autopwn v0.7"
+      print "autopwn v0.8"
       print "By Aidan Marlin"
       print "Email: aidan [dot] marlin [at] nccgroup [dot] com"
       print
@@ -343,6 +349,7 @@ class Arguments:
 # Configuration class loads all information from .apc files and target file
 class Configuration:
    # Class vars
+   log_started = 0
    tools_config = []
    assessments_config = []
    menu_items = []
@@ -419,7 +426,9 @@ class Configuration:
       ###
       try:
          fd_targets = open(target_file, 'r')
-         lines = fd_targets.read().split('\n')
+         yaml_content = yaml.load(fd_targets)
+         #for target in yaml_content['targets']:
+         #   print target
          fd_targets.close()
       except IOError as e:
          print "[E] Error processing target file: {1}".format(e.errno,
@@ -427,29 +436,51 @@ class Configuration:
          sys.exit(1)
 
       # Process each target in target list
-      for index, line in enumerate(lines):
-         if line != '':
-            line_split = line.split("#")
-            #if len(line_split) == 3:
-            #   line_split.insert(1, line_split[0])
-            target_ip = line_split[0]
-            # If certain attributes haven't been specified, set to False
+      target_name_matrix = []
+
+      for target in yaml_content['targets']:
+            # If attributes haven't been specified, set to False
             try:
-               target_domain_name = line_split[1]
+               # Does this exist? It bloody well should
+               target['target_name']
             except:
-               target_domain_name = line_split[0]
+               print "[E] Target name missing: Target name must be specified"
+               sys.exit(1)
+            if target['target_name'] in target_name_matrix:
+               print "[E] Duplicate target names identified"
+               sys.exit(1)
+            else:
+               target_name_matrix.extend([target['target_name']])
+               target_name = target['target_name']
             try:
-               target_port_number = line_split[2]
+               target_ip = target['ip-address']
+            except:
+               target_ip = False
+            try:
+               target_domain_name = target['domain']
+            except:
+               target_domain_name = target_ip
+            try:
+               target_port_number = target['port']
             except:
                target_port_number = False
             try:
-               target_protocol = line_split[3]
+               target_protocol = target['protocol']
             except:
                target_protocol = False
+            try:
+               target_url = target['url']
+               # Forward slash (/) SHOULD already be in tool argument string
+               if target_url.startswith('/'):
+                  target_url = target_url[1:]
+            except:
+               target_url = ''
 
             self.target_list.append({'target_ip':target_ip,
                                      'target_domain_name':target_domain_name,
                                      'target_port_number':target_port_number,
+                                     'target_url':target_url,
+                                     'target_name':target_name,
                                      'target_protocol':target_protocol})
 
       #print "self.target_list = " + str(self.target_list)
@@ -590,10 +621,14 @@ class Commands:
 
    def pre_command(self, config, assessment_type):
       if config.dry_run == 1:
+         display_pre_command_banner = 1
+
          for tool in config.tool_subset_evaluated:
-            if 'pre_tool_execution' in tool:
+            if 'pre_tool_execution' in tool and \
+                  display_pre_command_banner == 1:
                print "The following pre-tool execution commands will be run:"
                print "--------------------------------"
+               display_pre_command_banner = 0
       for tool in config.tool_subset_evaluated:
          try:
             if config.dry_run == 1:
@@ -603,7 +638,7 @@ class Commands:
                   print "[+] Running pre-tool commands for " + tool['name']
                   subprocess.call(tool['pre_tool_execution'],shell = True)
                   print "[-] Pre-tool commands for " + tool['name'] + " have completed.."
-                  log = Log(os.getcwd(),'tool_string',
+                  log = Log(config,os.getcwd(),'tool_string',
                         "# Pre-tool commands for " + tool['name'] + \
                         " have finished")
 
@@ -611,12 +646,15 @@ class Commands:
             pass
 
    def post_command(self, config, assessment_type):
+      display_post_command_banner = 1
       if config.dry_run == 1:
          for tool in config.tool_subset_evaluated:
-            if 'post_tool_execution' in tool:
+            if 'post_tool_execution' in tool and \
+                  display_post_command_banner == 1:
                print "--------------------------------"
                print "The following post-tool execution commands will be run:"
                print "--------------------------------"
+               display_post_command_banner = 0
       for tool in config.tool_subset_evaluated:
          try:
             if config.dry_run == 1:
@@ -626,7 +664,7 @@ class Commands:
                   print "[+] Running post-tool commands for " + tool['name']
                   subprocess.call(tool['post_tool_execution'],shell = True)
                   print "[-] Post-tool commands for " + tool['name'] + " have completed.."
-                  log = Log(os.getcwd(),'tool_string',
+                  log = Log(config,os.getcwd(),'tool_string',
                         "# Post-tool commands for " + tool['name'] + \
                         " has finished")
 

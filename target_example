@@ -1,5 +1,9 @@
-127.0.0.1#localhost1#80#http
-127.0.0.2#localhost2#80#http
-127.0.0.3#localhost3#80#http
-127.0.0.4#localhost4#80#http
-127.0.0.5#localhost5#80#http
+targets:
+   - target_name: test
+     ip-address: 127.0.0.1
+     domain: test.com
+     url: /test
+     port: 80
+     protocol: https
+   - target_name: test-1
+     ip-address: 127.0.0.2

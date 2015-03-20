@@ -5,6 +5,6 @@ url: http://sourceforge.net/projects/sslscan/
 rules:
    equals:
       'target_protocol': 'https'
-   target-parameter-exists: ['target_port_number']
+   target-parameter-exists: ['target_ip','target_port_number']
 
 arguments: "{target_domain_name}:{target_port_number} > {output_dir}/{date}_sslscan_{target_domain_name} 2>/dev/null"

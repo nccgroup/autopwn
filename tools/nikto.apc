@@ -2,4 +2,7 @@ name: nikto
 binary_location: /usr/bin/nikto
 url: https://cirt.net/Nikto2
 
-arguments: "-h {target_domain_name} -o {output_dir}/{date}_nikto_{target_domain_name}.txt >/dev/null 2>&1"
+rules:
+   target-parameter-exists: ['target_ip','target_port_number']
+
+arguments: "-h {target_protocol}://{target_domain_name}:{target_port_number} -root /{target_url} -o {output_dir}/{date}_nikto_{target_domain_name}.txt >/dev/null 2>&1"

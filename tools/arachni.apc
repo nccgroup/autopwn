@@ -2,15 +2,10 @@ name: arachni
 binary_location: /root/Downloads/arachni-1.0.6-0.5.6/bin/arachni
 url: http://www.arachni-scanner.com/
 
-#rules:
-#   not-equals:
-#      'target_domain_name': ['localhost','127.0.0.1']
 rules:
    target-parameter-exists: ['target_ip','target_domain_name','target_port_number','target_protocol']
-   equals:
-      'target_protocol': 'https'
    not-equals:
       'target_domain_name': ['localhost','127.0.0.1']
 
-post_tool_execution: "/root/Downloads/arachni-1.0.6-0.5.6/bin/arachni_reporter {output_dir}/*.afr"
-arguments: "{target_protocol}://{target_domain_name} --report-save-path {output_dir}/ >/dev/null 2>&1"
+post_tool_execution: "/root/Downloads/arachni-1.0.6-0.5.6/bin/arachni_reporter {output_dir}/*.afr --report=html:outfile={output_dir}/{date}_arachni_reporter_{target_ip}_{target_name}.html >/dev/null 2>&1"
+arguments: "{target_protocol}://{target_domain_name}:{target_port_number}/{target_url} --report-save-path {output_dir}/ >/dev/null 2>&1"
