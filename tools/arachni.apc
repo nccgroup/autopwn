@@ -7,5 +7,5 @@ rules:
    not-equals:
       'target_domain_name': ['localhost','127.0.0.1']
 
-post_tool_execution: "/root/Downloads/arachni-1.0.6-0.5.6/bin/arachni_reporter {output_dir}/*.afr --report=html:outfile={output_dir}/{date}_arachni_reporter_{target_ip}_{target_name}.html >/dev/null 2>&1"
+post_tool_execution: "/root/Downloads/arachni-1.0.6-0.5.6/bin/arachni_reporter {output_dir}/*.afr --report=html:outfile={output_dir}/{date}_{target_name}_arachni_reporter_{target_domain_name}.zip >/dev/null 2>&1 && mkdir {output_dir}/{date}_{target_name}_arachni_reporter_{target_domain_name} && unzip {output_dir}/{date}_{target_name}_arachni_reporter_{target_domain_name}.zip -d {output_dir}/{date}_{target_name}_arachni_reporter_{target_domain_name}"
 arguments: "{target_protocol}://{target_domain_name}:{target_port_number}/{target_url} --report-save-path {output_dir}/ >/dev/null 2>&1"

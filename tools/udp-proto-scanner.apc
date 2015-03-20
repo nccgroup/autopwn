@@ -5,4 +5,4 @@ url: https://labs.portcullis.co.uk/tools/udp-proto-scanner/
 rules:
    target-parameter-exists: ['target_ip']
 
-arguments: "{target_ip} > {output_dir}/{date}_udp-proto-scanner_{target_ip} 2>/dev/null"
+arguments: "{target_ip} > {output_dir}/{date}_{target_name}_udp-proto-scanner_{target_domain_name} 2>/dev/null"

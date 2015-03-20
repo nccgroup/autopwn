@@ -5,4 +5,4 @@ url: https://code.google.com/p/skipfish/
 rules:
    target-parameter-exists: ['target_ip','target_port_number']
 
-arguments: "-o {output_dir}/{date}_skipfish_{target_domain_name}:{target_port_number}/{target_url} -u -U -O {target_protocol}://{target_domain_name} >/dev/null 2>&1"
+arguments: "-o {output_dir}/{date}_{target_name}_skipfish_{target_domain_name} -u -U -O {target_protocol}://{target_domain_name}:{target_port_number}/{target_url} >/dev/null 2>&1"

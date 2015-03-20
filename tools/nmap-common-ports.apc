@@ -5,4 +5,4 @@ url: http://nmap.org/
 rules:
    target-parameter-exists: ['target_ip']
 
-arguments: "-A -sS -sC -sV {target_domain_name} -oA {output_dir}/{date}_nmap_{target_domain_name}_full_range >/dev/null 2>&1"
+arguments: "-A -sS -sC -sV {target_domain_name} -oA {output_dir}/{date}_{target_name}_nmap_common_ports_{target_domain_name} >/dev/null 2>&1"
