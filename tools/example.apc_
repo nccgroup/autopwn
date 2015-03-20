@@ -1,0 +1,40 @@
+# autopwn yaml tool config file
+
+# The name as it will be referenced by in assessments
+name: example
+
+# Location of the file on filesystem
+binary_location: /usr/bin/example
+
+# Website
+url: http://example.net/
+
+# Rules which must be abided by in order for the tool to be executed
+# Valid items are:
+# * equals
+# * not-equals
+# * less-than
+# * greater-than
+# * target-parameter-exists
+rules:
+   target-parameter-exists: ['target_ip','target_domain_name','target_port_number','target_protocol']
+   equals:
+      'target_protocol': 'https'
+   not-equals:
+      'target_domain_name': ['localhost','127.0.0.1']
+
+# Execute shell commands before and/or after tool execution
+# Pre and post tool execution commands will always run one
+# after another (even if parallel option set)
+pre_tool_execution: "sleep 5"
+post_tool_execution: "/usr/bin/example_report {output_dir}"
+
+# Tool arguments
+# Python's str.format() is used for variable replacement. Valid entries are:
+# * target_domain_name
+# * target_ip
+# * target_protocol (returns 'http' or 'https')
+# * date (current date in format 20150226_213959) # date =  strftime("%Y%m%d_%H%M%S")
+# * target_port_number (if target port number has been specified)
+# * output_dir (directory where tool output will be saved for specific target)
+arguments: "{target_protocol}://{target_domain_name}:{target_port_number} -o {output_dir}/{date}_example_{target_domain_name} >/dev/null 2>&1"

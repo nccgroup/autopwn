@@ -1,20 +1,7 @@
-# autopwn assessment config file
-# 201503 v0.1
-
-# TODO
-# 1 - Parallel? Specified in assessments config
-# 2 - stdout stderr? Specified in tools config?
-# 3 - Order / priority? Specified in assessments config
-
-# The assessment name as it will be specifiable by the command line
 name: nmap
+menu_name: Nmap Scan (All TCP Ports)
 
-# Tools which will be used in this assessment
 tools:
    - nmap
 
-# Menu name
-menu_name: Nmap Scan (All TCP Ports)
-
-# Run tools in parallel?
 parallel: 0

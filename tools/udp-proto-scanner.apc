@@ -1,18 +1,5 @@
-# autopwn yaml tool config file
-# 201503 v0.2
-
-# The name as it will be referenced by in assessments
 name: udp-proto-scanner
-
-# Location of the file on filesystem
 binary_location: /usr/local/bin/udp-proto-scanner.pl
+url: https://labs.portcullis.co.uk/tools/udp-proto-scanner/
 
-# Tool arguments
-# Python's str.format() is used for variable replacement. Valid entries are:
-# * target_domain_name
-# * target_ip
-# * target_protocol (returns 'http' or 'https')
-# * date (current date in format 20150226_213959) # date =  strftime("%Y%m%d_%H%M%S")
-# * port_number (if target port number has been specified)
-# * output_dir (directory where tool output will be saved for specific target)
 arguments: "{target_ip} > {output_dir}/{date}_udp-proto-scanner_{target_ip} 2>/dev/null"

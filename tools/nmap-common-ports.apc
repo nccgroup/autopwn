@@ -1,18 +1,5 @@
-# autopwn yaml tool config file
-# 201503 v0.2
-
-# The name as it will be referenced by in assessments
 name: nmap-common-ports
-
-# Location of the file on filesystem
 binary_location: /usr/bin/nmap
+url: http://nmap.org/
 
-# Tool arguments
-# Python's str.format() is used for variable replacement. Valid entries are:
-# * target_domain_name
-# * target_ip
-# * target_protocol (returns 'http' or 'https')
-# * date (current date in format 20150226_213959) # date =  strftime("%Y%m%d_%H%M%S")
-# * port_number (if target port number has been specified)
-# * output_dir (directory where tool output will be saved for specific target)
 arguments: "-A -sS -sC -sV {target_domain_name} -oA {output_dir}/{date}_nmap_{target_domain_name}_full_range >/dev/null 2>&1"

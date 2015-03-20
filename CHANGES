@@ -1,0 +1,7 @@
+autopwn v0.7 - 20150320
+
+* Added rulesets to tools
+* Added pre and post tool execution options
+* Started work on (limited) Python code convention adherence
+* Added new tools and assessments
+* Various bug fixes

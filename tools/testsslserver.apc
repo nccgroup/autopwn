@@ -1,18 +1,10 @@
-# autopwn yaml tool config file
-# 201503 v0.2
-
-# The name as it will be referenced by in assessments
 name: testsslserver
-
-# Location of the file on filesystem
 binary_location: /usr/bin/java
+url: http://www.bolet.org/TestSSLServer/
 
-# Tool arguments
-# Python's str.format() is used for variable replacement. Valid entries are:
-# * target_domain_name
-# * target_ip
-# * target_protocol (returns 'http' or 'https')
-# * date (current date in format 20150226_213959) # date =  strftime("%Y%m%d_%H%M%S")
-# * port_number (if target port number has been specified)
-# * output_dir (directory where tool output will be saved for specific target)
-arguments: "-jar /root/Downloads/TestSSLServer.jar {target_domain_name} {port_number} > {output_dir}/{date}_testsslserver_{target_domain_name} 2>/dev/null"
+rules:
+   equals:
+      'target_protocol': 'https'
+   target-parameter-exists: ['target_port_number']
+
+arguments: "-jar /root/Downloads/TestSSLServer.jar {target_domain_name} {target_port_number} > {output_dir}/{date}_testsslserver_{target_domain_name} 2>/dev/null"

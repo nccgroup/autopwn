@@ -1,18 +1,8 @@
-# autopwn yaml tool config file
-# 201503 v0.2
-
-# The name as it will be referenced by in assessments
 name: httrack
-
-# Location of the file on filesystem
 binary_location: /usr/bin/httrack
+url: http://www.httrack.com/
 
-# Tool arguments
-# Python's str.format() is used for variable replacement. Valid entries are:
-# * target_domain_name
-# * target_ip
-# * target_protocol (returns 'http' or 'https')
-# * date (current date in format 20150226_213959) # date =  strftime("%Y%m%d_%H%M%S")
-# * port_number (if target port number has been specified)
-# * output_dir (directory where tool output will be saved for specific target)
-arguments: "{target_protocol}://{target_domain_name} > {output_dir}/{date}_httrack_{target_domain_name} 2>/dev/null"
+rules:
+   target-parameter-exists: ['target_protocol','target_port_number']
+
+arguments: "{target_protocol}://{target_domain_name}:{target_port_number} > {output_dir}/{date}_httrack_{target_domain_name} 2>/dev/null"

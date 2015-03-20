@@ -1,5 +1,6 @@
 #!/usr/bin/python2
 
+import copy
 import sys
 import getopt
 import re
@@ -18,7 +19,7 @@ from time import gmtime, strftime
 class Log:
    def __init__(self, directory, log_type, log_string):
       date =  strftime("%Y%m%d")
-      date_time =  strftime("%Y%m%d %H:%M:%S")
+      date_time =  strftime("%Y%m%d %H:%M:%S") # TODO Offset time
 
       if log_type == 'tool_string':
          try:
@@ -42,17 +43,118 @@ class Run:
    thread = []
    index = 0
 
-   def __init__(self, tools_subset, assessment_type, target_list, dry_run):
-      for host in target_list:
-         for tool in tools_subset:
+   def __init__(self, tool_subset, assessment_type, config):
+      if config.dry_run == 1:
+         print "--------------------------------"
+         print "The following tools will be run:"
+         print "--------------------------------"
+      for tool in tool_subset:
+         # Run for real
+         if config.dry_run != 1:
+            try:
+               log = Log(os.getcwd(),'tool_string',"# Executing " + \
+                     tool['name'] + " tool (" + tool['url'] + "):\n" + \
+                     tool['execute_string'])
+            except:
+               log = Log(os.getcwd(),'tool_string',"# Executing " + \
+                     tool['name'] + " tool:\n# " + \
+                     tool['execute_string'])
+
+            time.sleep (0.1);
+            self.thread.append(RunThreads(self.index, tool['name'],
+                                 tool['execute_string']))
+            # If main process dies, everything else will as well
+            self.thread[self.index].daemon = True
+            # Start threads
+            self.thread[self.index].start()
+
+            # Parallel or singular?
+            if assessment_type['parallel'] != 1:
+               while threading.activeCount()>1:
+                  pass
+
+            self.index = self.index + 1
+         else:
+            print tool['execute_string']
+            pass
+
+      if config.dry_run != 1:
+         if assessment_type['parallel'] == 1:
+            while threading.activeCount()>1:
+               pass
+            #for tid in self.thread:
+            #   tid.join(1)
+
+class RunThreads (threading.Thread):
+   def __init__(self, thread_ID, tool_name,
+                  tool_execute_string):
+      threading.Thread.__init__(self)
+      self.kill_received = False
+      self.thread_ID = thread_ID
+      self.tool_name = tool_name
+      self.tool_execute_string = tool_execute_string
+
+   def execute_tool(self, thread_ID, tool_name,
+                     tool_execute_string):
+      # Using shell = True can be a security risk,
+      # and this will be fixed at some point. For now
+      # (and always), check any tools provided by
+      # community members
+      subprocess.call(tool_execute_string,shell = True)
+      #print tool_binary_location + " " + tool_arguments
+
+   def run(self):
+      print "[+] Launching " + self.tool_name
+      self.execute_tool(self.thread_ID, self.tool_name,
+                        self.tool_execute_string)
+      print "[-] " + self.tool_name + " is done.."
+      log = Log(os.getcwd(),'tool_string',"# " + self.tool_name + \
+            " has finished")
+
+class Tools:
+   def __init__(self, config, args, assessment):
+      config.tool_subset = []
+      for tool in config.tools_config:
+         if tool['name'] in assessment['tools']:
+            config.tool_subset.append(tool)
+
+      print "autopwn v0.7 by Aidan Marlin"
+      print "email: aidan [dot] marlin [at] nccgroup [dot] com"
+      print
+      self.replace_placeholders(config, assessment)
+      self.check_exists(config, args, assessment)
+
+   def check_exists(self, config, args, assessment):
+      error_type = '[E]'
+
+      for tool in config.tool_subset:
+         if os.path.isfile(tool['binary_location']) == False:
+            if args.argument['ignore_missing_binary'] == 1:
+               error_type = '[W]'
+
+            print error_type + " Could not find binary for " + tool['name']
+
+            if args.argument['ignore_missing_binary'] == 0:
+               sys.exit(1)
+
+   def replace_placeholders(self, config, assessment):
+      config.tool_subset_evaluated = []
+
+      for host in config.target_list:
+         for tool in config.tool_subset:
+            config.tool_subset_evaluated.append(copy.deepcopy(tool))
+
             # Variable declaration for placeholder replacements
             date =  strftime("%Y%m%d_%H%M%S")
             date_day =  strftime("%Y%m%d")
-            target_ip = host[0]
-            target_domain_name = host[1]
-            port_number = host[2]
-            target_protocol = host[3]
-            output_dir = date_day + "_autopwn_" + target_ip + "_" + target_domain_name + "_" + port_number + "_" + target_protocol
+            try:
+               output_dir = date_day + "_autopwn_" + host['target_ip'] + \
+                           "_" + host['target_domain_name'] + "_" + \
+                           host['target_port_number'] + "_" + \
+                           host['target_protocol']
+            except:
+               # Not all target arguments specified
+               output_dir = date_day + "_autopwn_" + host['target_ip']
 
             # Create log directory in CWD
             if not os.path.exists(output_dir):
@@ -63,71 +165,43 @@ class Run:
                   sys.exit(1)
 
             # Create target file in new directory
-            Log(output_dir,'individual_target',target_ip + '#' + target_domain_name + '#' + port_number + '#' + target_protocol)
+            try:
+               Log(output_dir,'individual_target',host['target_ip'] + '#' + \
+                  host['target_domain_name'] + '#' + \
+                  host['target_port_number'] + '#' + \
+                  host['target_protocol'])
+            except:
+               # Not all target arguments specified
+               Log(output_dir,'individual_target',host['target_ip'])
 
-            # Let's do it
-            tool_arguments_instance = tool['arguments'].format(target_domain_name=target_domain_name, target_ip=target_ip, date=date, port_number=port_number, target_protocol=target_protocol, output_dir=output_dir)
+            # Replace placeholders for tool argument string
+            tool_arguments_instance = config.tool_subset_evaluated[-1]['arguments'].format(
+                                       target_domain_name=host['target_domain_name'],
+                                       target_ip=host['target_ip'], date=date,
+                                       target_port_number=host['target_port_number'],
+                                       target_protocol=host['target_protocol'],
+                                       output_dir=output_dir)
 
-            tool_string = tool['binary_location'] + " " + tool_arguments_instance
+            config.tool_subset_evaluated[-1]['execute_string'] = config.tool_subset_evaluated[-1]['binary_location'] + " " + \
+                                    tool_arguments_instance
 
-            # Run for real
-            if dry_run != 1:
-               log = Log(os.getcwd(),'tool_string',tool_string)
+            # Replace placeholders for pre tool command string
+            if 'pre_tool_execution' in config.tool_subset_evaluated:
+               config.tool_subset_evaluated[-1]['pre_tool_execution'] = config.tool_subset_evaluated[-1]['pre_tool_execution'].format(
+                                       target_domain_name=host['target_domain_name'],
+                                       target_ip=host['target_ip'], date=date,
+                                       target_port_number=host['target_port_number'],
+                                       target_protocol=host['target_protocol'],
+                                       output_dir=output_dir)
 
-               time.sleep (0.1);
-               #                                  Thread ID  Name     Bin loc  args
-               self.thread.append(RunThreads(self.index, tool['name'], tool['binary_location'], tool_arguments_instance))
-               # If main process dies, everything else will as well
-               self.thread[self.index].daemon = True
-               # Start threads
-               self.thread[self.index].start()
-
-               # Parallel or singular?
-               if assessment_type['parallel'] != 1:
-                  while threading.activeCount()>1:
-                     pass
-
-               self.index = self.index + 1
-            else:
-               print tool_string
-
-      if dry_run != 1:
-         if assessment_type['parallel'] == 1:
-            while threading.activeCount()>1:
-               pass
-            #for tid in self.thread:
-            #   tid.join(1)
-
-class RunThreads (threading.Thread):
-   def __init__(self, thread_ID, tool_name, tool_binary_location, tool_arguments):
-      threading.Thread.__init__(self)
-      self.kill_received = False
-      self.thread_ID = thread_ID
-      self.tool_name = tool_name
-      self.tool_binary_location = tool_binary_location
-      self.tool_arguments = tool_arguments
-
-   def execute_tool(self, thread_ID, tool_name, tool_binary_location, tool_arguments):
-      # Using shell = True can be a security risk,
-      # and this will be fixed at some point. For now
-      # (and always), check any tools provided by
-      # community members
-      subprocess.call(tool_binary_location + " " + tool_arguments,shell = True)
-      #print tool_binary_location + " " + tool_arguments
-
-   def run(self):
-      print "[+] Launching " + self.tool_name
-      self.execute_tool(self.thread_ID, self.tool_name, self.tool_binary_location, self.tool_arguments)
-      print "[-] " + self.tool_name + " is done.."
-      log = Log(os.getcwd(),'tool_string',"# " + self.tool_name + " has finished")
-
-class Tools:
-   tool_subset = []
-
-   def __init__(self, tools, assessment):
-      for tool in tools:
-         if tool['name'] in assessment['tools']:
-            self.tool_subset.append(tool)
+            # Replace placeholders for post tool command string
+            if 'post_tool_execution' in config.tool_subset_evaluated:
+               config.tool_subset_evaluated[-1]['post_tool_execution'] = config.tool_subset_evaluated[-1]['post_tool_execution'].format(
+                                       target_domain_name=host['target_domain_name'],
+                                       target_ip=host['target_ip'], date=date,
+                                       target_port_number=host['target_port_number'],
+                                       target_protocol=host['target_protocol'],
+                                       output_dir=output_dir)
 
 class Menus:
    # Not 0 because this is a valid selection..
@@ -156,8 +230,8 @@ class Menus:
          print "[E] No choice was made, quitting.."
          sys.exit(1)
       else:
-         print self.item_selected
-         if int(self.item_selected) >= 0 and int(self.item_selected) < valid_option_index:
+         if int(self.item_selected) >= 0 and \
+               int(self.item_selected) < valid_option_index:
             self.item_selected = int(self.item_selected)
          else:
             print "[E] Invalid option, quitting.."
@@ -185,6 +259,9 @@ class Assessments:
          menu = Menus(config.menu_items,'assessment')
          self.assessment_type = config.assessments_config[menu.item_selected]
 
+      #print "self.assessment_type = " + str(self.assessment_type)
+      #sys.exit(1)
+
 class Print:
    def __init__(self, display_text, file_descriptor):
       if display_text == 'help':
@@ -192,32 +269,38 @@ class Print:
 
    def display_help(self, file_descriptor):
       # Not doing anything with file_descriptor yet
-      print "autopwn v0.6"
-      print "By Aidan Marlin (email: aidan [dot] marlin [at] nccgroup [dot] com)."
+      print "autopwn v0.7"
+      print "By Aidan Marlin"
+      print "Email: aidan [dot] marlin [at] nccgroup [dot] com"
       print
-      print "-t <target_file>       Required. The file containing the targets"
-      print "-a <assessment_type>   Optional. Specify assessment name to run."
-      print "                       Autopwn will not prompt to run tools with"
-      print "                       this option"
+      print "-t <target_file>       Required. The file containing the"
+      print "                       targets"
+      print "-a <assessment_type>   Optional. Specify assessment name"
+      print "                       to run."
+      print "                       Autopwn will not prompt to run"
+      print "                       tools with this option"
+      print "-i                     Ignore missing binary conditions"
+      print "-r                     Ignore tool rulesets"
       print
       print "Format of the target file should be:"
-      print "<ip>#[domain name]#<port>#<ssl> where"
+      print "<ip>[#<domain name>#<port>#<ssl>] where"
       print "<ssl> would be 'http' or 'https'."
       print
       print "Examples:"
       print "195.95.131.71#nccgroup.com#443#https"
-      print "216.58.208.78#80#http"
+      print "216.58.208.78"
       print
-      print "autopwn uses the tools/ directory located where this script is"
-      print "to load tool definitions, which are yaml files. You can find"
-      print "some examples in the directory already. If you think one is"
-      print "missing, mention it on GitHub or email me and I might add it."
+      print "autopwn uses the tools/ directory located where this"
+      print "script is to load tool definitions, which are yaml"
+      print "files. You can find some examples in the directory"
+      print "already. If you think one is missing, mention it on"
+      print "GitHub or email me and I might add it."
       print
       print "autopwn also uses assessments/ for assessment definitions."
-      print "Instead of selecting which tools you would like to run, you"
-      print "specify which assessment you would like to run. Assessment"
-      print "configuration files contain lists of tools which will be run"
-      print "as a result."
+      print "Instead of selecting which tools you would like to run,"
+      print "you specify which assessment you would like to run."
+      print "Assessment configuration files contain lists of tools"
+      print "which will be run as a result."
       print
       print "Have fun!"
       print "Legal purposes only.."
@@ -225,7 +308,8 @@ class Print:
       sys.exit(1)
 
 class Arguments:
-   argument = {'assessment':'', 'target_file':''}
+   argument = {'assessment':'', 'target_file':'',
+               'ignore_missing_binary':0, 'ignore_rules':0}
 
    def __init__(self, arguments):
       # If no arguments specified, dump autopwn help / description
@@ -233,9 +317,9 @@ class Arguments:
          help = Print('help', 'stdout')
 
       try:
-         opts, args = getopt.getopt(arguments,"a:t:",["assessment=","target="])
+         opts, args = getopt.getopt(arguments,"ira:t:",["assessment=","target="])
       except getopt.GetoptError:
-         print "./autopwn.py [-a <assessment_type>] -t <target_file>"
+         print "./autopwn.py [-ir] [-a <assessment_type>] -t <target_file>"
          sys.exit(2)
 
       for opt, arg in opts:
@@ -245,6 +329,12 @@ class Arguments:
          if opt in ("-t", "--target"):
             # Target file
             self.argument['target_file'] = arg
+         if opt in ("-i", "--ignore-missing"):
+            # Ignore missing binary files
+            self.argument['ignore_missing_binary'] = 1
+         if opt in ("-r", "--ignore-rules"):
+            # Ignore tool rule violations
+            self.argument['ignore_rules'] = 1
 
       if self.argument['target_file'] == '':
          print "[E] Target file not specified"
@@ -253,8 +343,8 @@ class Arguments:
 # Configuration class loads all information from .apc files and target file
 class Configuration:
    # Class vars
-   tools_config = [{'name':'','binary_location':'','arguments':''} for x in range(256)]
-   assessments_config = [{'name':'','tools':'','menu_name':'','parallel':''} for x in range(128)]
+   tools_config = []
+   assessments_config = []
    menu_items = []
    target_list = []
    dry_run = 0
@@ -266,7 +356,8 @@ class Configuration:
 
       pathname = os.path.dirname(sys.argv[0])
       tools_directory = os.path.abspath(pathname) + "/tools/"
-      assessments_directory = os.path.abspath(pathname) + "/assessments/"
+      assessments_directory = os.path.abspath(pathname) + \
+                              "/assessments/"
 
       # Pull tool configs
       for file in os.listdir(tools_directory):
@@ -274,11 +365,33 @@ class Configuration:
             stream = open(tools_directory + file, 'r')
             objects = yaml.load(stream)
 
+            self.tools_config.append({'name':'',
+                                       'binary_location':'',
+                                       'arguments':''
+                                       })
+
             self.tools_config[i]['name'] = objects['name']
             self.tools_config[i]['binary_location'] = objects['binary_location']
             self.tools_config[i]['arguments'] = objects['arguments']
+            # The following options are not compulsory
+            try:
+               self.tools_config[i]['rules'] = objects['rules']
+            except:
+               pass
+            try:
+               self.tools_config[i]['pre_tool_execution'] = objects['pre_tool_execution']
+            except:
+               pass
+            try:
+               self.tools_config[i]['post_tool_execution'] = objects['post_tool_execution']
+            except:
+               pass
+            try:
+               self.tools_config[i]['url'] = objects['url']
+            except:
+               pass
 
-         i = i + 1
+            i = i + 1
 
       # Pull assessment configs
       i = 0
@@ -287,12 +400,15 @@ class Configuration:
             stream = open(assessments_directory + file, 'r')
             objects = yaml.load(stream)
 
+            self.assessments_config.append({'name':'','tools':'',
+                                             'menu_name':'',
+                                             'parallel':''})
             self.assessments_config[i]['name'] = objects['name']
             self.assessments_config[i]['tools'] = objects['tools']
             self.assessments_config[i]['menu_name'] = objects['menu_name']
             self.assessments_config[i]['parallel'] = objects['parallel']
 
-         i = i + 1
+            i = i + 1
 
       # Assign menu_items
       for config_assessment_menu_item in self.assessments_config:
@@ -306,37 +422,216 @@ class Configuration:
          lines = fd_targets.read().split('\n')
          fd_targets.close()
       except IOError as e:
-         print "[E] Error processing target file: {1}".format(e.errno, e.strerror)
+         print "[E] Error processing target file: {1}".format(e.errno,
+                                                               e.strerror)
          sys.exit(1)
 
-      for x in lines:
-         tmp = x.split("#")
-         if len(tmp) == 3:
-            tmp.insert(1, tmp[0])
-            self.target_list.append(tmp)
-         else:
-            self.target_list.append(tmp)
+      # Process each target in target list
+      for index, line in enumerate(lines):
+         if line != '':
+            line_split = line.split("#")
+            #if len(line_split) == 3:
+            #   line_split.insert(1, line_split[0])
+            target_ip = line_split[0]
+            # If certain attributes haven't been specified, set to False
+            try:
+               target_domain_name = line_split[1]
+            except:
+               target_domain_name = line_split[0]
+            try:
+               target_port_number = line_split[2]
+            except:
+               target_port_number = False
+            try:
+               target_protocol = line_split[3]
+            except:
+               target_protocol = False
 
-      # Remove empty elements from list, could probably improve this
-      for x in self.target_list:
-         if x[0] == '':
-            self.target_list.remove(x)
+            self.target_list.append({'target_ip':target_ip,
+                                     'target_domain_name':target_domain_name,
+                                     'target_port_number':target_port_number,
+                                     'target_protocol':target_protocol})
+
+      #print "self.target_list = " + str(self.target_list)
+      #print "self.assessments_config = " + str(self.assessments_config)
+      #print "self.tools_config = " + str(self.tools_config)
+      #sys.exit(1)
 
 class Prompt:
    def __init__(self, prompt, config, tools, assessment):
       if prompt == 'run_tools':
+         self.show_post_commands(config,assessment)
          self.run_tools(config,tools,assessment)
+
+   def show_post_commands(self, config, assessment):
+      # Run post-tool execution commands
+      # config.dry_run is assumed, but let's bail if
+      # it's not set as expected
+      if config.dry_run == 1:
+         Commands(config,assessment.assessment_type,'post')
+      else:
+         print "[E] Dry run variable not set as expected. " + \
+               "You shouldn't see this error"
+         sys.exit(1)
 
    def run_tools(self, config, tools, assessment):
       run_tools = raw_input('Run tools? [Ny] ')
 
       if run_tools.lower() == "y":
          config.dry_run = 0
-         Run(tools.tool_subset,assessment.assessment_type,config.target_list,config.dry_run)
+         # Run pre-tool execution commands
+         Commands(config,assessment.assessment_type,'pre')
+         Run(config.tool_subset_evaluated,assessment.assessment_type,config)
+         # Run post-tool execution commands
+         Commands(config,assessment.assessment_type,'post')
          sys.exit(0)
       else:
          print "[E] Alright, I quit.."
          sys.exit(1)
+
+class Rules:
+   def __init__(self, args, config, tools):
+      self.check(args, config, tools)
+
+   def check(self, args, config, tools):
+      # Hosts
+      rule_violation = 0
+      for host_index, host in enumerate(config.target_list):
+         # Tools
+         for tool_config_index, tool_config in enumerate(config.tools_config):
+            check_tool_rule = 0
+            for tool in config.tool_subset:
+               #print tool_config['name']
+               #print tool['name']
+               if tool_config['name'] == tool['name']:
+                  check_tool_rule = 1
+
+            if check_tool_rule != 1:
+               continue
+
+            # Check
+            try:
+               for rule_type in tool_config['rules']:
+                  if rule_type == 'target-parameter-exists':
+                     #print "rule_type " + rule_type
+                     for argument in tool_config['rules'][rule_type]:
+                        #print "argument0 " + argument
+                        rule_violation_tmp = self.check_comparison(host,tool_config,
+                                           rule_type,argument,
+                                           False)
+                        rule_violation = rule_violation or rule_violation_tmp
+                  else:
+                     for argument in tool_config['rules'][rule_type]:
+                        #print "argument_value " + \
+                        #      tool_config['rules'][rule_type][argument]
+                        #print "argument " + argument
+                        rule_violation_tmp = self.check_comparison(host,tool_config,
+                                        rule_type,argument,
+                                        tool_config['rules'][rule_type][argument])
+                  rule_violation = rule_violation or rule_violation_tmp
+            except:
+               pass
+
+      if rule_violation:
+         error_type = '[E]'
+
+         if args.argument['ignore_rules'] == 1:
+            error_type = '[W]'
+
+         print error_type + " There were rule violations"
+
+         if args.argument['ignore_rules'] == 0:
+            sys.exit(1)
+
+   def check_comparison(self,host,tool_config,rule_type,argument,argument_value):
+      error = 0
+      if rule_type == 'not-equals':
+         if host[argument] == argument_value:
+            print "[W] Rule violation in " + tool_config['name'] + \
+                  " for host " + host['target_domain_name'] + \
+                  ": '" + argument + "' must be '" + argument_value + "'"
+            error = 1
+      elif rule_type == 'equals':
+         if host[argument] != argument_value:
+            print "[W] Rule violation in " + tool_config['name'] + \
+                  " for host " + host['target_domain_name'] + \
+                  ": '" + argument + "' must be '" + argument_value + "'"
+            error = 1
+      #elif check == 'greater-than':
+      #   if test_item <= host[value]:
+      #      print "[W] Rule violation in " + tool_config['name'] + \
+      #            " for host " + host['target_domain_name'] + \
+      #            ": " + test_item + " == " + host[value]
+      #      error = 1
+      #elif check == 'less-than':
+      #   if test_item >= host[value]:
+      #      print "[W] Rule violation in " + tool_config['name'] + \
+      #            " for host " + host['target_domain_name'] + \
+      #            ": " + test_item + " == " + host[value]
+      #      error = 1
+      elif rule_type == 'target-parameter-exists':
+         #for rule in tool_config['rules'][rule_type]:
+         #print "target-parameter-exists " + argument
+         #print "target-parameter-exists test " + str(host[argument] == False)
+         if host[argument] == False:
+            print "[W] Rule violation in " + tool_config['name'] + \
+                  " for host " + host['target_domain_name'] + \
+                  ": '" + argument + "' not specified in target"
+            error = 1
+
+      return error
+
+class Commands:
+   def __init__(self, config, assessment_type, position):
+      if position == 'pre':
+         self.pre_command(config,assessment_type)
+      elif position == 'post':
+         self.post_command(config,assessment_type)
+
+   def pre_command(self, config, assessment_type):
+      if config.dry_run == 1:
+         for tool in config.tool_subset_evaluated:
+            if 'pre_tool_execution' in tool:
+               print "The following pre-tool execution commands will be run:"
+               print "--------------------------------"
+      for tool in config.tool_subset_evaluated:
+         try:
+            if config.dry_run == 1:
+               print tool['pre_tool_execution']
+            else:
+               if 'pre_tool_execution' in tool:
+                  print "[+] Running pre-tool commands for " + tool['name']
+                  subprocess.call(tool['pre_tool_execution'],shell = True)
+                  print "[-] Pre-tool commands for " + tool['name'] + " have completed.."
+                  log = Log(os.getcwd(),'tool_string',
+                        "# Pre-tool commands for " + tool['name'] + \
+                        " have finished")
+
+         except:
+            pass
+
+   def post_command(self, config, assessment_type):
+      if config.dry_run == 1:
+         for tool in config.tool_subset_evaluated:
+            if 'post_tool_execution' in tool:
+               print "--------------------------------"
+               print "The following post-tool execution commands will be run:"
+               print "--------------------------------"
+      for tool in config.tool_subset_evaluated:
+         try:
+            if config.dry_run == 1:
+               print tool['post_tool_execution']
+            else:
+               if 'post_tool_execution' in tool:
+                  print "[+] Running post-tool commands for " + tool['name']
+                  subprocess.call(tool['post_tool_execution'],shell = True)
+                  print "[-] Post-tool commands for " + tool['name'] + " have completed.."
+                  log = Log(os.getcwd(),'tool_string',
+                        "# Post-tool commands for " + tool['name'] + \
+                        " has finished")
+
+         except:
+            pass
 
 def main():
    # Process arguments
@@ -346,11 +641,17 @@ def main():
    # Determine assessment
    assessment = Assessments(config,args.argument['assessment'])
    # Process tools
-   tools = Tools(config.tools_config,assessment.assessment_type)
+   tools = Tools(config,args,assessment.assessment_type)
+   # Check rules
+   Rules(args,config,tools)
+   # Run pre-tool execution commands
+   Commands(config,assessment.assessment_type,'pre')
    # Run tools
-   execute = Run(tools.tool_subset,assessment.assessment_type,config.target_list,config.dry_run)
+   execute = Run(config.tool_subset_evaluated,assessment.assessment_type,config)
    if config.dry_run == 1:
-      prompt = Prompt('run_tools',config,tools,assessment)
+      Prompt('run_tools',config,tools,assessment)
+   # Run post-tool execution commands
+   Commands(config,assessment.assessment_type,'post')
 
 if __name__ == "__main__":
    try:

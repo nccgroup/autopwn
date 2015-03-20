@@ -28,3 +28,4 @@ TODO
 7 - Windows support?
 8 - Improve Ctrl+c support
 8b) Clean up files?
+9 - Allow file paths to be specified for web app scans

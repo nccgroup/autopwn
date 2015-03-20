@@ -1,0 +1,19 @@
+# autopwn assessment config file
+
+# TODO
+# 1 - Parallel? Specified in assessments config
+# 2 - stdout stderr? Specified in tools config?
+# 3 - Order / priority? Specified in assessments config
+
+# The assessment name as it will be specifiable by the command line
+name: example
+
+# Tools which will be used in this assessment
+tools:
+   - example
+
+# Menu name
+menu_name: Example (Parallel)
+
+# Run tools in parallel?
+parallel: 1

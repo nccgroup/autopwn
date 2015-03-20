@@ -1,27 +1,12 @@
-# autopwn assessment config file
-# 201503 v0.1
+name: webapp
+menu_name: Web Application (Parallel)
 
-# TODO
-# 1 - Parallel? Specified in assessments config
-# 2 - stdout stderr? Specified in tools config?
-# 3 - Order / priority? Specified in assessments config
-
-# The assessment name as it will be specifiable by the command line
-name: webapp-parallel
-
-# Tools which will be used in this assessment
 tools:
+   - arachni
    - nmap
    - nikto
-   - sslyze
-   - sslscan
    - udp-proto-scanner
-   - testsslserver
    - dirb
    - skipfish
 
-# Menu name
-menu_name: Web Application (Parallel)
-
-# Run tools in parallel?
 parallel: 1

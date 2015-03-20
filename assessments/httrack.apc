@@ -1,20 +1,7 @@
-# autopwn assessment config file
-# 201503 v0.1
-
-# TODO
-# 1 - Parallel? Specified in assessments config
-# 2 - stdout stderr? Specified in tools config?
-# 3 - Order / priority? Specified in assessments config
-
-# The assessment name as it will be specifiable by the command line
 name: httrack
+menu_name: HTTrack (Mirror website)
 
-# Tools which will be used in this assessment
 tools:
    - httrack
 
-# Menu name
-menu_name: HTTrack (Mirror websites)
-
-# Run tools in parallel?
 parallel: 0
