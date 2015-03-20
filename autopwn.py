@@ -285,16 +285,34 @@ class Print:
       print "                       to run."
       print "                       Autopwn will not prompt to run"
       print "                       tools with this option"
-      print "-i                     Ignore missing binary conditions"
-      print "-r                     Ignore tool rulesets"
+      print "-i                     Optional. Ignore missing binary"
+      print "                       conditions"
+      print "-r                     Optional. Ignore tool rulesets"
       print
       print "Format of the target file should be:"
-      print "<ip>[#<domain name>#<port>#<ssl>] where"
-      print "<ssl> would be 'http' or 'https'."
       print
-      print "Examples:"
-      print "195.95.131.71#nccgroup.com#443#https"
-      print "216.58.208.78"
+      print "targets:"
+      print "   - target_name: <target-name>"
+      print "     ip_address: <ip-address>"
+      print "     domain: <domain>"
+      print "     url: <url-path>"
+      print "     port: <port-number>"
+      print "     protocol: <protocol>"
+      print "   - target_name: <target-name-1>"
+      print "     ..."
+      print
+      print "Only 'target_name' and 'ip_address' are compulsory options."
+      print "Example file:"
+      print
+      print "targets:"
+      print "   - target_name: test"
+      print "     ip_address: 127.0.0.1"
+      print "     domain: test.com"
+      print "     url: /test"
+      print "     port: 80"
+      print "     protocol: https"
+      print "   - target_name: test-1"
+      print "     ip_address: 127.0.0.2"
       print
       print "autopwn uses the tools/ directory located where this"
       print "script is to load tool definitions, which are yaml"
@@ -453,9 +471,10 @@ class Configuration:
                target_name_matrix.extend([target['target_name']])
                target_name = target['target_name']
             try:
-               target_ip = target['ip-address']
+               target_ip = target['ip_address']
             except:
-               target_ip = False
+               print "[E] Target file missing IP address(es)"
+               sys.exit(1)
             try:
                target_domain_name = target['domain']
             except:

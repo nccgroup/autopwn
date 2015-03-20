@@ -1,9 +1,9 @@
 targets:
    - target_name: test
-     ip-address: 127.0.0.1
+     ip_address: 127.0.0.1
      domain: test.com
      url: /test
      port: 80
      protocol: https
    - target_name: test-1
-     ip-address: 127.0.0.2
+     ip_address: 127.0.0.2
