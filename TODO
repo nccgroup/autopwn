@@ -27,11 +27,6 @@ TODO
 9 - Check return codes for commands
 10 - Auto resolve ip if not specified using domain.. ip or domain *required*
 11 - Improve command log file name to allow for multiple autopwn instances
-12 - Redirect tool output to log file / remove requirement for redirect to /dev/null on each tool
-13 - autopwn config file
-13b) scripts directory?
-13d) parallel global (which overwrites assessment config?)
-14 - Add mac address as host parameter
-15 - Improve exit condition handling
-16 - Check bash and screen exists as and when needed
-17 - Tool scheduling? Will require a daemon
+12 - Improve exit condition handling
+13 - Check bash and screen exists as and when needed
+14 - Tool scheduling? Will require a daemon
