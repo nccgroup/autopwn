@@ -3,3 +3,5 @@
 What probably needs to happen is in the tools config file, an output file placeholder should be defined so that autopwn knows where tool output goes. In this case, autopwn can check if the file exists or not, and then make decision (file_name + "_" + some_int probably)
 
 2 - Log directories are created before tool confirmation
+
+3 - When using screen, tool stdout files will be empty

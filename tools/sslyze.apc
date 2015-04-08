@@ -7,4 +7,4 @@ rules:
       'target_protocol': 'https'
    target-parameter-exists: ['target_ip','target_port_number']
 
-arguments: "--regular {target_domain_name} > {output_dir}/{date}_{target_name}_sslyze_{target_domain_name} 2>/dev/null"
+arguments: "--regular {target_domain_name} > {output_dir}/{date}_{target_name}_sslyze_{target_domain_name}"

@@ -7,4 +7,4 @@ rules:
       'target_protocol': 'https'
    target-parameter-exists: ['target_ip','target_port_number']
 
-arguments: "{target_domain_name}:{target_port_number} > {output_dir}/{date}_{target_name}_sslscan_{target_domain_name} 2>/dev/null"
+arguments: "{target_domain_name}:{target_port_number} > {output_dir}/{date}_{target_name}_sslscan_{target_domain_name}"

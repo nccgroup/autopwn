@@ -37,4 +37,4 @@ post_tool_execution: "/usr/bin/example_report {output_dir}"
 # * date (current date in format 20150226_213959) # date =  strftime("%Y%m%d_%H%M%S")
 # * target_port_number (if target port number has been specified)
 # * output_dir (directory where tool output will be saved for specific target)
-arguments: "{target_protocol}://{target_domain_name}:{target_port_number} -o {output_dir}/{date}_example_{target_domain_name} >/dev/null 2>&1"
+arguments: "{target_protocol}://{target_domain_name}:{target_port_number} -o {output_dir}/{date}_example_{target_domain_name}"

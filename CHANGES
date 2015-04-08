@@ -1,3 +1,13 @@
+autopwn v0.9 - 20150408
+
+* autopwn global configuration file added
+ - parallel option (overrides assessment config option)
+ - scripts_directory (directory containing tools)
+   (currently does nothing)
+* screen support
+* Split tool stdout and stderr into logs
+ - Tools no longer require redirection nonsense
+
 autopwn v0.8 - 20150320
 
 * Changed target file format (had to happen)

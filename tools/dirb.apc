@@ -5,4 +5,4 @@ url: http://dirb.sourceforge.net/
 rules:
    target-parameter-exists: ['target_ip','target_domain_name','target_port_number','target_protocol']
 
-arguments: "{target_protocol}://{target_domain_name}:{target_port_number}/{target_url} -o {output_dir}/{date}_{target_name}_dirb_{target_domain_name} >/dev/null 2>&1"
+arguments: "{target_protocol}://{target_domain_name}:{target_port_number}/{target_url} -o {output_dir}/{date}_{target_name}_dirb_{target_domain_name}"

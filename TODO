@@ -1,15 +1,10 @@
 TODO
 
-0) Review target file format..
-0b) Create another tool to specify targets and save in file..
-1 - Get shot down by 14 year old Python devs,
-    who've been coding for "over 20 years", on how I'm
-    doing everything wrong, like not just import'ing autopwn
-2 - TDD? :\ :/ :( :X
-2b) Have online repo where users can share yaml
+1 - TDD?
+1b) Have online repo where users can share yaml
     configs?
-3 - What if tool requires root?
-4 - Add support for:
+2 - What if tool requires root?
+3 - Add support for:
 - enum4linux
 - nbtscan
 - smb_scan
@@ -21,13 +16,22 @@ TODO
 - DNS tools
 - Harvester?
 - recon tools?
-5 - Disable SSL scans if http specified ... Or just have non-SSL assessments B-)
-6 - Flags
-6b) Add option to run assessment if some tools don't exist?
-6c) Verbose flag?
-7 - Windows support?
-8 - Improve Ctrl+c support
-8b) Clean up files?
-9 - If a tool doesn't like http:// or https://, need to specify what it does like
+4 - Disable SSL scans if http specified ... Or just have non-SSL assessments B-)
+5 - Flags
+5b) Verbose flag?
+6 - Windows support?
+7 - Improve Ctrl+c support
+7b) Clean up files?
+8 - If a tool doesn't like http:// or https://, need to specify what it does like
     (for example -ssl)
-10 - Check return codes for commands
+9 - Check return codes for commands
+10 - Auto resolve ip if not specified using domain.. ip or domain *required*
+11 - Improve command log file name to allow for multiple autopwn instances
+12 - Redirect tool output to log file / remove requirement for redirect to /dev/null on each tool
+13 - autopwn config file
+13b) scripts directory?
+13d) parallel global (which overwrites assessment config?)
+14 - Add mac address as host parameter
+15 - Improve exit condition handling
+16 - Check bash and screen exists as and when needed
+17 - Tool scheduling? Will require a daemon

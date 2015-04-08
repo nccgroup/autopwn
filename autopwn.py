@@ -11,15 +11,28 @@ import threading
 import time
 import yaml
 from collections import OrderedDict
+from screenutils import list_screens, Screen
+from subprocess import Popen, PIPE
 from time import gmtime, strftime
 
 # Aidan Marlin @ NCC Group
 # Project born 201502
 
 class Log:
-   def __init__(self, config, directory, log_type, log_string):
-      date =  strftime("%Y%m%d")
-      date_time =  strftime("%Y%m%d %H:%M:%S") # TODO Offset time
+   def __init__(self, config, directory, log_filename, log_type, log_string):
+      date = strftime("%Y%m%d")
+      date_time = strftime("%Y%m%d %H:%M:%S") # TODO Offset time
+
+      if log_type == 'tool_output':
+         try:
+            # log_filename is pikey, make it better
+            log_file = open(directory + "/" + date + "_autopwn_" + log_filename + "_stdout.log","a")
+         except OSError as e:
+            print "[E] Error creating log file: " + e
+            sys.exit(1)
+
+         log_file.write(log_string)
+         log_file.close()
 
       if log_type == 'tool_string':
          try:
@@ -28,14 +41,15 @@ class Log:
             print "[E] Error creating log file: " + e
             sys.exit(1)
          try:
-            if config.log_started != 1:
-               log_file.write("## autopwn v0.8 command output\n")
-               config.log_started = 1
+            if config.log_started != True:
+               log_file.write("## autopwn v0.9 command output\n")
+               config.log_started = True
          except:
             pass
          log_file.write("# " + date_time + "\n")
          log_file.write(log_string + "\n")
          log_file.close()
+
       if log_type == 'individual_target':
          try:
             log_file = open(directory + "/target","w")
@@ -47,35 +61,34 @@ class Log:
 
 class Run:
    thread = []
-   index = 0
+   index = False
 
    def __init__(self, tool_subset, assessment_type, config):
-      if config.dry_run == 1:
+      if config.dry_run == True:
          print "--------------------------------"
          print "The following tools will be run:"
          print "--------------------------------"
       for tool in tool_subset:
          # Run for real
-         if config.dry_run != 1:
+         if config.dry_run != True:
             try:
-               log = Log(config,os.getcwd(),'tool_string',"# Executing " + \
+               log = Log(config,os.getcwd(),False,'tool_string',"# Executing " + \
                      tool['name'] + " tool (" + tool['url'] + "):\n" + \
                      tool['execute_string'])
             except:
-               log = Log(config,os.getcwd(),'tool_string',"# Executing " + \
+               log = Log(config,os.getcwd(),False,'tool_string',"# Executing " + \
                      tool['name'] + " tool:\n# " + \
                      tool['execute_string'])
 
             time.sleep (0.1);
-            self.thread.append(RunThreads(self.index, tool['name'],
-                                 tool['execute_string']))
-            # If main process dies, everything else will as well
+            self.thread.append(RunThreads(self.index, tool))
+            # If main process dies, everything else *SHOULD* as well
             self.thread[self.index].daemon = True
             # Start threads
             self.thread[self.index].start()
 
             # Parallel or singular?
-            if assessment_type['parallel'] != 1:
+            if assessment_type['parallel'] != True:
                while threading.activeCount()>1:
                   pass
 
@@ -84,38 +97,45 @@ class Run:
             print tool['execute_string']
             pass
 
-      if config.dry_run != 1:
-         if assessment_type['parallel'] == 1:
+      if config.dry_run != True:
+         if assessment_type['parallel'] == True:
             while threading.activeCount()>1:
                pass
             #for tid in self.thread:
             #   tid.join(1)
 
 class RunThreads (threading.Thread):
-   def __init__(self, thread_ID, tool_name,
-                  tool_execute_string):
+   def __init__(self, thread_ID, tool):
       threading.Thread.__init__(self)
       self.kill_received = False
       self.thread_ID = thread_ID
-      self.tool_name = tool_name
-      self.tool_execute_string = tool_execute_string
+      self.tool_name = tool['name']
+      self.tool_execute_string = tool['execute_string']
+      self.tool_output_dir = tool['output_dir']
+      self.target_name = tool['host']['target_name']
+      self.tool_stdout = ''
+      self.tool_stderr = ''
 
    def execute_tool(self, thread_ID, tool_name,
                      tool_execute_string):
-      # Using shell = True can be a security risk,
-      # and this will be fixed at some point. For now
-      # (and always), check any tools provided by
+      # Always check any tools provided by
       # community members
-      subprocess.call(tool_execute_string,shell = True)
-      #print tool_binary_location + " " + tool_arguments
+      command_arguments = shlex.split(tool_execute_string)
+      proc = Popen(command_arguments, stdout=PIPE, stderr=PIPE)
+
+      self.tool_stdout, self.tool_stderr = proc.communicate()
+      exitcode = proc.returncode
 
    def run(self):
       print "[+] Launching " + self.tool_name
       self.execute_tool(self.thread_ID, self.tool_name,
                         self.tool_execute_string)
       print "[-] " + self.tool_name + " is done.."
-      log = Log(False,os.getcwd(),'tool_string',"# " + self.tool_name + \
-            " has finished")
+      log = Log(False, os.getcwd() + "/" + self.tool_output_dir,
+            self.target_name + "_" + self.tool_name,
+            'tool_output', self.tool_stdout)
+      log = Log(False, os.getcwd(), False, 'tool_string', "# " + \
+            self.tool_name + " has finished")
 
 class Tools:
    def __init__(self, config, args, assessment):
@@ -124,23 +144,42 @@ class Tools:
          if tool['name'] in assessment['tools']:
             config.tool_subset.append(tool)
 
-      print "autopwn v0.8 by Aidan Marlin"
+      print "autopwn v0.9 by Aidan Marlin"
       print "email: aidan [dot] marlin [at] nccgroup [dot] com"
       print
+
       self.replace_placeholders(config, assessment)
       self.check_exists(config, args, assessment)
+
+      if args.argument['with_screen'] == True:
+         self.prepend_tool(config, 'screen')
+
+   def prepend_tool(self, config, prepend_tool):
+      if prepend_tool == 'screen':
+         index = False
+         for host in config.target_list:
+            for tool in config.tool_subset:
+               config.tool_subset_evaluated[index]['execute_string'] = \
+                  "screen -D -m -S autopwn_" + \
+                  host['target_name'] + "_" + \
+                  host['target_domain_name'] + "_" + host['target_ip'] + \
+                  "_" + tool['name'] + " " + "/bin/bash -c '" + \
+                  config.tool_subset_evaluated[index]['execute_string'] + \
+                  "'"
+
+               index = index + 1
 
    def check_exists(self, config, args, assessment):
       error_type = '[E]'
 
       for tool in config.tool_subset:
          if os.path.isfile(tool['binary_location']) == False:
-            if args.argument['ignore_missing_binary'] == 1:
+            if args.argument['ignore_missing_binary'] == True:
                error_type = '[W]'
 
             print error_type + " Could not find binary for " + tool['name']
 
-            if args.argument['ignore_missing_binary'] == 0:
+            if args.argument['ignore_missing_binary'] == False:
                sys.exit(1)
 
    def replace_placeholders(self, config, assessment):
@@ -151,9 +190,11 @@ class Tools:
             config.tool_subset_evaluated.append(copy.deepcopy(tool))
 
             # Variable declaration for placeholder replacements
-            date =  strftime("%Y%m%d_%H%M%S")
-            date_day =  strftime("%Y%m%d")
-            output_dir = date_day + "_autopwn_" + host['target_ip'] + "_" + host['target_name']
+            date = strftime("%Y%m%d_%H%M%S")
+            date_day = strftime("%Y%m%d")
+            config.tool_subset_evaluated[-1]['output_dir'] = date_day + "_autopwn_" + host['target_ip'] + "_" + host['target_name']
+            config.tool_subset_evaluated[-1]['host'] = host
+            output_dir = config.tool_subset_evaluated[-1]['output_dir']
 
             # Create log directory in CWD
             if not os.path.exists(output_dir):
@@ -171,7 +212,7 @@ class Tools:
                   host['target_protocol'])
             except:
                # Not all target arguments specified
-               Log(config,output_dir,'individual_target',host['target_ip'])
+               Log(config,output_dir,False,'individual_target',host['target_ip'])
 
             # Replace placeholders for tool argument string
             tool_arguments_instance = config.tool_subset_evaluated[-1]['arguments'].format(
@@ -217,7 +258,7 @@ class Menus:
          self.display_assessment_menu(menu_items)
 
    def display_assessment_menu(self, menu_items):
-      valid_option_index = 0
+      valid_option_index = False
 
       print "What assessment do you want to run?"
       for index, item in enumerate(menu_items):
@@ -236,7 +277,7 @@ class Menus:
          print "[E] No choice was made, quitting.."
          sys.exit(1)
       else:
-         if int(self.item_selected) >= 0 and \
+         if int(self.item_selected) >= False and \
                int(self.item_selected) < valid_option_index:
             self.item_selected = int(self.item_selected)
          else:
@@ -250,18 +291,18 @@ class Assessments:
       # Shall we process assessment from command line
       # arguments or display menu?
       if argument_assessment != '':
-         argument_assessment_found = 0
+         argument_assessment_found = False
          # Command line
          for assessment_type in config.assessments_config:
             if assessment_type['name'] == argument_assessment:
                self.assessment_type = assessment_type
-               argument_assessment_found = 1
-         if argument_assessment_found != 1:
+               argument_assessment_found = True
+         if argument_assessment_found != True:
             print "[E] Assessment name not found. Is it spelt correctly?"
             sys.exit(1)
       else:
          # Display menu
-         config.dry_run = 1
+         config.dry_run = True
          menu = Menus(config.menu_items,'assessment')
          self.assessment_type = config.assessments_config[menu.item_selected]
 
@@ -275,7 +316,7 @@ class Print:
 
    def display_help(self, file_descriptor):
       # Not doing anything with file_descriptor yet
-      print "autopwn v0.8"
+      print "autopwn v0.9"
       print "By Aidan Marlin"
       print "Email: aidan [dot] marlin [at] nccgroup [dot] com"
       print
@@ -288,6 +329,7 @@ class Print:
       print "-i                     Optional. Ignore missing binary"
       print "                       conditions"
       print "-r                     Optional. Ignore tool rulesets"
+      print "-s                     Optional. Launch tool with screen"
       print
       print "Format of the target file should be:"
       print
@@ -298,6 +340,7 @@ class Print:
       print "     url: <url-path>"
       print "     port: <port-number>"
       print "     protocol: <protocol>"
+      print "     mac_address: <mac_address>"
       print "   - target_name: <target-name-1>"
       print "     ..."
       print
@@ -333,18 +376,19 @@ class Print:
 
 class Arguments:
    argument = {'assessment':'', 'target_file':'',
-               'ignore_missing_binary':0, 'ignore_rules':0}
+               'ignore_missing_binary':False, 'ignore_rules':False,
+               'with_screen':False}
 
    def __init__(self, arguments):
       # If no arguments specified, dump autopwn help / description
-      if len(sys.argv) == 1:
+      if len(sys.argv) == True:
          help = Print('help', 'stdout')
 
       try:
-         opts, args = getopt.getopt(arguments,"ira:t:",["assessment=","target="])
+         opts, args = getopt.getopt(arguments,"irsa:t:",["assessment=","target="])
       except getopt.GetoptError:
-         print "./autopwn.py [-ir] [-a <assessment_type>] -t <target_file>"
-         sys.exit(2)
+         print "./autopwn.py [-irs] [-a <assessment_type>] -t <target_file>"
+         sys.exit(1)
 
       for opt, arg in opts:
          if opt in ("-a", "--assessment"):
@@ -355,10 +399,13 @@ class Arguments:
             self.argument['target_file'] = arg
          if opt in ("-i", "--ignore-missing"):
             # Ignore missing binary files
-            self.argument['ignore_missing_binary'] = 1
+            self.argument['ignore_missing_binary'] = True
          if opt in ("-r", "--ignore-rules"):
             # Ignore tool rule violations
-            self.argument['ignore_rules'] = 1
+            self.argument['ignore_rules'] = True
+         if opt in ("-s", "--with-screen"):
+            # Ignore tool rule violations
+            self.argument['with_screen'] = True
 
       if self.argument['target_file'] == '':
          print "[E] Target file not specified"
@@ -367,22 +414,44 @@ class Arguments:
 # Configuration class loads all information from .apc files and target file
 class Configuration:
    # Class vars
-   log_started = 0
+   log_started = False
+   autopwn_config = {'parallel': False,
+                     'parallel_override': False,
+                     'scripts_directory':''}
    tools_config = []
    assessments_config = []
    menu_items = []
    target_list = []
-   dry_run = 0
+   dry_run = False
 
    # This method will pull configuration and target file information
    # Will probably split into separate methods at some point
    def __init__(self, target_file):
-      i = 0
+      i = False
 
       pathname = os.path.dirname(sys.argv[0])
       tools_directory = os.path.abspath(pathname) + "/tools/"
       assessments_directory = os.path.abspath(pathname) + \
                               "/assessments/"
+
+      # Pull global config
+      autopwn_global_config_file = pathname + '/autopwn.apc'
+      stream = open(autopwn_global_config_file, 'r')
+      objects = yaml.load(stream)
+
+      # Global parallel
+      try:
+         self.autopwn_config['parallel'] = objects['parallel']
+         self.autopwn_config['parallel_override'] = True
+      except:
+         pass
+
+      # Scripts directory
+      try:
+         self.autopwn_config['scripts_directory'] = objects['scripts_directory']
+      except:
+         print "[E] Missing option in autopwn configuration file: scripts_directory is mandatory"
+         sys.exit(1)
 
       # Pull tool configs
       for file in os.listdir(tools_directory):
@@ -419,7 +488,7 @@ class Configuration:
             i = i + 1
 
       # Pull assessment configs
-      i = 0
+      i = False
       for file in os.listdir(assessments_directory):
          if file.endswith(".apc"):
             stream = open(assessments_directory + file, 'r')
@@ -431,7 +500,10 @@ class Configuration:
             self.assessments_config[i]['name'] = objects['name']
             self.assessments_config[i]['tools'] = objects['tools']
             self.assessments_config[i]['menu_name'] = objects['menu_name']
-            self.assessments_config[i]['parallel'] = objects['parallel']
+            if self.autopwn_config['parallel_override'] == True:
+               self.assessments_config[i]['parallel'] = self.autopwn_config['parallel']
+            else:
+               self.assessments_config[i]['parallel'] = objects['parallel']
 
             i = i + 1
 
@@ -502,11 +574,6 @@ class Configuration:
                                      'target_name':target_name,
                                      'target_protocol':target_protocol})
 
-      #print "self.target_list = " + str(self.target_list)
-      #print "self.assessments_config = " + str(self.assessments_config)
-      #print "self.tools_config = " + str(self.tools_config)
-      #sys.exit(1)
-
 class Prompt:
    def __init__(self, prompt, config, tools, assessment):
       if prompt == 'run_tools':
@@ -517,7 +584,7 @@ class Prompt:
       # Run post-tool execution commands
       # config.dry_run is assumed, but let's bail if
       # it's not set as expected
-      if config.dry_run == 1:
+      if config.dry_run == True:
          Commands(config,assessment.assessment_type,'post')
       else:
          print "[E] Dry run variable not set as expected. " + \
@@ -525,10 +592,12 @@ class Prompt:
          sys.exit(1)
 
    def run_tools(self, config, tools, assessment):
+      if config.autopwn_config['parallel_override'] == True:
+         print "[I] Global parallel option set"
       run_tools = raw_input('Run tools? [Ny] ')
 
       if run_tools.lower() == "y":
-         config.dry_run = 0
+         config.dry_run = False
          # Run pre-tool execution commands
          Commands(config,assessment.assessment_type,'pre')
          Run(config.tool_subset_evaluated,assessment.assessment_type,config)
@@ -545,18 +614,18 @@ class Rules:
 
    def check(self, args, config, tools):
       # Hosts
-      rule_violation = 0
+      rule_violation = False
       for host_index, host in enumerate(config.target_list):
          # Tools
          for tool_config_index, tool_config in enumerate(config.tools_config):
-            check_tool_rule = 0
+            check_tool_rule = False
             for tool in config.tool_subset:
                #print tool_config['name']
                #print tool['name']
                if tool_config['name'] == tool['name']:
-                  check_tool_rule = 1
+                  check_tool_rule = True
 
-            if check_tool_rule != 1:
+            if check_tool_rule != True:
                continue
 
             # Check
@@ -572,9 +641,6 @@ class Rules:
                         rule_violation = rule_violation or rule_violation_tmp
                   else:
                      for argument in tool_config['rules'][rule_type]:
-                        #print "argument_value " + \
-                        #      tool_config['rules'][rule_type][argument]
-                        #print "argument " + argument
                         rule_violation_tmp = self.check_comparison(host,tool_config,
                                         rule_type,argument,
                                         tool_config['rules'][rule_type][argument])
@@ -585,49 +651,46 @@ class Rules:
       if rule_violation:
          error_type = '[E]'
 
-         if args.argument['ignore_rules'] == 1:
+         if args.argument['ignore_rules'] == True:
             error_type = '[W]'
 
          print error_type + " There were rule violations"
 
-         if args.argument['ignore_rules'] == 0:
+         if args.argument['ignore_rules'] == False:
             sys.exit(1)
 
    def check_comparison(self,host,tool_config,rule_type,argument,argument_value):
-      error = 0
+      error = False
       if rule_type == 'not-equals':
          if host[argument] == argument_value:
             print "[W] Rule violation in " + tool_config['name'] + \
                   " for host " + host['target_domain_name'] + \
                   ": '" + argument + "' must be '" + argument_value + "'"
-            error = 1
+            error = True
       elif rule_type == 'equals':
          if host[argument] != argument_value:
             print "[W] Rule violation in " + tool_config['name'] + \
                   " for host " + host['target_domain_name'] + \
                   ": '" + argument + "' must be '" + argument_value + "'"
-            error = 1
-      #elif check == 'greater-than':
-      #   if test_item <= host[value]:
-      #      print "[W] Rule violation in " + tool_config['name'] + \
-      #            " for host " + host['target_domain_name'] + \
-      #            ": " + test_item + " == " + host[value]
-      #      error = 1
-      #elif check == 'less-than':
-      #   if test_item >= host[value]:
-      #      print "[W] Rule violation in " + tool_config['name'] + \
-      #            " for host " + host['target_domain_name'] + \
-      #            ": " + test_item + " == " + host[value]
-      #      error = 1
+            error = True
+      elif rule_type == 'greater-than':
+         if host[argument] > argument_value:
+            print "[W] Rule violation in " + tool_config['name'] + \
+                  " for host " + host['target_domain_name'] + \
+                  ": '" + argument + "' must be greater than '" + argument_value + "'"
+            error = True
+      elif rule_type == 'less-than':
+         if host[argument] < argument_value:
+            print "[W] Rule violation in " + tool_config['name'] + \
+                  " for host " + host['target_domain_name'] + \
+                  ": '" + argument + "' must be less than '" + argument_value + "'"
+            error = True
       elif rule_type == 'target-parameter-exists':
-         #for rule in tool_config['rules'][rule_type]:
-         #print "target-parameter-exists " + argument
-         #print "target-parameter-exists test " + str(host[argument] == False)
          if host[argument] == False:
             print "[W] Rule violation in " + tool_config['name'] + \
                   " for host " + host['target_domain_name'] + \
                   ": '" + argument + "' not specified in target"
-            error = 1
+            error = True
 
       return error
 
@@ -639,25 +702,26 @@ class Commands:
          self.post_command(config,assessment_type)
 
    def pre_command(self, config, assessment_type):
-      if config.dry_run == 1:
-         display_pre_command_banner = 1
+      if config.dry_run == True:
+         display_pre_command_banner = True
 
          for tool in config.tool_subset_evaluated:
             if 'pre_tool_execution' in tool and \
-                  display_pre_command_banner == 1:
+                  display_pre_command_banner == True:
                print "The following pre-tool execution commands will be run:"
                print "--------------------------------"
-               display_pre_command_banner = 0
+               display_pre_command_banner = False
+
       for tool in config.tool_subset_evaluated:
          try:
-            if config.dry_run == 1:
+            if config.dry_run == True:
                print tool['pre_tool_execution']
             else:
                if 'pre_tool_execution' in tool:
                   print "[+] Running pre-tool commands for " + tool['name']
                   subprocess.call(tool['pre_tool_execution'],shell = True)
                   print "[-] Pre-tool commands for " + tool['name'] + " have completed.."
-                  log = Log(config,os.getcwd(),'tool_string',
+                  log = Log(config,os.getcwd(),False,'tool_string',
                         "# Pre-tool commands for " + tool['name'] + \
                         " have finished")
 
@@ -665,30 +729,36 @@ class Commands:
             pass
 
    def post_command(self, config, assessment_type):
-      display_post_command_banner = 1
-      if config.dry_run == 1:
+      display_post_command_banner = True
+      if config.dry_run == True:
          for tool in config.tool_subset_evaluated:
             if 'post_tool_execution' in tool and \
-                  display_post_command_banner == 1:
+                  display_post_command_banner == True:
                print "--------------------------------"
                print "The following post-tool execution commands will be run:"
                print "--------------------------------"
-               display_post_command_banner = 0
+               display_post_command_banner = False
       for tool in config.tool_subset_evaluated:
          try:
-            if config.dry_run == 1:
+            if config.dry_run == True:
                print tool['post_tool_execution']
             else:
                if 'post_tool_execution' in tool:
                   print "[+] Running post-tool commands for " + tool['name']
                   subprocess.call(tool['post_tool_execution'],shell = True)
                   print "[-] Post-tool commands for " + tool['name'] + " have completed.."
-                  log = Log(config,os.getcwd(),'tool_string',
+                  log = Log(config,os.getcwd(),False,'tool_string',
                         "# Post-tool commands for " + tool['name'] + \
                         " has finished")
 
          except:
             pass
+
+class CleanUp:
+   def __init__(self):
+      for screen in list_screens():
+         if screen.name.startswith("autopwn"):
+            screen.kill()
 
 def main():
    # Process arguments
@@ -705,7 +775,7 @@ def main():
    Commands(config,assessment.assessment_type,'pre')
    # Run tools
    execute = Run(config.tool_subset_evaluated,assessment.assessment_type,config)
-   if config.dry_run == 1:
+   if config.dry_run == True:
       Prompt('run_tools',config,tools,assessment)
    # Run post-tool execution commands
    Commands(config,assessment.assessment_type,'post')
@@ -714,6 +784,7 @@ if __name__ == "__main__":
    try:
       main()
    except KeyboardInterrupt:
+      CleanUp()
       print
       print "[E] Quitting!"
       sys.exit(1)
