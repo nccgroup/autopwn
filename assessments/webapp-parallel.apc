@@ -1,12 +1,9 @@
-name: webapp
+name: webapp-parallel
 menu_name: Web Application (Parallel)
 
 tools:
    - arachni
-   - nmap
    - nikto
-   - udp-proto-scanner
-   - dirb
    - skipfish
 
 parallel: 1

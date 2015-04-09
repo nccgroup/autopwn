@@ -1,0 +1,6 @@
+name: dir-brute
+tools:
+   - dirb
+
+menu_name: Directory Brute Forcing
+parallel: 0

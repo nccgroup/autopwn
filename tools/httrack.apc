@@ -6,3 +6,4 @@ rules:
    target-parameter-exists: ['target_ip','target_protocol','target_port_number']
 
 arguments: "{target_protocol}://{target_domain_name}:{target_port_number}/{target_url} > {output_dir}/{date}_{target_name}_httrack_{target_domain_name}"
+stdout: False

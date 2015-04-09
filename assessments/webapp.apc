@@ -3,10 +3,7 @@ menu_name: Web Application
 
 tools:
    - arachni
-   - nmap
    - nikto
-   - udp-proto-scanner
-   - dirb
    - skipfish
 
 parallel: 0

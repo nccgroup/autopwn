@@ -6,3 +6,4 @@ rules:
    target-parameter-exists: ['target_ip','target_domain_name','target_port_number','target_protocol']
 
 arguments: "{target_protocol}://{target_domain_name}:{target_port_number}/{target_url} -o {output_dir}/{date}_{target_name}_dirb_{target_domain_name}"
+stdout: True

@@ -6,3 +6,4 @@ rules:
    target-parameter-exists: ['target_ip']
 
 arguments: "-A -sS -sC -sV {target_domain_name} -oA {output_dir}/{date}_{target_name}_nmap_common_ports_{target_domain_name}"
+stdout: True

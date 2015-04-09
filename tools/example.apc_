@@ -38,3 +38,9 @@ post_tool_execution: "/usr/bin/example_report {output_dir}"
 # * target_port_number (if target port number has been specified)
 # * output_dir (directory where tool output will be saved for specific target)
 arguments: "{target_protocol}://{target_domain_name}:{target_port_number} -o {output_dir}/{date}_example_{target_domain_name}"
+
+# Given the arguments option, will this tool generate output? If redirection is used,
+# then this is not going to be the case (excluding stderr).
+# Specifyng this option will determine whether or not a stdout file for the tool
+# is generated
+stdout: True

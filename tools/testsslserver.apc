@@ -8,3 +8,4 @@ rules:
    target-parameter-exists: ['target_ip','target_port_number']
 
 arguments: "-jar /root/Downloads/TestSSLServer.jar {target_domain_name} {target_port_number} > {output_dir}/{date}_{target_name}_testsslserver_{target_domain_name}"
+stdout: False

@@ -6,3 +6,4 @@ rules:
    target-parameter-exists: ['target_ip']
 
 arguments: "{target_ip} > {output_dir}/{date}_{target_name}_udp-proto-scanner_{target_domain_name}"
+stdout: False

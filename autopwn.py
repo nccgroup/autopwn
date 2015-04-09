@@ -42,7 +42,7 @@ class Log:
             sys.exit(1)
          try:
             if config.log_started != True:
-               log_file.write("## autopwn v0.9 command output\n")
+               log_file.write("## autopwn v0.9.1 command output\n")
                config.log_started = True
          except:
             pass
@@ -112,6 +112,7 @@ class RunThreads (threading.Thread):
       self.tool_name = tool['name']
       self.tool_execute_string = tool['execute_string']
       self.tool_output_dir = tool['output_dir']
+      self.tool_stdout_boolean = tool['stdout']
       self.target_name = tool['host']['target_name']
       self.tool_stdout = ''
       self.tool_stderr = ''
@@ -120,8 +121,10 @@ class RunThreads (threading.Thread):
                      tool_execute_string):
       # Always check any tools provided by
       # community members
-      command_arguments = shlex.split(tool_execute_string)
-      proc = Popen(command_arguments, stdout=PIPE, stderr=PIPE)
+      # Bad bug using this and no shell for Popen,
+      # will come back to this
+      #command_arguments = shlex.split(tool_execute_string)
+      proc = Popen(tool_execute_string, stdout=PIPE, stderr=PIPE, shell=True)
 
       self.tool_stdout, self.tool_stderr = proc.communicate()
       exitcode = proc.returncode
@@ -131,9 +134,11 @@ class RunThreads (threading.Thread):
       self.execute_tool(self.thread_ID, self.tool_name,
                         self.tool_execute_string)
       print "[-] " + self.tool_name + " is done.."
-      log = Log(False, os.getcwd() + "/" + self.tool_output_dir,
-            self.target_name + "_" + self.tool_name,
-            'tool_output', self.tool_stdout)
+      # Should we create a stdout log for this tool?
+      if self.tool_stdout_boolean == True:
+         log = Log(False, os.getcwd() + "/" + self.tool_output_dir,
+               self.target_name + "_" + self.tool_name,
+               'tool_output', self.tool_stdout)
       log = Log(False, os.getcwd(), False, 'tool_string', "# " + \
             self.tool_name + " has finished")
 
@@ -144,7 +149,7 @@ class Tools:
          if tool['name'] in assessment['tools']:
             config.tool_subset.append(tool)
 
-      print "autopwn v0.9 by Aidan Marlin"
+      print "autopwn v0.9.1 by Aidan Marlin"
       print "email: aidan [dot] marlin [at] nccgroup [dot] com"
       print
 
@@ -316,7 +321,7 @@ class Print:
 
    def display_help(self, file_descriptor):
       # Not doing anything with file_descriptor yet
-      print "autopwn v0.9"
+      print "autopwn v0.9.1"
       print "By Aidan Marlin"
       print "Email: aidan [dot] marlin [at] nccgroup [dot] com"
       print
@@ -461,12 +466,17 @@ class Configuration:
 
             self.tools_config.append({'name':'',
                                        'binary_location':'',
-                                       'arguments':''
+                                       'arguments':'',
+                                       'stdout':''
                                        })
 
             self.tools_config[i]['name'] = objects['name']
             self.tools_config[i]['binary_location'] = objects['binary_location']
             self.tools_config[i]['arguments'] = objects['arguments']
+            try:
+               self.tools_config[i]['stdout'] = objects['stdout']
+            except:
+               self.tools_config[i]['stdout'] = False
             # The following options are not compulsory
             try:
                self.tools_config[i]['rules'] = objects['rules']

@@ -1,3 +1,13 @@
+autopwn v0.9.1 - 20150409
+
+* Fixed bad bug where redirection locations were being used as
+  targets (had to shell=True the Popen(), will fix properly
+  sometime)
+* Added stdout option to tool configs. If a stdout log should
+  be generated for a tool, then "stdout: True" should be specified,
+  if the tool output is being redirected to a file already,
+  "stdout: False" should be used so an empty stdout isn't created
+
 autopwn v0.9 - 20150408
 
 * autopwn global configuration file added
