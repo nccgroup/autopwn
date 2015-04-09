@@ -1,9 +1,0 @@
-name: ssl_audit
-menu_name: SSL Audit
-
-tools:
-   - sslyze
-   - sslscan
-   - testsslserver
-
-parallel: 0
