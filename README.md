@@ -31,7 +31,7 @@ autopwn supports a number of options, including:
 ## Sample output
 
 ```
-# ./autopwn.py -t target
+# autopwn.py -t target
 What assessment do you want to run?
 0) Nmap Scan (Common TCP Ports)
 1) Nmap Scan (All TCP Ports)
