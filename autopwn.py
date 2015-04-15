@@ -1,8 +1,6 @@
 #!/usr/bin/python2
 
 import copy
-import datetime
-import dateutil.tz
 import sys
 import getopt
 import re
@@ -47,7 +45,7 @@ class Log:
          try:
             if config.log_started != True:
                log_file.write("## autopwn v0.9.3 command output\n")
-               log_file.write("## Starting logging at " + date_time + "...\n")
+               log_file.write("## Started logging at " + date_time + "...\n")
                config.log_started = True
          except:
             pass
@@ -206,7 +204,7 @@ class Tools:
             config.tool_subset_evaluated.append(copy.deepcopy(tool))
 
             # Variable declaration for placeholder replacements
-            date = strftime("%Y%m%d_%H%M%S")
+            date = strftime("%Y%m%d_%H%M%S%z")
             date_day = strftime("%Y%m%d")
             config.tool_subset_evaluated[-1]['output_dir'] = date_day + \
                "_autopwn_" + host['target_ip'] + "_" + host['target_name']

@@ -1,0 +1,8 @@
+name: windows-audit
+menu_name: Windows Audit
+
+tools:
+   - nbtscan
+   - enum4linux
+
+parallel: False
