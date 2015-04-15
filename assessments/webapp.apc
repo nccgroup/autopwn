@@ -6,4 +6,4 @@ tools:
    - nikto
    - skipfish
 
-parallel: 0
+parallel: False

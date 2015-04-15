@@ -3,4 +3,4 @@ tools:
    - udp-proto-scanner
 
 menu_name: UDP Scanning
-parallel: 0
+parallel: False

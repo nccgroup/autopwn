@@ -4,4 +4,4 @@ menu_name: HTTrack (Mirror website)
 tools:
    - httrack
 
-parallel: 0
+parallel: False

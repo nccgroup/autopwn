@@ -6,4 +6,4 @@ tools:
    - sslscan
    - testsslserver
 
-parallel: 0
+parallel: False

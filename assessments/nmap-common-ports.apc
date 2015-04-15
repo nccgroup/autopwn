@@ -4,4 +4,4 @@ menu_name: Nmap Scan (Common TCP Ports)
 tools:
    - nmap-common-ports
 
-parallel: 0
+parallel: False

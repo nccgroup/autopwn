@@ -1,6 +1,8 @@
 #!/usr/bin/python2
 
 import copy
+import datetime
+import dateutil.tz
 import sys
 import getopt
 import re
@@ -11,6 +13,7 @@ import threading
 import time
 import yaml
 from collections import OrderedDict
+from distutils.spawn import find_executable
 from screenutils import list_screens, Screen
 from subprocess import Popen, PIPE
 from time import gmtime, strftime
@@ -21,7 +24,7 @@ from time import gmtime, strftime
 class Log:
    def __init__(self, config, directory, log_filename, log_type, log_string):
       date = strftime("%Y%m%d")
-      date_time = strftime("%Y%m%d %H:%M:%S") # TODO Offset time
+      date_time = strftime("%Y%m%d %H:%M:%S %z")
 
       if log_type == 'tool_output':
          try:
@@ -43,7 +46,8 @@ class Log:
             sys.exit(1)
          try:
             if config.log_started != True:
-               log_file.write("## autopwn v0.9.2 command output\n")
+               log_file.write("## autopwn v0.9.3 command output\n")
+               log_file.write("## Starting logging at " + date_time + "...\n")
                config.log_started = True
          except:
             pass
@@ -150,43 +154,49 @@ class Tools:
          if tool['name'] in assessment['tools']:
             config.tool_subset.append(tool)
 
-      print "autopwn v0.9.2 by Aidan Marlin"
+      print "autopwn v0.9.3 by Aidan Marlin"
       print "email: aidan [dot] marlin [at] nccgroup [dot] com"
       print
 
       self.replace_placeholders(config, assessment)
-      self.check_exists(config, args, assessment)
+      for tool in config.tool_subset:
+         self.check_tool_exists(tool['binary_location'], args)
 
       if args.argument['with_screen'] == True:
-         self.prepend_tool(config, 'screen')
+         self.prepend_tool(config, 'screen', args)
 
-   def prepend_tool(self, config, prepend_tool):
+   def prepend_tool(self, config, prepend_tool, args):
       if prepend_tool == 'screen':
+         bash_binary = self.check_tool_exists('bash', args)
+         screen_binary = self.check_tool_exists('screen', args)
          index = False
          for host in config.target_list:
             for tool in config.tool_subset:
                config.tool_subset_evaluated[index]['execute_string'] = \
-                  "screen -D -m -S autopwn_" + \
+                  screen_binary + " -D -m -S autopwn_" + \
                   host['target_name'] + "_" + \
                   host['target_domain_name'] + "_" + host['target_ip'] + \
-                  "_" + tool['name'] + " " + "/bin/bash -c '" + \
+                  "_" + tool['name'] + " " + bash_binary + " -c '" + \
                   config.tool_subset_evaluated[index]['execute_string'] + \
                   "'"
 
                index = index + 1
 
-   def check_exists(self, config, args, assessment):
+   def check_tool_exists(self, tool, args):
       error_type = '[E]'
 
-      for tool in config.tool_subset:
-         if os.path.isfile(tool['binary_location']) == False:
+      if os.path.isfile(tool) == False:
+         tool_location = find_executable(tool)
+         if tool_location == None:
             if args.argument['ignore_missing_binary'] == True:
                error_type = '[W]'
 
-            print error_type + " Could not find binary for " + tool['name']
+            print error_type + " Could not find binary for " + tool
 
             if args.argument['ignore_missing_binary'] == False:
                sys.exit(1)
+         else:
+            return tool_location
 
    def replace_placeholders(self, config, assessment):
       config.tool_subset_evaluated = []
@@ -298,14 +308,15 @@ class Assessments:
    def __init__(self, config, argument_assessment):
       # Shall we process assessment from command line
       # arguments or display menu?
-      if argument_assessment != '':
+      if argument_assessment == True:
+         # Set variable
          argument_assessment_found = False
          # Command line
          for assessment_type in config.assessments_config:
             if assessment_type['name'] == argument_assessment:
                self.assessment_type = assessment_type
                argument_assessment_found = True
-         if argument_assessment_found != True:
+         if argument_assessment_found == False:
             print "[E] Assessment name not found. Is it spelt correctly?"
             sys.exit(1)
       else:
@@ -314,9 +325,6 @@ class Assessments:
          menu = Menus(config.menu_items,'assessment')
          self.assessment_type = config.assessments_config[menu.item_selected]
 
-      #print "self.assessment_type = " + str(self.assessment_type)
-      #sys.exit(1)
-
 class Print:
    def __init__(self, display_text, file_descriptor):
       if display_text == 'help':
@@ -324,18 +332,18 @@ class Print:
 
    def display_help(self, file_descriptor):
       # Not doing anything with file_descriptor yet
-      print "autopwn v0.9.2"
+      print "autopwn v0.9.3"
       print "By Aidan Marlin"
       print "Email: aidan [dot] marlin [at] nccgroup [dot] com"
       print
       print "-t <target_file>       Required. The file containing the"
       print "                       targets"
       print "-a <assessment_type>   Optional. Specify assessment name"
-      print "                       to run."
+      print "                       to run"
       print "                       Autopwn will not prompt to run"
       print "                       tools with this option"
-      print "-i                     Optional. Ignore missing binary"
-      print "                       conditions"
+      print "-i                     Deprecated. Optional. Ignore missing"
+      print "                       binary conditions"
       print "-r                     Optional. Ignore tool rulesets"
       print "-s                     Optional. Launch tool with screen"
       print
@@ -399,6 +407,12 @@ class Arguments:
          print "./autopwn.py [-irs] [-a <assessment_type>] -t <target_file>"
          sys.exit(1)
 
+      self.argument['assesment'] = False
+      self.argument['target_file'] = False
+      self.argument['ignore_missing_binary'] = False
+      self.argument['ignore_rules'] = False
+      self.argument['with_screen'] = False
+
       for opt, arg in opts:
          if opt in ("-a", "--assessment"):
             # Assessment type
@@ -436,8 +450,7 @@ class Configuration:
    # This method will pull configuration and target file information
    # Will probably split into separate methods at some point
    def __init__(self, target_file):
-      i = False
-
+      index = 0
       pathname = os.path.dirname(sys.argv[0])
       tools_directory = os.path.abspath(pathname) + "/tools/"
       assessments_directory = os.path.abspath(pathname) + \
@@ -474,35 +487,35 @@ class Configuration:
                                        'stdout':''
                                        })
 
-            self.tools_config[i]['name'] = objects['name']
-            self.tools_config[i]['binary_location'] = objects['binary_location']
-            self.tools_config[i]['arguments'] = objects['arguments']
+            self.tools_config[index]['name'] = objects['name']
+            self.tools_config[index]['binary_location'] = objects['binary_location']
+            self.tools_config[index]['arguments'] = objects['arguments']
             try:
-               self.tools_config[i]['stdout'] = objects['stdout']
+               self.tools_config[index]['stdout'] = objects['stdout']
             except:
-               self.tools_config[i]['stdout'] = False
+               self.tools_config[index]['stdout'] = False
             # The following options are not compulsory
             try:
-               self.tools_config[i]['rules'] = objects['rules']
+               self.tools_config[index]['rules'] = objects['rules']
             except:
                pass
             try:
-               self.tools_config[i]['pre_tool_execution'] = objects['pre_tool_execution']
+               self.tools_config[index]['pre_tool_execution'] = objects['pre_tool_execution']
             except:
                pass
             try:
-               self.tools_config[i]['post_tool_execution'] = objects['post_tool_execution']
+               self.tools_config[index]['post_tool_execution'] = objects['post_tool_execution']
             except:
                pass
             try:
-               self.tools_config[i]['url'] = objects['url']
+               self.tools_config[index]['url'] = objects['url']
             except:
                pass
 
-            i = i + 1
+            index = index + 1
 
       # Pull assessment configs
-      i = False
+      index = 0
       for file in os.listdir(assessments_directory):
          if file.endswith(".apc"):
             stream = open(assessments_directory + file, 'r')
@@ -511,15 +524,15 @@ class Configuration:
             self.assessments_config.append({'name':'','tools':'',
                                              'menu_name':'',
                                              'parallel':''})
-            self.assessments_config[i]['name'] = objects['name']
-            self.assessments_config[i]['tools'] = objects['tools']
-            self.assessments_config[i]['menu_name'] = objects['menu_name']
+            self.assessments_config[index]['name'] = objects['name']
+            self.assessments_config[index]['tools'] = objects['tools']
+            self.assessments_config[index]['menu_name'] = objects['menu_name']
             if self.autopwn_config['parallel_override'] == True:
-               self.assessments_config[i]['parallel'] = self.autopwn_config['parallel']
+               self.assessments_config[index]['parallel'] = self.autopwn_config['parallel']
             else:
-               self.assessments_config[i]['parallel'] = objects['parallel']
+               self.assessments_config[index]['parallel'] = objects['parallel']
 
-            i = i + 1
+            index = index + 1
 
       # Assign menu_items
       for config_assessment_menu_item in self.assessments_config:
@@ -771,6 +784,7 @@ class Commands:
 
 class CleanUp:
    def __init__(self):
+      # Kill screen sessions. Needs improvement
       for screen in list_screens():
          if screen.name.startswith("autopwn"):
             screen.kill()

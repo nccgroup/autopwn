@@ -4,4 +4,4 @@ menu_name: Drupal Scans (Parallel)
 tools:
    - cmsmap
 
-parallel: 1
+parallel: True

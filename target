@@ -1,0 +1,7 @@
+targets:
+   - target_name: test
+     ip_address: 178.79.139.137
+     domain: pastefu.org
+     url: /
+     port: 443
+     protocol: https

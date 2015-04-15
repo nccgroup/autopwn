@@ -16,17 +16,13 @@ TODO
 - DNS tools
 - Harvester?
 - recon tools?
-4 - Disable SSL scans if http specified ... Or just have non-SSL assessments B-)
-5 - Flags
-5b) Verbose flag?
-6 - Windows support?
-7 - Improve Ctrl+c support
-7b) Clean up files?
-8 - If a tool doesn't like http:// or https://, need to specify what it does like
+4 - Flags
+5 - Windows support?
+6 - Improve Ctrl+c support
+6b) Clean up files?
+7 - If a tool doesn't like http:// or https://, need to specify what it does like
     (for example -ssl)
-9 - Check return codes for commands
-10 - Auto resolve ip if not specified using domain.. ip or domain *required*
-11 - Improve command log file name to allow for multiple autopwn instances
-12 - Improve exit condition handling
-13 - Check bash and screen exists as and when needed
-14 - Tool scheduling? Will require a daemon
+8 - Check return codes for commands
+9 - Auto resolve ip if not specified using domain.. ip or domain *required*
+10 - Improve command log file name to allow for multiple autopwn instances
+11 - Improve exit condition handling

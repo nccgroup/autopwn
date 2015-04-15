@@ -16,4 +16,4 @@ tools:
 menu_name: Example (Parallel)
 
 # Run tools in parallel?
-parallel: 1
+parallel: True
