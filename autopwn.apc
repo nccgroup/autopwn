@@ -2,7 +2,7 @@
 
 # Run tools in parallel? Uncommenting this option will override
 # any parallel option specified in assessment configurations
-#parallel: False
+parallel: True
 
 # The scripts_directory value will be used to search for tools
 scripts_directory: /root/scripts/

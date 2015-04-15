@@ -334,16 +334,16 @@ class Print:
       print "By Aidan Marlin"
       print "Email: aidan [dot] marlin [at] nccgroup [dot] com"
       print
-      print "-t <target_file>       Required. The file containing the"
-      print "                       targets"
-      print "-a <assessment_type>   Optional. Specify assessment name"
-      print "                       to run"
-      print "                       Autopwn will not prompt to run"
-      print "                       tools with this option"
-      print "-i                     Deprecated. Optional. Ignore missing"
-      print "                       binary conditions"
-      print "-r                     Optional. Ignore tool rulesets"
-      print "-s                     Optional. Launch tool with screen"
+      print "-t <target_file>          Required. The file containing the"
+      print "                          targets"
+      print "-a <assessment_type>      Optional. Specify assessment name"
+      print "                          to run. Autopwn will not prompt to"
+      print "                          run tools with this option"
+      print "-d <assessment_directory> Optional. Specify assessment directory"
+      print "-i                        Deprecated (and buggy). Optional. Ignore"
+      print "                          missing binary conditions"
+      print "-r                        Optional. Ignore tool rulesets"
+      print "-s                        Optional. Run tools in screen session"
       print
       print "Format of the target file should be:"
       print
@@ -399,13 +399,15 @@ class Arguments:
          help = Print('help', 'stdout')
 
       try:
-         opts, args = getopt.getopt(arguments,"irsa:t:",
+         opts, args = getopt.getopt(arguments,"irsa:t:d:",
                                     ["assessment=","target="])
       except getopt.GetoptError:
-         print "./autopwn.py [-irs] [-a <assessment_type>] -t <target_file>"
+         print "./autopwn.py [-irs] [-a <assessment_type>] " + \
+               "[-d <assessment_directory>] -t <target_file>"
          sys.exit(1)
 
-      self.argument['assesment'] = False
+      self.argument['assessment'] = None
+      self.argument['assessment_directory'] = None
       self.argument['target_file'] = False
       self.argument['ignore_missing_binary'] = False
       self.argument['ignore_rules'] = False
@@ -415,6 +417,9 @@ class Arguments:
          if opt in ("-a", "--assessment"):
             # Assessment type
             self.argument['assessment'] = arg
+         if opt in ("-d", "--assessment_directory"):
+            # Assessment directory
+            self.argument['assessment_directory'] = arg
          if opt in ("-t", "--target"):
             # Target file
             self.argument['target_file'] = arg
@@ -447,12 +452,16 @@ class Configuration:
 
    # This method will pull configuration and target file information
    # Will probably split into separate methods at some point
-   def __init__(self, target_file):
+   def __init__(self, args):
       index = 0
+      target_file = args.argument['target_file']
       pathname = os.path.dirname(sys.argv[0])
       tools_directory = os.path.abspath(pathname) + "/tools/"
-      assessments_directory = os.path.abspath(pathname) + \
-                              "/assessments/"
+      if args.argument['assessment_directory'] == None:
+         assessments_directory = os.path.abspath(pathname) + \
+                                 "/assessments/"
+      else:
+         assessments_directory = args.argument['assessment_directory']
 
       # Pull global config
       autopwn_global_config_file = pathname + '/autopwn.apc'
@@ -514,6 +523,11 @@ class Configuration:
 
       # Pull assessment configs
       index = 0
+      # Check assessments directory exists
+      if not os.path.isdir(assessments_directory):
+         print "[E] Assessments directory does not exist"
+         sys.exit(1)
+
       for file in os.listdir(assessments_directory):
          if file.endswith(".apc"):
             stream = open(assessments_directory + file, 'r')
@@ -791,7 +805,7 @@ def main():
    # Process arguments
    args = Arguments(sys.argv[1:])
    # Pull config
-   config = Configuration(args.argument['target_file'])
+   config = Configuration(args)
    # Determine assessment
    assessment = Assessments(config,args.argument['assessment'])
    # Process tools
