@@ -15,7 +15,7 @@ To use autopwn, simply fork the GitHub repository and run autopwn.py
 
 autopwn supports a number of options, including:
 
--t <target_file>          Required. The file containing the
+`-t <target_file>          Required. The file containing the
                           targets
 -a <assessment_type>      Optional. Specify assessment name
                           to run. Autopwn will not prompt to
@@ -24,7 +24,48 @@ autopwn supports a number of options, including:
 -i                        Deprecated (and buggy). Optional. Ignore
                           missing binary conditions
 -r                        Optional. Ignore tool rulesets
--s                        Optional. Run tools in screen session
+-s                        Optional. Run tools in screen session`
+
+## Sample output
+
+`# ./autopwn.py -t target
+What assessment do you want to run?
+0) Nmap Scan (Common TCP Ports)
+1) Nmap Scan (All TCP Ports)
+2) Drupal Scans (Parallel)
+3) HTTrack (Mirror website)
+4) Directory Brute Forcing
+5) Web Application
+6) Web Application (Parallel)
+7) UDP Scanning
+8) Windows Audit
+9) SSL Audit
+Choose > 8
+
+autopwn v0.9.3 by Aidan Marlin
+email: aidan [dot] marlin [at] nccgroup [dot] com
+
+--------------------------------
+The following tools will be run:
+--------------------------------
+/usr/bin/enum4linux -av 127.0.0.1 > 20150415_autopwn_127.0.0.1_test/20150415_130834+0100_test_enum4linux_127.0.0.1
+/usr/bin/nbtscan -v 127.0.0.1 > 20150415_autopwn_127.0.0.1_test/20150415_130834+0100_test_nbtscan_127.0.0.1
+[I] Global parallel option set
+Run tools? [Ny] y
+[+] Launching enum4linux
+[+] Launching nbtscan
+[-] nbtscan is done..
+[-] enum4linux is done..
+# tree
+.
+├── 20150415_autopwn_127.0.0.1_test
+│   ├── 20150415_130834+0100_test_enum4linux_127.0.0.1
+│   ├── 20150415_130834+0100_test_nbtscan_127.0.0.1
+│   └── target
+├── 20150415_autopwn_commands.log
+└── target
+
+1 directory, 6 files`
 
 ## Contributing
 
