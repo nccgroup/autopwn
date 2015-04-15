@@ -15,7 +15,7 @@ To use autopwn, simply fork the GitHub repository and run autopwn.py
 
 autopwn supports a number of options, including:
 
-`-t <target_file>          Required. The file containing the
+```-t <target_file>          Required. The file containing the
                           targets
 -a <assessment_type>      Optional. Specify assessment name
                           to run. Autopwn will not prompt to
@@ -24,11 +24,11 @@ autopwn supports a number of options, including:
 -i                        Deprecated (and buggy). Optional. Ignore
                           missing binary conditions
 -r                        Optional. Ignore tool rulesets
--s                        Optional. Run tools in screen session`
+-s                        Optional. Run tools in screen session```
 
 ## Sample output
 
-`# ./autopwn.py -t target
+```# ./autopwn.py -t target
 What assessment do you want to run?
 0) Nmap Scan (Common TCP Ports)
 1) Nmap Scan (All TCP Ports)
@@ -65,7 +65,7 @@ Run tools? [Ny] y
 ├── 20150415_autopwn_commands.log
 └── target
 
-1 directory, 6 files`
+1 directory, 6 files```
 
 ## Contributing
 
