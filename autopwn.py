@@ -44,7 +44,7 @@ class Log:
             sys.exit(1)
          try:
             if config.log_started != True:
-               log_file.write("## autopwn v0.9.3 command output\n")
+               log_file.write("## autopwn v0.10 command output\n")
                log_file.write("## Started logging at " + date_time + "...\n")
                config.log_started = True
          except:
@@ -152,7 +152,7 @@ class Tools:
          if tool['name'] in assessment['tools']:
             config.tool_subset.append(tool)
 
-      print "autopwn v0.9.3 by Aidan Marlin"
+      print "autopwn v0.10 by Aidan Marlin"
       print "email: aidan [dot] marlin [at] nccgroup [dot] com"
       print
 
@@ -304,9 +304,11 @@ class Assessments:
    assessment_type = ""
 
    def __init__(self, config, argument_assessment):
+      print "hello motherfucker"
+      print argument_assessment
       # Shall we process assessment from command line
       # arguments or display menu?
-      if argument_assessment == True:
+      if argument_assessment != None:
          # Set variable
          argument_assessment_found = False
          # Command line
@@ -330,7 +332,7 @@ class Print:
 
    def display_help(self, file_descriptor):
       # Not doing anything with file_descriptor yet
-      print "autopwn v0.9.3"
+      print "autopwn v0.10"
       print "By Aidan Marlin"
       print "Email: aidan [dot] marlin [at] nccgroup [dot] com"
       print

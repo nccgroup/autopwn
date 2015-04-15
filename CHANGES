@@ -1,6 +1,8 @@
-autopwn v0.9.4 - 20150415
+autopwn v0.10 - 20150415
 
 * Added option to specify assessments directory
+* Added parallel command line option (overrides
+  all other parallel options specified)
 
 autopwn v0.9.3 - 20150415
 
