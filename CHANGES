@@ -1,3 +1,7 @@
+autopwn v0.9.2 - 20150415
+
+* Greater than and less than rules now work
+
 autopwn v0.9.1 - 20150409
 
 * Fixed bad bug where redirection locations were being used as

@@ -26,7 +26,8 @@ class Log:
       if log_type == 'tool_output':
          try:
             # log_filename is pikey, make it better
-            log_file = open(directory + "/" + date + "_autopwn_" + log_filename + "_stdout.log","a")
+            log_file = open(directory + "/" + date + "_autopwn_" + \
+                            log_filename + "_stdout.log","a")
          except OSError as e:
             print "[E] Error creating log file: " + e
             sys.exit(1)
@@ -42,7 +43,7 @@ class Log:
             sys.exit(1)
          try:
             if config.log_started != True:
-               log_file.write("## autopwn v0.9.1 command output\n")
+               log_file.write("## autopwn v0.9.2 command output\n")
                config.log_started = True
          except:
             pass
@@ -73,12 +74,12 @@ class Run:
          if config.dry_run != True:
             try:
                log = Log(config,os.getcwd(),False,'tool_string',"# Executing " + \
-                     tool['name'] + " tool (" + tool['url'] + "):\n" + \
-                     tool['execute_string'])
+                         tool['name'] + " tool (" + tool['url'] + "):\n" + \
+                         tool['execute_string'])
             except:
                log = Log(config,os.getcwd(),False,'tool_string',"# Executing " + \
-                     tool['name'] + " tool:\n# " + \
-                     tool['execute_string'])
+                         tool['name'] + " tool:\n# " + \
+                         tool['execute_string'])
 
             time.sleep (0.1);
             self.thread.append(RunThreads(self.index, tool))
@@ -137,10 +138,10 @@ class RunThreads (threading.Thread):
       # Should we create a stdout log for this tool?
       if self.tool_stdout_boolean == True:
          log = Log(False, os.getcwd() + "/" + self.tool_output_dir,
-               self.target_name + "_" + self.tool_name,
+                   self.target_name + "_" + self.tool_name,
                'tool_output', self.tool_stdout)
       log = Log(False, os.getcwd(), False, 'tool_string', "# " + \
-            self.tool_name + " has finished")
+                self.tool_name + " has finished")
 
 class Tools:
    def __init__(self, config, args, assessment):
@@ -149,7 +150,7 @@ class Tools:
          if tool['name'] in assessment['tools']:
             config.tool_subset.append(tool)
 
-      print "autopwn v0.9.1 by Aidan Marlin"
+      print "autopwn v0.9.2 by Aidan Marlin"
       print "email: aidan [dot] marlin [at] nccgroup [dot] com"
       print
 
@@ -197,7 +198,8 @@ class Tools:
             # Variable declaration for placeholder replacements
             date = strftime("%Y%m%d_%H%M%S")
             date_day = strftime("%Y%m%d")
-            config.tool_subset_evaluated[-1]['output_dir'] = date_day + "_autopwn_" + host['target_ip'] + "_" + host['target_name']
+            config.tool_subset_evaluated[-1]['output_dir'] = date_day + \
+               "_autopwn_" + host['target_ip'] + "_" + host['target_name']
             config.tool_subset_evaluated[-1]['host'] = host
             output_dir = config.tool_subset_evaluated[-1]['output_dir']
 
@@ -211,13 +213,14 @@ class Tools:
 
             # Create target file in new directory
             try:
-               Log(config,output_dir,'individual_target',host['target_ip'] + '#' + \
-                  host['target_domain_name'] + '#' + \
+               Log(config,output_dir,'individual_target',host['target_ip'] + \
+                  '#' + host['target_domain_name'] + '#' + \
                   host['target_port_number'] + '#' + \
                   host['target_protocol'])
             except:
                # Not all target arguments specified
-               Log(config,output_dir,False,'individual_target',host['target_ip'])
+               Log(config,output_dir,False,
+                   'individual_target',host['target_ip'])
 
             # Replace placeholders for tool argument string
             tool_arguments_instance = config.tool_subset_evaluated[-1]['arguments'].format(
@@ -321,7 +324,7 @@ class Print:
 
    def display_help(self, file_descriptor):
       # Not doing anything with file_descriptor yet
-      print "autopwn v0.9.1"
+      print "autopwn v0.9.2"
       print "By Aidan Marlin"
       print "Email: aidan [dot] marlin [at] nccgroup [dot] com"
       print
@@ -390,7 +393,8 @@ class Arguments:
          help = Print('help', 'stdout')
 
       try:
-         opts, args = getopt.getopt(arguments,"irsa:t:",["assessment=","target="])
+         opts, args = getopt.getopt(arguments,"irsa:t:",
+                                    ["assessment=","target="])
       except getopt.GetoptError:
          print "./autopwn.py [-irs] [-a <assessment_type>] -t <target_file>"
          sys.exit(1)
@@ -532,7 +536,7 @@ class Configuration:
          fd_targets.close()
       except IOError as e:
          print "[E] Error processing target file: {1}".format(e.errno,
-                                                               e.strerror)
+                                                              e.strerror)
          sys.exit(1)
 
       # Process each target in target list
@@ -656,7 +660,8 @@ class Rules:
                                         tool_config['rules'][rule_type][argument])
                   rule_violation = rule_violation or rule_violation_tmp
             except:
-               pass
+               raise
+               #pass
 
       if rule_violation:
          error_type = '[E]'
@@ -684,16 +689,16 @@ class Rules:
                   ": '" + argument + "' must be '" + argument_value + "'"
             error = True
       elif rule_type == 'greater-than':
-         if host[argument] > argument_value:
+         if host[argument] <= argument_value:
             print "[W] Rule violation in " + tool_config['name'] + \
                   " for host " + host['target_domain_name'] + \
-                  ": '" + argument + "' must be greater than '" + argument_value + "'"
+                  ": '" + str(argument) + "' must be greater than " + str(argument_value)
             error = True
       elif rule_type == 'less-than':
-         if host[argument] < argument_value:
+         if host[argument] >= argument_value:
             print "[W] Rule violation in " + tool_config['name'] + \
                   " for host " + host['target_domain_name'] + \
-                  ": '" + argument + "' must be less than '" + argument_value + "'"
+                  ": '" + str(argument) + "' must be less than " + str(argument_value)
             error = True
       elif rule_type == 'target-parameter-exists':
          if host[argument] == False:
@@ -756,7 +761,8 @@ class Commands:
                if 'post_tool_execution' in tool:
                   print "[+] Running post-tool commands for " + tool['name']
                   subprocess.call(tool['post_tool_execution'],shell = True)
-                  print "[-] Post-tool commands for " + tool['name'] + " have completed.."
+                  print "[-] Post-tool commands for " + tool['name'] + \
+                        " have completed.."
                   log = Log(config,os.getcwd(),False,'tool_string',
                         "# Post-tool commands for " + tool['name'] + \
                         " has finished")
