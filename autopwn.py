@@ -340,10 +340,13 @@ class Print:
       print "                          to run. Autopwn will not prompt to"
       print "                          run tools with this option"
       print "-d <assessment_directory> Optional. Specify assessment directory"
-      print "-i                        Deprecated (and buggy). Optional. Ignore"
-      print "                          missing binary conditions"
-      print "-r                        Optional. Ignore tool rulesets"
+      print "-i                        Deprecated (and buggy). Optional."
+      print "                          Ignore missing binary conditions"
+      print "-r                        Deprecated (and buggy). Optional."
+      print "                          Ignore tool rulesets"
       print "-s                        Optional. Run tools in screen session"
+      print "-p                        Optional. Run tools in parallel regardless"
+      print "                          of assessment or global parallel option"
       print
       print "Format of the target file should be:"
       print
@@ -399,10 +402,10 @@ class Arguments:
          help = Print('help', 'stdout')
 
       try:
-         opts, args = getopt.getopt(arguments,"irsa:t:d:",
+         opts, args = getopt.getopt(arguments,"irspa:t:d:",
                                     ["assessment=","target="])
       except getopt.GetoptError:
-         print "./autopwn.py [-irs] [-a <assessment_type>] " + \
+         print "./autopwn.py [-irsp] [-a <assessment_type>] " + \
                "[-d <assessment_directory>] -t <target_file>"
          sys.exit(1)
 
@@ -412,6 +415,7 @@ class Arguments:
       self.argument['ignore_missing_binary'] = False
       self.argument['ignore_rules'] = False
       self.argument['with_screen'] = False
+      self.argument['parallel'] = False
 
       for opt, arg in opts:
          if opt in ("-a", "--assessment"):
@@ -432,6 +436,9 @@ class Arguments:
          if opt in ("-s", "--with-screen"):
             # Ignore tool rule violations
             self.argument['with_screen'] = True
+         if opt in ("-p", "--parallel"):
+            # Run tools in parallel
+            self.argument['parallel'] = True
 
       if self.argument['target_file'] == '':
          print "[E] Target file not specified"
@@ -440,10 +447,10 @@ class Arguments:
 # Configuration class loads all information from .apc files and target file
 class Configuration:
    # Class vars
-   log_started = False
-   autopwn_config = {'parallel': False,
-                     'parallel_override': False,
+   autopwn_config = {'parallel':False,
+                     'parallel_override':False,
                      'scripts_directory':''}
+   log_started = False
    tools_config = []
    assessments_config = []
    menu_items = []
@@ -457,6 +464,10 @@ class Configuration:
       target_file = args.argument['target_file']
       pathname = os.path.dirname(sys.argv[0])
       tools_directory = os.path.abspath(pathname) + "/tools/"
+
+      # Command line parallel option 
+      self.autopwn_config['parallel_command_line_option'] = args.argument['parallel']
+
       if args.argument['assessment_directory'] == None:
          assessments_directory = os.path.abspath(pathname) + \
                                  "/assessments/"
@@ -468,10 +479,11 @@ class Configuration:
       stream = open(autopwn_global_config_file, 'r')
       objects = yaml.load(stream)
 
-      # Global parallel
+      # Parallel APC config override option
+      self.autopwn_config['parallel_global_override_option'] = False
       try:
-         self.autopwn_config['parallel'] = objects['parallel']
-         self.autopwn_config['parallel_override'] = True
+         self.autopwn_config['parallel_global_option'] = objects['parallel']
+         self.autopwn_config['parallel_global_override_option'] = True
       except:
          pass
 
@@ -539,11 +551,15 @@ class Configuration:
             self.assessments_config[index]['name'] = objects['name']
             self.assessments_config[index]['tools'] = objects['tools']
             self.assessments_config[index]['menu_name'] = objects['menu_name']
-            if self.autopwn_config['parallel_override'] == True:
-               self.assessments_config[index]['parallel'] = self.autopwn_config['parallel']
-            else:
-               self.assessments_config[index]['parallel'] = objects['parallel']
 
+            if self.autopwn_config['parallel_command_line_option'] == False:
+               if self.autopwn_config['parallel_global_override_option'] == False:
+                  self.assessments_config[index]['parallel'] = objects['parallel']
+               else: 
+                  self.assessments_config[index]['parallel'] = self.autopwn_config['parallel_global_option']
+            else:
+               self.assessments_config[index]['parallel'] = True
+               
             index = index + 1
 
       # Assign menu_items
@@ -614,10 +630,10 @@ class Configuration:
                                      'target_protocol':target_protocol})
 
 class Prompt:
-   def __init__(self, prompt, config, tools, assessment):
+   def __init__(self, prompt, config, args, tools, assessment):
       if prompt == 'run_tools':
          self.show_post_commands(config,assessment)
-         self.run_tools(config,tools,assessment)
+         self.run_tools(config,args,tools,assessment)
 
    def show_post_commands(self, config, assessment):
       # Run post-tool execution commands
@@ -630,9 +646,11 @@ class Prompt:
                "You shouldn't see this error"
          sys.exit(1)
 
-   def run_tools(self, config, tools, assessment):
-      if config.autopwn_config['parallel_override'] == True:
-         print "[I] Global parallel option set"
+   def run_tools(self, config, args, tools, assessment):
+      if config.autopwn_config['parallel_command_line_option'] == True:
+         print "[I] Parallel option set on command line"
+      if config.autopwn_config['parallel_global_override_option'] == True:
+         print "[I] Parallel option set in global options file"
       run_tools = raw_input('Run tools? [Ny] ')
 
       if run_tools.lower() == "y":
@@ -671,9 +689,7 @@ class Rules:
             try:
                for rule_type in tool_config['rules']:
                   if rule_type == 'target-parameter-exists':
-                     #print "rule_type " + rule_type
                      for argument in tool_config['rules'][rule_type]:
-                        #print "argument0 " + argument
                         rule_violation_tmp = self.check_comparison(host,tool_config,
                                            rule_type,argument,
                                            False)
@@ -817,7 +833,7 @@ def main():
    # Run tools
    execute = Run(config.tool_subset_evaluated,assessment.assessment_type,config)
    if config.dry_run == True:
-      Prompt('run_tools',config,tools,assessment)
+      Prompt('run_tools',config,args,tools,assessment)
    # Run post-tool execution commands
    Commands(config,assessment.assessment_type,'post')
 

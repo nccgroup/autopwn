@@ -22,10 +22,13 @@ autopwn supports a number of options, including:
                           to run. Autopwn will not prompt to
                           run tools with this option
 -d <assessment_directory> Optional. Specify assessment directory
--i                        Deprecated (and buggy). Optional. Ignore
-                          missing binary conditions
--r                        Optional. Ignore tool rulesets
+-i                        Deprecated (and buggy). Optional.
+                          Ignore missing binary conditions
+-r                        Deprecated (and buggy). Optional.
+                          Ignore tool rulesets
 -s                        Optional. Run tools in screen session
+-p                        Optional. Run tools in parallel regardless
+                          of assessment or global parallel option
 ```
 
 ## Sample output
