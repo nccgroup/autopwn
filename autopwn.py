@@ -660,8 +660,7 @@ class Rules:
                                         tool_config['rules'][rule_type][argument])
                   rule_violation = rule_violation or rule_violation_tmp
             except:
-               raise
-               #pass
+               pass
 
       if rule_violation:
          error_type = '[E]'
