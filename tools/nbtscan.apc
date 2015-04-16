@@ -3,7 +3,7 @@ binary_location: /usr/bin/nbtscan
 url: http://www.unixwiz.net/tools/nbtscan.html
 
 rules:
-   target-parameter-exists: ['target_ip']
+   target-parameter-exists: ['ip']
 
-arguments: "-v {target_ip} > {output_dir}/{date}_{target_name}_nbtscan_{target_domain_name}"
+arguments: "-v {ip} > {output_dir}/{date}_{name}_nbtscan_{domain_name}"
 stdout: False

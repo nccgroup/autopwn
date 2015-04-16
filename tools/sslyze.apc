@@ -4,8 +4,8 @@ url: https://github.com/iSECPartners/sslyze
 
 rules:
    equals:
-      'target_protocol': 'https'
-   target-parameter-exists: ['target_ip','target_port_number']
+      'protocol': 'https'
+   target-parameter-exists: ['ip','port_number']
 
-arguments: "--regular {target_domain_name}:{target_port_number} > {output_dir}/{date}_{target_name}_sslyze_{target_domain_name}"
+arguments: "--regular {domain_name}:{port_number} > {output_dir}/{date}_{name}_sslyze_{domain_name}"
 stdout: False

@@ -1,3 +1,8 @@
+autopwn v0.11 - 20150416
+
+* Added cookie options
+* Removed debug code
+
 autopwn v0.10 - 20150415
 
 * Added option to specify assessments directory

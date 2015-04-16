@@ -1,0 +1,10 @@
+name: test
+binary_location: /usr/bin/test
+url: http://test.sourceforge.net/
+
+rules:
+   target-parameter-exists: ['ip','domain_name','port_number','protocol']
+
+cookie-format: '-C %(cookie-name)s=%(cookie-value)s'
+arguments: "{protocol}://{domain_name}:{port_number}/{url} -o {output_dir}/{date}_{name}_test_{domain_name} {cookie_arguments}"
+stdout: True

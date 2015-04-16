@@ -17,11 +17,11 @@ url: http://example.net/
 # * greater-than
 # * target-parameter-exists
 rules:
-   target-parameter-exists: ['target_ip','target_domain_name','target_port_number','target_protocol']
+   target-parameter-exists: ['ip','domain_name','port_number','protocol']
    equals:
-      'target_protocol': 'https'
+      'protocol': 'https'
    not-equals:
-      'target_domain_name': ['localhost','127.0.0.1']
+      'domain_name': ['localhost','127.0.0.1']
 
 # Execute shell commands before and/or after tool execution
 # Pre and post tool execution commands will always run one
@@ -31,13 +31,13 @@ post_tool_execution: "/usr/bin/example_report {output_dir}"
 
 # Tool arguments
 # Python's str.format() is used for variable replacement. Valid entries are:
-# * target_domain_name
-# * target_ip
-# * target_protocol (returns 'http' or 'https')
+# * domain_name
+# * ip
+# * protocol (returns 'http' or 'https')
 # * date (current date in format 20150226_213959) # date =  strftime("%Y%m%d_%H%M%S")
-# * target_port_number (if target port number has been specified)
+# * port_number (if target port number has been specified)
 # * output_dir (directory where tool output will be saved for specific target)
-arguments: "{target_protocol}://{target_domain_name}:{target_port_number} -o {output_dir}/{date}_example_{target_domain_name}"
+arguments: "{protocol}://{domain_name}:{port_number} -o {output_dir}/{date}_example_{domain_name}"
 
 # Given the arguments option, will this tool generate output? If redirection is used,
 # then this is not going to be the case (excluding stderr).

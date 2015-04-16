@@ -3,7 +3,7 @@ binary_location: /usr/bin/nmap
 url: http://nmap.org/
 
 rules:
-   target-parameter-exists: ['target_ip']
+   target-parameter-exists: ['ip']
 
-arguments: "-A -sS -sC -sV {target_domain_name} -oA {output_dir}/{date}_{target_name}_nmap_common_ports_{target_domain_name}"
+arguments: "-A -sS -sC -sV {domain_name} -oA {output_dir}/{date}_{name}_nmap_common_ports_{domain_name}"
 stdout: True

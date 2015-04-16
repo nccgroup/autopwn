@@ -3,10 +3,12 @@ binary_location: /root/Downloads/arachni-1.0.6-0.5.6/bin/arachni
 url: http://www.arachni-scanner.com/
 
 rules:
-   target-parameter-exists: ['target_ip','target_domain_name','target_port_number','target_protocol']
+   target-parameter-exists: ['ip','domain_name','port_number','protocol']
    not-equals:
-      'target_domain_name': ['localhost','127.0.0.1']
+      'domain_name': ['localhost','127.0.0.1']
 
-post_tool_execution: "/root/Downloads/arachni-1.0.6-0.5.6/bin/arachni_reporter {output_dir}/*.afr --report=html:outfile={output_dir}/{date}_{target_name}_arachni_reporter_{target_domain_name}.zip  && mkdir {output_dir}/{date}_{target_name}_arachni_reporter_{target_domain_name} && unzip {output_dir}/{date}_{target_name}_arachni_reporter_{target_domain_name}.zip -d {output_dir}/{date}_{target_name}_arachni_reporter_{target_domain_name}"
-arguments: "{target_protocol}://{target_domain_name}:{target_port_number}/{target_url} --report-save-path {output_dir}/"
+#cookie-argument: '--http-cookie-string'
+cookie-format: '%(cookie-name)s=%(cookie-value)s\;'
+post_tool_execution: "/root/Downloads/arachni-1.0.6-0.5.6/bin/arachni_reporter {output_dir}/*.afr --report=html:outfile={output_dir}/{date}_{name}_arachni_reporter_{domain_name}.zip  && mkdir {output_dir}/{date}_{name}_arachni_reporter_{domain_name} && unzip {output_dir}/{date}_{name}_arachni_reporter_{domain_name}.zip -d {output_dir}/{date}_{name}_arachni_reporter_{domain_name}"
+arguments: "{protocol}://{domain_name}:{port_number}/{url} --report-save-path {output_dir}/"
 stdout: True

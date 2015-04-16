@@ -1,10 +1,13 @@
 targets:
-   - target_name: test
+   - name: test
      ip_address: 127.0.0.1
      domain: test.com
      url: /test
      port: 80
      protocol: https
      mac_address: ff:ff:ff:ff:ff:ff
-   - target_name: test-1
-     ip_address: 127.0.0.2
+     cookie:
+       some-cookie-name: some-cookie-value
+       some-cookie-name1: some-cookie-value1
+   - name: test-1
+     ip_address: 127.0.0.1

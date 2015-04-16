@@ -25,4 +25,14 @@ TODO
 8 - Check return codes for commands
 9 - Auto resolve ip if not specified using domain.. ip or domain *required*
 10 - Improve command log file name to allow for multiple autopwn instances
+10a) autopwn started/stopped logging entry
 11 - Improve exit condition handling
+12 - Multiple cookie options in target file
+12b) Some tools take files, others expect cookies on the command line
+12c) Could use a file regardless, but the user will have to know the
+     format of the cookie, and this doesn't work will if the tool accepts
+     cookie files..
+12d) Sometimes the user will want to specify multiple cookies, this makes
+     it more difficult to use placeholders the way autopwn does right now
+12e) Need to be able to specify cookie key value pairs (with formatting)
+     or cookie file

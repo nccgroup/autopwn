@@ -3,7 +3,7 @@ binary_location: /usr/bin/enum4linux
 url: https://labs.portcullis.co.uk/tools/enum4linux/
 
 rules:
-   target-parameter-exists: ['target_ip']
+   target-parameter-exists: ['ip']
 
-arguments: "-av {target_ip} > {output_dir}/{date}_{target_name}_enum4linux_{target_ip}"
+arguments: "-av {ip} > {output_dir}/{date}_{name}_enum4linux_{ip}"
 stdout: False

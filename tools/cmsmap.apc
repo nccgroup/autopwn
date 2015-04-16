@@ -3,7 +3,7 @@ binary_location: /root/git/CMSmap/cmsmap.py
 url: https://github.com/Dionach/CMSmap 
 
 rules:
-   target-parameter-exists: ['target_ip','target_protocol']
+   target-parameter-exists: ['ip','protocol']
 
-arguments: "-f D -t {target_protocol}://{target_domain_name} -o {output_dir}/{date}_{target_name}_cmsmap_{target_domain_name}"
+arguments: "-f D -t {protocol}://{domain_name} -o {output_dir}/{date}_{name}_cmsmap_{domain_name}"
 stdout: True

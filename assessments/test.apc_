@@ -1,0 +1,6 @@
+name: test
+tools:
+   - test
+
+menu_name: Test
+parallel: False

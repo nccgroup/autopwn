@@ -3,7 +3,8 @@ binary_location: /usr/bin/skipfish
 url: https://code.google.com/p/skipfish/
 
 rules:
-   target-parameter-exists: ['target_ip','target_port_number']
+   target-parameter-exists: ['ip','port_number']
 
-arguments: "-o {output_dir}/{date}_{target_name}_skipfish_{target_domain_name} -u -U -O {target_protocol}://{target_domain_name}:{target_port_number}/{target_url}"
+cookie-format: '-C %(cookie-name)s=%(cookie-value)s'
+arguments: "-o {output_dir}/{date}_{name}_skipfish_{domain_name} {cookie_arguments} -u -U -O {protocol}://{domain_name}:{port_number}/{url}"
 stdout: True
