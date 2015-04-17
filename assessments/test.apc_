@@ -1,6 +1,7 @@
 name: test
 tools:
    - test
+   - arachni
 
 menu_name: Test
 parallel: False

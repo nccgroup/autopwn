@@ -44,7 +44,7 @@ class Log:
             sys.exit(1)
          try:
             if config.log_started != True:
-               log_file.write("## autopwn v0.10 command output\n")
+               log_file.write("## autopwn v0.11 command output\n")
                log_file.write("## Started logging at " + date_time + "...\n")
                config.log_started = True
          except:
@@ -152,7 +152,7 @@ class Tools:
          if tool['name'] in assessment['tools']:
             config.tool_subset.append(tool)
 
-      print "autopwn v0.10 by Aidan Marlin"
+      print "autopwn v0.11 by Aidan Marlin"
       print "email: aidan [dot] marlin [at] nccgroup [dot] com"
       print
 
@@ -230,15 +230,63 @@ class Tools:
                Log(config,output_dir,False,
                    'individual_target',host['ip'])
 
-            # Cookie string
+            # Cookie cli option string
             try:
-               cookie_format_string = tool['cookie-format']
-               cookie_string = ' '.join([tool['cookie-format'] %
-                               {'cookie-name': key, 'cookie-value': value}
-                               for (key, value) in
-                               host['cookie'].items()])
+               # Cookie from tool config
+               cookie_cli_option = tool['cookie-cli-option-format']['option']
+               cookie_cli_option_separator = tool['cookie-cli-option-format']['option-separator']
+               cookie_cli_substitution_format = tool['cookie-cli-option-format']['substitution']
+               cookie_cli_argument_prepend_option = tool['cookie-cli-option-format']['argument-prepend-option']
+               cookie_cli_argument_separator = tool['cookie-cli-option-format']['argument-separator']
+               cookie_cli_argument_encapsulation = tool['cookie-cli-option-format']['argument-encapsulation']
+               # Initialise
+               cookie_cli_string = ''
+
+               # Should the CLI argument be repeated for each cookie instance?
+               if cookie_cli_argument_prepend_option == False:
+                  cookie_cli_string = cookie_cli_option
+                  cookie_cli_option = cookie_cli_option + \
+                                    cookie_cli_option_separator + \
+                                    cookie_cli_argument_encapsulation
+                  cookie_cli_string = cookie_cli_option + cookie_cli_argument_separator.join(
+                                      [cookie_cli_substitution_format %
+                                      {'cookie-name': key, 'cookie-value': value}
+                                      for (key, value) in
+                                      host['cookies'].items()]) + \
+                                      cookie_cli_argument_encapsulation
+               else:
+                  # Prepend every argument with option
+                  cookie_cli_string = cookie_cli_option + \
+                                      cookie_cli_option_separator + \
+                                      str(' ' + cookie_cli_option + \
+                                      cookie_cli_option_separator).join(
+                                      [cookie_cli_substitution_format %
+                                      {'cookie-name': key,
+                                      'cookie-value': value}
+                                      for (key, value) in
+                                      host['cookies'].items()])
             except:
-               cookie_string = None
+               #raise
+               # If no cookie string info was specified
+               cookie_cli_string = ''
+
+               try:
+                  # Cookie from tool config
+                  cookie_cli_option = tool['cookie-file-option-format']['option']
+                  cookie_cli_option_separator = tool['cookie-file-option-format']['option-separator']
+                  cookie_cli_substitution_format = tool['cookie-file-option-format']['substitution']
+                  # Initialise
+                  cookie_cli_string = ''
+
+                  # Should the CLI argument be repeated for each cookie instance?
+                  cookie_cli_string = cookie_cli_option + \
+                                      cookie_cli_option_separator + ''.join(
+                                      [cookie_cli_substitution_format %
+                                      {'cookies-file': key} for (key) in host['cookies_file']])
+               except:
+                  #raise
+                  # If no cookie file option was specified
+                  pass
 
             # Replace placeholders for tool argument string
             tool_arguments_instance = config.tool_subset_evaluated[-1]['arguments'].format(
@@ -248,7 +296,7 @@ class Tools:
                                        protocol=host['protocol'],
                                        url=host['url'],
                                        name=host['name'],
-                                       cookie_arguments=cookie_string,
+                                       cookie_arguments=cookie_cli_string,
                                        output_dir=output_dir)
 
             config.tool_subset_evaluated[-1]['execute_string'] = config.tool_subset_evaluated[-1]['binary_location'] + " " + \
@@ -341,7 +389,7 @@ class Print:
 
    def display_help(self, file_descriptor):
       # Not doing anything with file_descriptor yet
-      print "autopwn v0.10"
+      print "autopwn v0.11"
       print "By Aidan Marlin"
       print "Email: aidan [dot] marlin [at] nccgroup [dot] com"
       print
@@ -542,18 +590,13 @@ class Configuration:
             except:
                pass
             try:
-               self.tools_config[index]['cookie-format'] = objects['cookie-format']
+               self.tools_config[index]['cookie-cli-option-format'] = objects['cookie-cli-option-format']
             except:
                pass
             try:
-               self.tools_config[index]['cookie-file'] = objects['cookie-file']
+               self.tools_config[index]['cookie-file-option-format'] = objects['cookie-file-option-format']
             except:
                pass
-            try:
-               self.tools_config[index]['cookie-arguments'] = objects['cookie-arguments']
-            except:
-               pass
-
 
             index = index + 1
 
@@ -639,9 +682,13 @@ class Configuration:
             except:
                target_protocol = False
             try:
-               target_cookie = target['cookie']
+               target_cookies = target['cookies']
             except:
-               target_cookie = None
+               target_cookies = None
+            try:
+               target_cookies_file = target['cookies_file']
+            except:
+               target_cookies_file = None
             try:
                target_url = target['url']
                # Forward slash (/) SHOULD already be in tool argument string
@@ -656,7 +703,8 @@ class Configuration:
                                      'url':target_url,
                                      'name':target_name,
                                      'protocol':target_protocol,
-                                     'cookie':target_cookie})
+                                     'cookies':target_cookies,
+                                     'cookies_file':target_cookies_file})
 
 class Prompt:
    def __init__(self, prompt, config, args, tools, assessment):
@@ -846,6 +894,11 @@ class CleanUp:
          if screen.name.startswith("autopwn"):
             screen.kill()
 
+class Sanitise:
+   def __init__(self, config):
+      for tool in config.tool_subset_evaluated:
+         tool['execute_string'] = ' '.join(tool['execute_string'].split())
+
 def main():
    # Process arguments
    args = Arguments(sys.argv[1:])
@@ -859,6 +912,8 @@ def main():
    Rules(args,config,tools)
    # Run pre-tool execution commands
    Commands(config,assessment.assessment_type,'pre')
+   # Sanitise command line strings (remove extra whitespace)
+   Sanitise(config)
    # Run tools
    execute = Run(config.tool_subset_evaluated,assessment.assessment_type,config)
    if config.dry_run == True:

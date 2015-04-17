@@ -1,7 +1,8 @@
-autopwn v0.11 - 20150416
+autopwn v0.11 - 20150417
 
-* Added cookie options
-* Removed debug code
+* Added experimental cookie support for tools. Currently
+  only the arachni tool configuration has been updated
+  to allow for cookie options
 
 autopwn v0.10 - 20150415
 

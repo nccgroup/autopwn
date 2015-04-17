@@ -5,6 +5,18 @@ url: http://test.sourceforge.net/
 rules:
    target-parameter-exists: ['ip','domain_name','port_number','protocol']
 
-cookie-format: '-C %(cookie-name)s=%(cookie-value)s'
+cookie-cli-option-format:
+   option: '-C'
+   option-separator: ' '
+   substitution: '%(cookie-name)s=%(cookie-value)s'
+   argument-prepend-option: False
+   argument-separator: '\;'
+   argument-encapsulation: ''
+
+cookie-file-option-format:
+   option: '--cookie-file'
+   option-separator: ' '
+   substitution: '%(cookies-file)s'
+
 arguments: "{protocol}://{domain_name}:{port_number}/{url} -o {output_dir}/{date}_{name}_test_{domain_name} {cookie_arguments}"
 stdout: True
