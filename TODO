@@ -36,3 +36,4 @@ TODO
      it more difficult to use placeholders the way autopwn does right now
 12e) Need to be able to specify cookie key value pairs (with formatting)
      or cookie file
+13 - Add capability to process lists of IPs
