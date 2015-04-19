@@ -521,7 +521,7 @@ class Configuration:
    def __init__(self, args):
       index = 0
       target_file = args.argument['file']
-      pathname = os.path.dirname(sys.argv[0])
+      pathname = os.path.dirname(os.path.abspath(sys.argv[0]))
       tools_directory = os.path.abspath(pathname) + "/tools/"
 
       # Command line parallel option 
