@@ -44,7 +44,7 @@ class Log:
             sys.exit(1)
          try:
             if config.log_started != True:
-               log_file.write("## autopwn v0.11 command output\n")
+               log_file.write("## autopwn v0.12.0 command output\n")
                log_file.write("## Started logging at " + date_time + "...\n")
                config.log_started = True
          except:
@@ -152,7 +152,7 @@ class Tools:
          if tool['name'] in assessment['tools']:
             config.tool_subset.append(tool)
 
-      print "autopwn v0.11 by Aidan Marlin"
+      print "autopwn v0.12.0 by Aidan Marlin"
       print "email: aidan [dot] marlin [at] nccgroup [dot] com"
       print
 
@@ -389,7 +389,7 @@ class Print:
 
    def display_help(self, file_descriptor):
       # Not doing anything with file_descriptor yet
-      print "autopwn v0.11"
+      print "autopwn v0.12.0"
       print "By Aidan Marlin"
       print "Email: aidan [dot] marlin [at] nccgroup [dot] com"
       print

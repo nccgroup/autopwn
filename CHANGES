@@ -1,3 +1,11 @@
+autopwn v0.12.0 - 20150420 (with thanks to berdario)
+
+* This is the last version of autopwn which will be written
+  in Python2. No new features will be written for autopwn
+  on Python2, only bug fixes will be backported.
+* autopwn can now be installed by pip
+* Adopting semver (http://semver.org/)
+
 autopwn v0.11 - 20150417
 
 * Added experimental cookie support for tools. Currently
