@@ -85,7 +85,12 @@ Run tools? [Ny] y
 ## Credits
 
 Developed by Aidan Marlin (aidan [dot] marlin [at] nccgroup [dot] com)
-while working at NCC Group.
+while working at NCC Group. I'd like to thank the follow contributors for
+pull requests:
+
+- Selfegris
+- 0xsauby
+- berdario
 
 ## License
 
