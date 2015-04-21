@@ -461,7 +461,7 @@ class Arguments:
 
     def __init__(self, arguments):
         # If no arguments specified, dump autopwn help / description
-        if len(sys.argv) == True:
+        if not arguments:
             help = Print('help', 'stdout')
 
         try:
@@ -748,7 +748,6 @@ class Prompt:
             Run(config.tool_subset_evaluated,assessment.assessment_type,config)
             # Run post-tool execution commands
             Commands(config,assessment.assessment_type,'post')
-            sys.exit(0)
         else:
             print("[E] Alright, I quit..")
             sys.exit(1)
@@ -910,9 +909,9 @@ class Sanitise:
         for tool in config.tool_subset_evaluated:
             tool['execute_string'] = ' '.join(tool['execute_string'].split())
 
-def main():
+def _main(argslist):
     # Process arguments
-    args = Arguments(sys.argv[1:])
+    args = Arguments(argslist)
     # Pull config
     config = Configuration(args)
     # Determine assessment
@@ -932,11 +931,14 @@ def main():
     # Run post-tool execution commands
     Commands(config,assessment.assessment_type,'post')
 
-if __name__ == "__main__":
+def main():
     try:
-        main()
+        _main(sys.argv[1:])
     except KeyboardInterrupt:
         CleanUp()
         print()
         print("[E] Quitting!")
         sys.exit(1)
+
+if __name__ == "__main__":
+    main()
