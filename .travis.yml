@@ -10,3 +10,6 @@ env:
 
 install: pip install tox
 script: tox -e $TOXENV
+
+notifications:
+  irc: "chat.freenode.net#autopwn"
