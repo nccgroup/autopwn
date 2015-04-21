@@ -1,4 +1,7 @@
+blessings==1.6
+inquirer==2.1.3
 PyYAML==3.11
+readchar==0.7.0
 screenutils==0.0.1.5.4
 py==1.4.26
 pytest==2.7.0

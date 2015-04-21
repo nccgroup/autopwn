@@ -16,13 +16,14 @@ setup(
     license='GNU Affero GPL v3',
     packages=['autopwn'],
     install_requires=[
-        'PyYAML', 'screenutils'
+        'PyYAML', 'screenutils', 'inquirer',
+        'readchar<=0.7' # https://github.com/magmax/python-inquirer/issues/8
     ],
     include_package_data=True,
     zip_safe=False,
     entry_points={'console_scripts': ['autopwn = autopwn:main']},
     classifiers=[
-        'Programming Language :: Python :: 2',
+        'Programming Language :: Python :: 3',
         'Intended Audience :: Information Technology',
         'Topic :: Security',
         'Environment :: Console']
