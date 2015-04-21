@@ -13,10 +13,6 @@ probably be useful during certain exams as well..
 2. Change into the newly created directory
 3. Execute ``pip install .``
 
-## Running
-
-To use autopwn, simply fork the GitHub repository and run autopwn.py
-
 ## Usage
 
 autopwn supports a number of options, including:
