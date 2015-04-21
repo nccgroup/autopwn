@@ -1,7 +1,10 @@
 name: test
 tools:
-   - test
-   - arachni
+#   - test
+#   - arachni
+#   - skipfish
+#   - nikto
+   - dirb
 
 menu_name: Test
 parallel: False
