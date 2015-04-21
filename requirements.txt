@@ -1,2 +1,4 @@
 PyYAML==3.11
 screenutils==0.0.1.5.4
+py==1.4.26
+pytest==2.7.0
