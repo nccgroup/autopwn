@@ -1,3 +1,7 @@
+autopwn v0.13.0 - 20150421
+
+* autopwn has been rewritten in python3
+
 autopwn v0.12.0 - 20150420 (with thanks to berdario)
 
 * This is the last version of autopwn which will be written

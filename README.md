@@ -7,6 +7,12 @@ by allowing them to specify tools they would like to run against targets,
 without having to type them in a shell or write a script. This tool will
 probably be useful during certain exams as well..
 
+## Installation
+
+1. Clone the Git repository
+2. Change into the newly created directory
+3. Execute ``pip install .``
+
 ## Running
 
 To use autopwn, simply fork the GitHub repository and run autopwn.py
