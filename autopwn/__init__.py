@@ -2,7 +2,7 @@
 
 import copy
 import sys
-import getopt
+import argparse
 import re
 import subprocess
 import os
@@ -165,7 +165,7 @@ class Tools:
         for tool in config.tool_subset:
             self.check_tool_exists(tool['binary_location'], args)
 
-        if args.argument['with_screen'] == True:
+        if args.with_screen == True:
             self.prepend_tool(config, 'screen', args)
 
     def prepend_tool(self, config, prepend_tool, args):
@@ -191,12 +191,12 @@ class Tools:
         if os.path.isfile(tool) == False:
             tool_location = find_executable(tool)
             if tool_location == None:
-                if args.argument['ignore_missing_binary'] == True:
+                if args.ignore_missing_binary == True:
                     error_type = '[W]'
 
                 print(error_type + " Could not find binary for " + tool)
 
-                if args.argument['ignore_missing_binary'] == False:
+                if args.ignore_missing_binary == False:
                     sys.exit(1)
             else:
                 return tool_location
@@ -371,126 +371,81 @@ class Assessments:
             menu = Menus(config.menu_items,'assessment')
             self.assessment_type = config.assessments_config[menu.item_selected]
 
-class Print:
-    def __init__(self, display_text, file_descriptor):
-        if display_text == 'help':
-            self.display_help(file_descriptor)
+argparse_description = '''
+autopwn v0.14.0
+By Aidan Marlin
+Email: aidan [dot] marlin [at] nccgroup [dot] com'''
 
-    def display_help(self, file_descriptor):
-        # Not doing anything with file_descriptor yet
-        print("autopwn v0.14.0")
-        print("By Aidan Marlin")
-        print("Email: aidan [dot] marlin [at] nccgroup [dot] com")
-        print()
-        print("-t <target_file>                  Required. The file containing the")
-        print("                                  targets")
-        print("-a <assessment_type>              Optional. Specify assessment name")
-        print("                                  to run. Autopwn will not prompt to")
-        print("                                  run tools with this option")
-        print("-d <assessment_directory>         Optional. Specify assessment directory")
-        print("-i                                Deprecated (and buggy). Optional.")
-        print("                                  Ignore missing binary conditions")
-        print("-r                                Deprecated (and buggy). Optional.")
-        print("                                  Ignore tool rulesets")
-        print("-s                                Optional. Run tools in screen session")
-        print("-p                                Optional. Run tools in parallel regardless")
-        print("                                  of assessment or global parallel option")
-        print()
-        print("Format of the target file should be:")
-        print()
-        print("targets:")
-        print("    - target_name: <target-name>")
-        print("      ip_address: <ip-address>")
-        print("      domain: <domain>")
-        print("      url: <url-path>")
-        print("      port: <port-number>")
-        print("      protocol: <protocol>")
-        print("      mac_address: <mac_address>")
-        print("    - target_name: <target-name-1>")
-        print("      ...")
-        print()
-        print("Only 'name' and 'ip_address' are compulsory options.")
-        print("Example file:")
-        print()
-        print("targets:")
-        print("    - target_name: test")
-        print("      ip_address: 127.0.0.1")
-        print("      domain: test.com")
-        print("      url: /test")
-        print("      port: 80")
-        print("      protocol: https")
-        print("    - target_name: test-1")
-        print("      ip_address: 127.0.0.2")
-        print()
-        print("autopwn uses the tools/ directory located where this")
-        print("script is to load tool definitions, which are yaml")
-        print("files. You can find some examples in the directory")
-        print("already. If you think one is missing, mention it on")
-        print("GitHub or email me and I might add it.")
-        print()
-        print("autopwn also uses assessments/ for assessment definitions.")
-        print("Instead of selecting which tools you would like to run,")
-        print("you specify which assessment you would like to run.")
-        print("Assessment configuration files contain lists of tools")
-        print("which will be run as a result.")
-        print()
-        print("Have fun!")
-        print("Legal purposes only..")
-        print()
-        sys.exit(1)
+argparse_epilog = '''
+Format of the target file should be:
 
-class Arguments:
-    argument = {'assessment':'', 'file':'',
-                    'ignore_missing_binary':False, 'ignore_rules':False,
-                    'with_screen':False}
+targets:
+    - target_name: <target-name>
+      ip_address: <ip-address>
+      domain: <domain>
+      url: <url-path>
+      port: <port-number>
+      protocol: <protocol>
+      mac_address: <mac_address>
+    - target_name: <target-name-1>
+      ...
 
-    def __init__(self, arguments):
-        # If no arguments specified, dump autopwn help / description
-        if not arguments:
-            help = Print('help', 'stdout')
+Only 'name' and 'ip_address' are compulsory options.
+Example file:
 
-        try:
-            opts, args = getopt.getopt(arguments,"irspa:t:d:",
-                                                ["assessment=","target="])
-        except getopt.GetoptError:
-            print("./autopwn.py [-irsp] [-a <assessment_type>] " + \
-                    "[-d <assessment_directory>] -t <target_file>")
-            sys.exit(1)
+targets:
+    - target_name: test
+      ip_address: 127.0.0.1
+      domain: test.com
+      url: /test
+      port: 80
+      protocol: https
+    - target_name: test-1
+      ip_address: 127.0.0.2
 
-        self.argument['assessment'] = None
-        self.argument['assessment_directory'] = None
-        self.argument['file'] = False
-        self.argument['ignore_missing_binary'] = False
-        self.argument['ignore_rules'] = False
-        self.argument['with_screen'] = False
-        self.argument['parallel'] = False
+autopwn uses the tools/ directory located where this
+script is to load tool definitions, which are yaml
+files. You can find some examples in the directory
+already. If you think one is missing, mention it on
+GitHub or email me and I might add it.
 
-        for opt, arg in opts:
-            if opt in ("-a", "--assessment"):
-                # Assessment type
-                self.argument['assessment'] = arg
-            if opt in ("-d", "--assessment_directory"):
-                # Assessment directory
-                self.argument['assessment_directory'] = arg
-            if opt in ("-t", "--target"):
-                # Target file
-                self.argument['file'] = arg
-            if opt in ("-i", "--ignore-missing"):
-                # Ignore missing binary files
-                self.argument['ignore_missing_binary'] = True
-            if opt in ("-r", "--ignore-rules"):
-                # Ignore tool rule violations
-                self.argument['ignore_rules'] = True
-            if opt in ("-s", "--with-screen"):
-                # Ignore tool rule violations
-                self.argument['with_screen'] = True
-            if opt in ("-p", "--parallel"):
-                # Run tools in parallel
-                self.argument['parallel'] = True
+autopwn also uses assessments/ for assessment definitions.
+Instead of selecting which tools you would like to run,
+you specify which assessment you would like to run.
+Assessment configuration files contain lists of tools
+which will be run as a result.
 
-        if self.argument['file'] == '':
-            print("[E] Target file not specified")
-            sys.exit(1)
+Have fun!
+Legal purposes only..
+'''
+
+def get_argparser():
+    parser = argparse.ArgumentParser(formatter_class=argparse.RawDescriptionHelpFormatter,
+                                     description=argparse_description,
+                                     epilog=argparse_epilog)
+    parser.add_argument('-t', '--target',
+                        required=True,
+                        help='The file containing the targets')
+    parser.add_argument('-a', '--assessment',
+                        help='Specify assessment name to run. Autopwn will not '
+                        'prompt to run tools with this option')
+    parser.add_argument('-d', '--assessment_directory',
+                        help='Specify assessment directory')
+    parser.add_argument('-i', '--ignore_missing_binary',
+                        action='store_true',
+                        help='Deprecated (and buggy)\nIgnore missing binary conditions')
+    parser.add_argument('-r', '--ignore_rules',
+                        action='store_true',
+                        help='Deprecated (and buggy)\nIgnore tool rulesets')
+    parser.add_argument('-s', '--with_screen',
+                        action='store_true',
+                        help='Run tools in screen session')
+    parser.add_argument('-p', '--parallel',
+                        action='store_true',
+                        help='Run tools in parallel regardless of assessment or '
+                        'global parallel option')
+    return parser
+
 
 # Configuration class loads all information from .apc files and target file
 class Configuration:
@@ -509,7 +464,7 @@ class Configuration:
     # Will probably split into separate methods at some point
     def __init__(self, args):
         index = 0
-        target_file = args.argument['file']
+        target_file = args.target
 
         def find_path(candidate):
              basepath = os.path.dirname(candidate)
@@ -521,13 +476,13 @@ class Configuration:
         tools_directory = os.path.abspath(pathname) + "/tools/"
 
         # Command line parallel option 
-        self.autopwn_config['parallel_command_line_option'] = args.argument['parallel']
+        self.autopwn_config['parallel_command_line_option'] = args.parallel
 
-        if args.argument['assessment_directory'] == None:
+        if args.assessment_directory == None:
             assessments_directory = os.path.abspath(pathname) + \
                                             "/assessments/"
         else:
-            assessments_directory = args.argument['assessment_directory']
+            assessments_directory = args.assessment_directory
 
         # Pull global config
         autopwn_global_config_file = pathname + '/autopwn.apc'
@@ -778,12 +733,12 @@ class Rules:
         if rule_violation:
             error_type = '[E]'
 
-            if args.argument['ignore_rules'] == True:
+            if args.ignore_rules == True:
                 error_type = '[W]'
 
             print(error_type + " There were rule violations")
 
-            if args.argument['ignore_rules'] == False:
+            if args.ignore_rules == False:
                 sys.exit(1)
 
     def check_comparison(self,host,tool_config,rule_type,argument,argument_value):
@@ -896,11 +851,11 @@ class Sanitise:
 
 def _main(argslist):
     # Process arguments
-    args = Arguments(argslist)
+    args = get_argparser().parse_args(argslist)
     # Pull config
     config = Configuration(args)
     # Determine assessment
-    assessment = Assessments(config,args.argument['assessment'])
+    assessment = Assessments(config,args.assessment)
     # Process tools
     tools = Tools(config,args,assessment.assessment_type)
     # Check rules
