@@ -1,5 +1,7 @@
 # autopwn
 
+[![Build Status](https://travis-ci.org/nccgroup/autopwn.svg)](https://travis-ci.org/nccgroup/autopwn)
+
 Specify targets and run sets of tools against them
 
 autopwn is designed to make a pentester's life easier and more consistent
@@ -92,7 +94,7 @@ their pull requests:
 
 - Selfegris
 - 0xsauby
-- berdario
+- [berdario](https://github.com/berdario/)
 
 ## License
 
