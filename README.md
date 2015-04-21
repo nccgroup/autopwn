@@ -7,9 +7,11 @@ by allowing them to specify tools they would like to run against targets,
 without having to type them in a shell or write a script. This tool will
 probably be useful during certain exams as well..
 
-## Running
+## Installation
 
-To use autopwn, simply fork the GitHub repository and run autopwn.py
+1. Clone the Git repository
+2. Change into the newly created directory
+3. Execute ``pip install .``
 
 ## Usage
 
@@ -85,7 +87,12 @@ Run tools? [Ny] y
 ## Credits
 
 Developed by Aidan Marlin (aidan [dot] marlin [at] nccgroup [dot] com)
-while working at NCC Group.
+while working at NCC Group. I'd like to thank the following contributors for
+their pull requests:
+
+- Selfegris
+- 0xsauby
+- berdario
 
 ## License
 
