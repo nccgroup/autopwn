@@ -46,7 +46,7 @@ class Log:
                 sys.exit(1)
             try:
                 if config.log_started != True:
-                    log_file.write("## autopwn v0.13.0 command output\n")
+                    log_file.write("## autopwn v0.14.0 command output\n")
                     log_file.write("## Started logging at " + date_time + "...\n")
                     config.log_started = True
             except:
@@ -156,7 +156,7 @@ class Tools:
             if tool['name'] in assessment['tools']:
                 config.tool_subset.append(tool)
 
-        print("autopwn v0.13.0 by Aidan Marlin")
+        print("autopwn v0.14.0 by Aidan Marlin")
         print("email: aidan [dot] marlin [at] nccgroup [dot] com")
         print()
 
@@ -286,7 +286,8 @@ class Tools:
                         cookie_cli_string = cookie_cli_option + \
                                                   cookie_cli_option_separator + ''.join(
                                                   [cookie_cli_substitution_format %
-                                                  {'cookies-file': key} for (key) in host['cookies_file']])
+                                                  {'cookies-file': key} for (key)
+                                                  in host['cookies_file']])
                     except:
                         #raise
                         # If no cookie file option was specified
@@ -393,16 +394,16 @@ class Print:
 
     def display_help(self, file_descriptor):
         # Not doing anything with file_descriptor yet
-        print("autopwn v0.13.0")
+        print("autopwn v0.14.0")
         print("By Aidan Marlin")
         print("Email: aidan [dot] marlin [at] nccgroup [dot] com")
         print()
-        print("-t <target_file>             Required. The file containing the")
+        print("-t <target_file>                  Required. The file containing the")
         print("                                  targets")
-        print("-a <assessment_type>        Optional. Specify assessment name")
+        print("-a <assessment_type>              Optional. Specify assessment name")
         print("                                  to run. Autopwn will not prompt to")
         print("                                  run tools with this option")
-        print("-d <assessment_directory> Optional. Specify assessment directory")
+        print("-d <assessment_directory>         Optional. Specify assessment directory")
         print("-i                                Deprecated (and buggy). Optional.")
         print("                                  Ignore missing binary conditions")
         print("-r                                Deprecated (and buggy). Optional.")

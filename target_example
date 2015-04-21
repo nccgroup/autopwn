@@ -11,4 +11,4 @@ targets:
        some-cookie-name1: some-cookie-value1
    - name: test-1
      ip_address: 127.0.0.1
-     cookie_file: cookie_file
+     cookies_file: cookie_file

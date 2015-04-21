@@ -1,0 +1,10 @@
+targets:
+   - name: test
+     ip_address: 178.79.139.137
+     domain: pastefu.org
+     port: 8080
+     protocol: http
+#     cookies_file: cookies.txt
+     cookies:
+       cookie-1: value-1
+       cookie-2: value-2

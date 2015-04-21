@@ -6,5 +6,4 @@ __pycache__
 *.egg-info
 *.egg
 *.tox
-hts-log.txt
 *_autopwn_*

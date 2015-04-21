@@ -5,6 +5,13 @@ url: https://code.google.com/p/skipfish/
 rules:
    target-parameter-exists: ['ip','port_number']
 
-cookie-format: '-C %(cookie-name)s=%(cookie-value)s'
+cookie-cli-option-format:
+   option: '-C'
+   option-separator: ' '
+   substitution: '%(cookie-name)s=%(cookie-value)s'
+   argument-prepend-option: True
+   argument-separator: ' '
+   argument-encapsulation: ''
+
 arguments: "-o {output_dir}/{date}_{name}_skipfish_{domain_name} {cookie_arguments} -u -U -O {protocol}://{domain_name}:{port_number}/{url}"
 stdout: True

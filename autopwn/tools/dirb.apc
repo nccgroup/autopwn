@@ -5,5 +5,13 @@ url: http://dirb.sourceforge.net/
 rules:
    target-parameter-exists: ['ip','domain_name','port_number','protocol']
 
-arguments: "{protocol}://{domain_name}:{port_number}/{url} -o {output_dir}/{date}_{name}_dirb_{domain_name}"
+cookie-cli-option-format:
+   option: '-c'
+   option-separator: ' '
+   substitution: '%(cookie-name)s=%(cookie-value)s'
+   argument-prepend-option: False
+   argument-separator: '\;'
+   argument-encapsulation: ''
+
+arguments: "{protocol}://{domain_name}:{port_number}/{url} {cookie_arguments} -o {output_dir}/{date}_{name}_dirb_{domain_name}"
 stdout: True

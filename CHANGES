@@ -1,3 +1,7 @@
+autopwn v0.14.0 - 20150421
+
+* Added cookie support to some tools
+
 autopwn v0.13.0 - 20150421
 
 * autopwn has been rewritten in python3
