@@ -16,6 +16,7 @@ from subprocess import Popen, PIPE
 from time import gmtime, strftime
 
 import yaml
+import inquirer
 from screenutils import list_screens, Screen
 
 # Aidan Marlin @ NCC Group
@@ -338,31 +339,14 @@ class Menus:
             self.display_assessment_menu(menu_items)
 
     def display_assessment_menu(self, menu_items):
-        valid_option_index = False
-
-        print("What assessment do you want to run?")
-        for index, item in enumerate(menu_items):
-            if item != '':
-                print(str(index) + ") " + str(item))
-                valid_option_index = valid_option_index + 1
-
-        try:
-            self.item_selected = input('Choose > ')
-            print()
-        except (KeyboardInterrupt, SystemExit):
-            print()
-            print("[E] Abandon ship!")
-            sys.exit(1)
-        if self.item_selected == '': # TODO - Review
-            print("[E] No choice was made, quitting..")
-            sys.exit(1)
+        question = inquirer.List('item',
+                                 message='What assessment do you want to run?',
+                                 choices=menu_items)
+        choice = inquirer.prompt([question])
+        if choice is not None:
+            self.item_selected = menu_items.index(choice['item'])
         else:
-            if int(self.item_selected) >= False and \
-                    int(self.item_selected) < valid_option_index:
-                self.item_selected = int(self.item_selected)
-            else:
-                print("[E] Invalid option, quitting..")
-                sys.exit(1)
+            sys.exit(1)
 
 class Assessments:
     assessment_type = ""
