@@ -371,80 +371,6 @@ class Assessments:
             menu = Menus(config.menu_items,'assessment')
             self.assessment_type = config.assessments_config[menu.item_selected]
 
-argparse_description = '''
-autopwn v0.14.0
-By Aidan Marlin
-Email: aidan [dot] marlin [at] nccgroup [dot] com'''
-
-argparse_epilog = '''
-Format of the target file should be:
-
-targets:
-    - target_name: <target-name>
-      ip_address: <ip-address>
-      domain: <domain>
-      url: <url-path>
-      port: <port-number>
-      protocol: <protocol>
-      mac_address: <mac_address>
-    - target_name: <target-name-1>
-      ...
-
-Only 'name' and 'ip_address' are compulsory options.
-Example file:
-
-targets:
-    - target_name: test
-      ip_address: 127.0.0.1
-      domain: test.com
-      url: /test
-      port: 80
-      protocol: https
-    - target_name: test-1
-      ip_address: 127.0.0.2
-
-autopwn uses the tools/ directory located where this
-script is to load tool definitions, which are yaml
-files. You can find some examples in the directory
-already. If you think one is missing, mention it on
-GitHub or email me and I might add it.
-
-autopwn also uses assessments/ for assessment definitions.
-Instead of selecting which tools you would like to run,
-you specify which assessment you would like to run.
-Assessment configuration files contain lists of tools
-which will be run as a result.
-
-Have fun!
-Legal purposes only..
-'''
-
-def get_argparser():
-    parser = argparse.ArgumentParser(formatter_class=argparse.RawDescriptionHelpFormatter,
-                                     description=argparse_description,
-                                     epilog=argparse_epilog)
-    parser.add_argument('-t', '--target',
-                        required=True,
-                        help='The file containing the targets')
-    parser.add_argument('-a', '--assessment',
-                        help='Specify assessment name to run. Autopwn will not '
-                        'prompt to run tools with this option')
-    parser.add_argument('-d', '--assessment_directory',
-                        help='Specify assessment directory')
-    parser.add_argument('-i', '--ignore_missing_binary',
-                        action='store_true',
-                        help='Deprecated (and buggy)\nIgnore missing binary conditions')
-    parser.add_argument('-r', '--ignore_rules',
-                        action='store_true',
-                        help='Deprecated (and buggy)\nIgnore tool rulesets')
-    parser.add_argument('-s', '--with_screen',
-                        action='store_true',
-                        help='Run tools in screen session')
-    parser.add_argument('-p', '--parallel',
-                        action='store_true',
-                        help='Run tools in parallel regardless of assessment or '
-                        'global parallel option')
-    return parser
 
 
 # Configuration class loads all information from .apc files and target file
@@ -849,9 +775,86 @@ class Sanitise:
         for tool in config.tool_subset_evaluated:
             tool['execute_string'] = ' '.join(tool['execute_string'].split())
 
+class Arguments:
+    argparse_description = '''
+autopwn v0.14.0
+By Aidan Marlin
+Email: aidan [dot] marlin [at] nccgroup [dot] com'''
+
+    argparse_epilog = '''
+Format of the target file should be:
+
+targets:
+    - target_name: <target-name>
+      ip_address: <ip-address>
+      domain: <domain>
+      url: <url-path>
+      port: <port-number>
+      protocol: <protocol>
+      mac_address: <mac_address>
+    - target_name: <target-name-1>
+      ...
+
+Only 'name' and 'ip_address' are compulsory options.
+Example file:
+
+targets:
+    - target_name: test
+      ip_address: 127.0.0.1
+      domain: test.com
+      url: /test
+      port: 80
+      protocol: https
+    - target_name: test-1
+      ip_address: 127.0.0.2
+
+autopwn uses the tools/ directory located where this
+script is to load tool definitions, which are yaml
+files. You can find some examples in the directory
+already. If you think one is missing, mention it on
+GitHub or email me and I might add it.
+
+autopwn also uses assessments/ for assessment definitions.
+Instead of selecting which tools you would like to run,
+you specify which assessment you would like to run.
+Assessment configuration files contain lists of tools
+which will be run as a result.
+
+Have fun!
+Legal purposes only..
+'''
+
+    def __init__(self, argslist):
+        self.parser = argparse.ArgumentParser(formatter_class=argparse.RawDescriptionHelpFormatter,
+                                         description=self.argparse_description,
+                                         epilog=self.argparse_epilog)
+        self.parser.add_argument('-t', '--target',
+                            required=True,
+                            help='The file containing the targets')
+        self.parser.add_argument('-a', '--assessment',
+                            help='Specify assessment name to run. Autopwn will not '
+                            'prompt to run tools with this option')
+        self.parser.add_argument('-d', '--assessment_directory',
+                            help='Specify assessment directory')
+        self.parser.add_argument('-i', '--ignore_missing_binary',
+                            action='store_true',
+                            help='Deprecated (and buggy)\nIgnore missing binary conditions')
+        self.parser.add_argument('-r', '--ignore_rules',
+                            action='store_true',
+                            help='Deprecated (and buggy)\nIgnore tool rulesets')
+        self.parser.add_argument('-s', '--with_screen',
+                            action='store_true',
+                            help='Run tools in screen session')
+        self.parser.add_argument('-p', '--parallel',
+                            action='store_true',
+                            help='Run tools in parallel regardless of assessment or '
+                            'global parallel option')
+
+        self.parser = self.parser.parse_args(argslist)
+
 def _main(argslist):
     # Process arguments
-    args = get_argparser().parse_args(argslist)
+    args = Arguments(argslist).parser
     # Pull config
     config = Configuration(args)
     # Determine assessment
