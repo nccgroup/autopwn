@@ -3,7 +3,12 @@ binary_location: /usr/bin/nmap
 url: http://nmap.org/
 
 rules:
-   target-parameter-exists: ['ip']
+    target-parameter-exists: [['ip','ip_address_list']]
 
-arguments: "-A -sS -sC -sV {domain_name} -oA {output_dir}/{date}_{name}_nmap_common_ports_{domain_name}"
+file-option-format:
+   option: '-iL'
+   option-separator: ' '
+   substitution: '%(ip-address-list)s'
+
+arguments: "-A -sS -sC -sV {ip_address_list} {domain_name} -oA {output_dir}/{date}_{name}_nmap_full_range"
 stdout: True

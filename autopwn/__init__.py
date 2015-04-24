@@ -699,21 +699,19 @@ class Rules:
                     for rule_type in tool_config['rules']:
                         if rule_type == 'target-parameter-exists':
                             for argument in tool_config['rules'][rule_type]:
-                                if argument == list:
-                                    for argument_list in argument:
-                                        rule_violation_tmp = self.check_comparison(target,tool_config,
-                                                                                   rule_type,argument,
-                                                                                   False)
+                                rule_violation_tmp = self.check_comparison(target,tool_config,
+                                                                           rule_type,argument,
+                                                                           None)
                                 rule_violation = rule_violation or rule_violation_tmp
                         else:
                             for argument in tool_config['rules'][rule_type]:
                                 rule_violation_tmp = self.check_comparison(target,tool_config,
-                                                     rule_type,argument,
-                                                     tool_config['rules'][rule_type][argument])
-                        rule_violation = rule_violation or rule_violation_tmp
+                                                                           rule_type,argument,
+                                                                           tool_config['rules'][rule_type][argument])
+                                rule_violation = rule_violation or rule_violation_tmp
                 except:
                     # debug
-                    raise
+                    #raise
                     pass
 
         if rule_violation:
@@ -756,11 +754,10 @@ class Rules:
         elif rule_type == 'target-parameter-exists':
             # If list then make sure at least one of the items exists.
             # This is essentially 'or' functionality
-            if argument is list:
-                print("debug760: argument == " + str(argument))
+            if type(argument) is list:
                 parameter_found = False
                 for parameter in argument:
-                    if parameter != None:
+                    if target[parameter] != None:
                         parameter_found = True
                         break
                 # Was the parameter found?
@@ -771,7 +768,6 @@ class Rules:
                     error = True
             else:
                 if target[argument] == None:
-                    print("debug774: target[argument] == " + str(target[argument]))
                     print("[W] Rule violation in " + tool_config['name'] + \
                           " for target " + target['name'] + \
                           ": '" + argument + "' not specified in target")
