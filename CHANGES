@@ -1,4 +1,4 @@
-autopwn v0.15.0 - 201504XX
+autopwn v0.15.0 - 20150424
 
 * Addded ability to specify ip address lists
 * Modified ruleset code to allow for lists within
