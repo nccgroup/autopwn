@@ -119,7 +119,6 @@ class RunThreads (threading.Thread):
         self.tool_execute_string = tool['execute_string']
         self.tool_output_dir = tool['output_dir']
         self.tool_stdout_boolean = tool['stdout']
-        print("debug: tool == " + str(tool))
         self.target_name = tool['target']['name']
         self.tool_stdout = ''
         self.tool_stderr = ''
@@ -225,7 +224,7 @@ class Tools:
                                                                  "_autopwn_" + \
                                                                  target_string + \
                                                                  "_" + target['name']
-                config.tool_subset_evaluated[-1]['target'] = target_string
+                config.tool_subset_evaluated[-1]['target'] = target
                 output_dir = config.tool_subset_evaluated[-1]['output_dir']
 
                 # Create log directory in CWD
@@ -571,78 +570,76 @@ class Configuration:
         try:
             fd_targets = open(target_file, 'r')
             yaml_content = yaml.load(fd_targets)
-            #for target in yaml_content['targets']:
-            #    print target
             fd_targets.close()
         except IOError as e:
             print("[E] Error processing target file: {1}".format(e.errno,
-                                                                                  e.strerror))
+                                                                 e.strerror))
             sys.exit(1)
 
         # Process each target in target list
         target_name_matrix = []
 
         for target in yaml_content['targets']:
-                # If attributes haven't been specified, set to False
+            # If attributes haven't been specified, set to False
+            try:
+                # Does this exist? It bloody well should
+                target['name']
+            except:
+                print("[E] Target name missing: Target name must be specified")
+                sys.exit(1)
+            if target['name'] in target_name_matrix:
+                print("[E] Duplicate target names identified")
+                sys.exit(1)
+            else:
+                target_name_matrix.extend([target['name']])
+                target_name = target['name']
+            try:
+                target_ip = target['ip_address']
+                target_ip_address_list = None
+            except:
                 try:
-                    # Does this exist? It bloody well should
-                    target['name']
+                    target_ip_address_list = target['ip_address_list']
+                    target_ip = None
                 except:
-                    print("[E] Target name missing: Target name must be specified")
+                    print("[E] Target file missing IP address target or file")
                     sys.exit(1)
-                if target['name'] in target_name_matrix:
-                    print("[E] Duplicate target names identified")
-                    sys.exit(1)
-                else:
-                    target_name_matrix.extend([target['name']])
-                    target_name = target['name']
-                try:
-                    target_ip = target['ip_address']
-                    target_ip_address_list = None
-                except:
-                    try:
-                        target_ip_address_list = target['ip_address_list']
-                        target_ip = None
-                    except:
-                        print("[E] Target file missing IP address target or file")
-                        sys.exit(1)
-                try:
-                    target_domain_name = target['domain']
-                except:
-                    target_domain_name = target_ip
-                try:
-                    target_port_number = target['port']
-                except:
-                    target_port_number = None
-                try:
-                    target_protocol = target['protocol']
-                except:
-                    target_protocol = None
-                try:
-                    target_cookies = target['cookies']
-                except:
-                    target_cookies = None
-                try:
-                    target_cookies_file = target['cookies_file']
-                except:
-                    target_cookies_file = None
-                try:
-                    target_url = target['url']
-                    # Forward slash (/) SHOULD already be in tool argument string
-                    if target_url.startswith('/'):
-                        target_url = target_url[1:]
-                except:
-                    target_url = ''
+            try:
+                target_domain_name = target['domain']
+            except:
+                target_domain_name = target_ip
+            try:
+                target_port_number = target['port']
+            except:
+                target_port_number = None
+            try:
+                target_protocol = target['protocol']
+            except:
+                target_protocol = None
+            try:
+                target_cookies = target['cookies']
+            except:
+                target_cookies = None
+            try:
+                target_cookies_file = target['cookies_file']
+            except:
+                target_cookies_file = None
+            try:
+                target_url = target['url']
+                # Forward slash (/) SHOULD already be in tool argument string
+                if target_url.startswith('/'):
+                    target_url = target_url[1:]
+            except:
+                target_url = ''
 
-                self.target_list.append({'ip':target_ip,
-                                         'ip_address_list':target_ip_address_list,
-                                         'domain_name':target_domain_name,
-                                         'port_number':target_port_number,
-                                         'url':target_url,
-                                         'name':target_name,
-                                         'protocol':target_protocol,
-                                         'cookies':target_cookies,
-                                         'cookies_file':target_cookies_file})
+            self.target_list.append({'ip':target_ip,
+                                     'ip_address_list':target_ip_address_list,
+                                     'domain_name':target_domain_name,
+                                     'port_number':target_port_number,
+                                     'url':target_url,
+                                     'name':target_name,
+                                     'protocol':target_protocol,
+                                     'cookies':target_cookies,
+                                     'cookies_file':target_cookies_file})
 
 class Prompt:
     def __init__(self, prompt, config, args, tools, assessment):
@@ -701,16 +698,12 @@ class Rules:
                 try:
                     for rule_type in tool_config['rules']:
                         if rule_type == 'target-parameter-exists':
-                            print("debug1: target-parameter-exists hit")
-                            print("debug3: tool_config['rules'][rule_type] == " + str(tool_config['rules'][rule_type]))
                             for argument in tool_config['rules'][rule_type]:
                                 if argument == list:
                                     for argument_list in argument:
-                                        print("debug4: argument_list")
-                                print("debug2: argument == " + str(argument))
-                                rule_violation_tmp = self.check_comparison(target,tool_config,
-                                                     rule_type,argument,
-                                                     False)
+                                        rule_violation_tmp = self.check_comparison(target,tool_config,
+                                                                                   rule_type,argument,
+                                                                                   False)
                                 rule_violation = rule_violation or rule_violation_tmp
                         else:
                             for argument in tool_config['rules'][rule_type]:
@@ -721,7 +714,7 @@ class Rules:
                 except:
                     # debug
                     raise
-                    #pass
+                    pass
 
         if rule_violation:
             error_type = '[E]'
@@ -763,11 +756,11 @@ class Rules:
         elif rule_type == 'target-parameter-exists':
             # If list then make sure at least one of the items exists.
             # This is essentially 'or' functionality
-            print("debug0: target[argument] == " + str(target[argument]))
-            if target[argument] is list:
+            if argument is list:
+                print("debug760: argument == " + str(argument))
                 parameter_found = False
-                for parameter in target[argument]:
-                    if parameter != False:
+                for parameter in argument:
+                    if parameter != None:
                         parameter_found = True
                         break
                 # Was the parameter found?
@@ -777,8 +770,8 @@ class Rules:
                           ": One of the arguments was not specified")
                     error = True
             else:
-                print("debug: target[argument] == " + target[argument])
-                if target[argument] == False:
+                if target[argument] == None:
+                    print("debug774: target[argument] == " + str(target[argument]))
                     print("[W] Rule violation in " + tool_config['name'] + \
                           " for target " + target['name'] + \
                           ": '" + argument + "' not specified in target")
