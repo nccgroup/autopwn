@@ -31,7 +31,7 @@ class Log:
             try:
                 # log_filename is pikey, make it better
                 log_file = open(directory + "/" + date + "_autopwn_" + \
-                                     log_filename + "_stdout.log","a")
+                                log_filename + "_stdout.log","a")
             except OSError as e:
                 print("[E] Error creating log file: " + e)
                 sys.exit(1)
@@ -47,7 +47,7 @@ class Log:
                 sys.exit(1)
             try:
                 if config.log_started != True:
-                    log_file.write("## autopwn v0.14.0 command output\n")
+                    log_file.write("## autopwn v0.15.0 command output\n")
                     log_file.write("## Started logging at " + date_time + "...\n")
                     config.log_started = True
             except:
@@ -79,12 +79,12 @@ class Run:
             if config.dry_run != True:
                 try:
                     log = Log(config,os.getcwd(),False,'tool_string',"# Executing " + \
-                                 tool['name'] + " tool (" + tool['url'] + "):\n" + \
-                                 tool['execute_string'])
+                              tool['name'] + " tool (" + tool['url'] + "):\n" + \
+                              tool['execute_string'])
                 except:
                     log = Log(config,os.getcwd(),False,'tool_string',"# Executing " + \
-                                 tool['name'] + " tool:\n# " + \
-                                 tool['execute_string'])
+                              tool['name'] + " tool:\n# " + \
+                              tool['execute_string'])
 
                 time.sleep (0.1);
                 self.thread.append(RunThreads(self.index, tool))
@@ -119,7 +119,8 @@ class RunThreads (threading.Thread):
         self.tool_execute_string = tool['execute_string']
         self.tool_output_dir = tool['output_dir']
         self.tool_stdout_boolean = tool['stdout']
-        self.target_name = tool['host']['name']
+        print("debug: tool == " + str(tool))
+        self.target_name = tool['target']['name']
         self.tool_stdout = ''
         self.tool_stderr = ''
 
@@ -140,15 +141,15 @@ class RunThreads (threading.Thread):
     def run(self):
         print("[+] Launching " + self.tool_name)
         self.execute_tool(self.thread_ID, self.tool_name,
-                                self.tool_execute_string)
+                          self.tool_execute_string)
         print("[-] " + self.tool_name + " is done..")
         # Should we create a stdout log for this tool?
         if self.tool_stdout_boolean == True:
             log = Log(False, os.getcwd() + "/" + self.tool_output_dir,
-                         self.target_name + "_" + self.tool_name,
-                    'tool_output', self.tool_stdout)
+                      self.target_name + "_" + self.tool_name,
+                      'tool_output', self.tool_stdout)
         log = Log(False, os.getcwd(), False, 'tool_string', "# " + \
-                     self.tool_name + " has finished")
+                  self.tool_name + " has finished")
 
 class Tools:
     def __init__(self, config, args, assessment):
@@ -157,7 +158,7 @@ class Tools:
             if tool['name'] in assessment['tools']:
                 config.tool_subset.append(tool)
 
-        print("autopwn v0.14.0 by Aidan Marlin")
+        print("autopwn v0.15.0 by Aidan Marlin")
         print("email: aidan [dot] marlin [at] nccgroup [dot] com")
         print()
 
@@ -173,12 +174,12 @@ class Tools:
             bash_binary = self.check_tool_exists('bash', args)
             screen_binary = self.check_tool_exists('screen', args)
             index = False
-            for host in config.target_list:
+            for target in config.target_list:
                 for tool in config.tool_subset:
                     config.tool_subset_evaluated[index]['execute_string'] = \
                         screen_binary + " -D -m -S autopwn_" + \
-                        host['name'] + "_" + \
-                        host['domain_name'] + "_" + host['ip'] + \
+                        target['name'] + "_" + \
+                        target['domain_name'] + "_" + target['ip'] + \
                         "_" + tool['name'] + " " + bash_binary + " -c '" + \
                         config.tool_subset_evaluated[index]['execute_string'] + \
                         "'"
@@ -204,16 +205,27 @@ class Tools:
     def replace_placeholders(self, config, assessment):
         config.tool_subset_evaluated = []
 
-        for host in config.target_list:
+        for target in config.target_list:
             for tool in config.tool_subset:
                 config.tool_subset_evaluated.append(copy.deepcopy(tool))
+                target_string = ''
+
+                if target['ip'] != None:
+                    target_string = target['ip']
+                elif target['ip_address_list'] != None:
+                    target_string = target['ip_address_list']
+                else:
+                    print("[E] You shouldn't see this error")
+                    sys.exit(1)
 
                 # Variable declaration for placeholder replacements
                 date = strftime("%Y%m%d_%H%M%S%z")
                 date_day = strftime("%Y%m%d")
                 config.tool_subset_evaluated[-1]['output_dir'] = date_day + \
-                    "_autopwn_" + host['ip'] + "_" + host['name']
-                config.tool_subset_evaluated[-1]['host'] = host
+                                                                 "_autopwn_" + \
+                                                                 target_string + \
+                                                                 "_" + target['name']
+                config.tool_subset_evaluated[-1]['target'] = target_string
                 output_dir = config.tool_subset_evaluated[-1]['output_dir']
 
                 # Create log directory in CWD
@@ -226,14 +238,32 @@ class Tools:
 
                 # Create target file in new directory
                 try:
-                    Log(config,output_dir,'individual_target',host['ip'] + \
-                        '#' + host['domain_name'] + '#' + \
-                        host['port_number'] + '#' + \
-                        host['protocol'])
+                    Log(config,output_dir,'individual_target',target['ip'] + \
+                        '#' + target['domain_name'] + '#' + \
+                        target['port_number'] + '#' + \
+                        target['protocol'])
                 except:
                     # Not all target arguments specified
                     Log(config,output_dir,False,
-                         'individual_target',host['ip'])
+                         'individual_target',target_string)
+
+                # IP address file option string
+                try:
+                    ip_address_list_string = ''
+                    ip_address_list_option = tool['file-option-format']['option']
+                    ip_address_list_option_separator = tool['file-option-format']['option-separator']
+                    ip_address_list_substitution_format = tool['file-option-format']['substitution']
+
+                    # Should the CLI argument be repeated for each cookie instance?
+                    ip_address_list_string = ip_address_list_option + \
+                                             ip_address_list_option_separator + ''.join(
+                                             [ip_address_list_substitution_format %
+                                             {'ip-address-list': key} for (key)
+                                             in target['ip_address_list']])
+                except:
+                    #raise
+                    # If no ip address file option was specified
+                    pass
 
                 # Cookie cli option string
                 try:
@@ -251,25 +281,25 @@ class Tools:
                     if cookie_cli_argument_prepend_option == False:
                         cookie_cli_string = cookie_cli_option
                         cookie_cli_option = cookie_cli_option + \
-                                                cookie_cli_option_separator + \
-                                                cookie_cli_argument_encapsulation
+                                            cookie_cli_option_separator + \
+                                            cookie_cli_argument_encapsulation
                         cookie_cli_string = cookie_cli_option + cookie_cli_argument_separator.join(
-                                                  [cookie_cli_substitution_format %
-                                                  {'cookie-name': key, 'cookie-value': value}
-                                                  for (key, value) in
-                                                  host['cookies'].items()]) + \
-                                                  cookie_cli_argument_encapsulation
+                                            [cookie_cli_substitution_format %
+                                            {'cookie-name': key, 'cookie-value': value}
+                                            for (key, value) in
+                                            target['cookies'].items()]) + \
+                                            cookie_cli_argument_encapsulation
                     else:
                         # Prepend every argument with option
                         cookie_cli_string = cookie_cli_option + \
-                                                  cookie_cli_option_separator + \
-                                                  str(' ' + cookie_cli_option + \
-                                                  cookie_cli_option_separator).join(
-                                                  [cookie_cli_substitution_format %
-                                                  {'cookie-name': key,
-                                                  'cookie-value': value}
-                                                  for (key, value) in
-                                                  host['cookies'].items()])
+                                            cookie_cli_option_separator + \
+                                            str(' ' + cookie_cli_option + \
+                                            cookie_cli_option_separator).join(
+                                            [cookie_cli_substitution_format %
+                                            {'cookie-name': key,
+                                            'cookie-value': value}
+                                            for (key, value) in
+                                            target['cookies'].items()])
                 except:
                     #raise
                     # If no cookie string info was specified
@@ -285,50 +315,71 @@ class Tools:
 
                         # Should the CLI argument be repeated for each cookie instance?
                         cookie_cli_string = cookie_cli_option + \
-                                                  cookie_cli_option_separator + ''.join(
-                                                  [cookie_cli_substitution_format %
-                                                  {'cookies-file': key} for (key)
-                                                  in host['cookies_file']])
+                                            cookie_cli_option_separator + ''.join(
+                                            [cookie_cli_substitution_format %
+                                            {'cookies-file': key} for (key)
+                                            in target['cookies_file']])
                     except:
                         #raise
                         # If no cookie file option was specified
                         pass
 
+                # Some of the target variables might be None,
+                # so these will need blanking
+                domain_name_string = target['domain_name']
+                ip_string = target['ip']
+                port_number_string = target['port_number']
+                protocol_string = target['protocol']
+                url_string = target['url']
+                name_string = target['name']
+
+                if domain_name_string == None:
+                    domain_name_string = ''
+                if port_number_string == None:
+                    port_number_string = ''
+                if protocol_string == None:
+                    protocol_string = ''
+                if url_string == None:
+                    url_string = ''
+                if name_string == None:
+                    name_string = ''
+
                 # Replace placeholders for tool argument string
                 tool_arguments_instance = config.tool_subset_evaluated[-1]['arguments'].format(
-                                                    domain_name=host['domain_name'],
-                                                    ip=host['ip'], date=date,
-                                                    port_number=host['port_number'],
-                                                    protocol=host['protocol'],
-                                                    url=host['url'],
-                                                    name=host['name'],
-                                                    cookie_arguments=cookie_cli_string,
-                                                    output_dir=output_dir)
+                                          domain_name=domain_name_string,
+                                          ip=ip_string, date=date,
+                                          port_number=port_number_string,
+                                          protocol=protocol_string,
+                                          url=url_string,
+                                          name=name_string,
+                                          ip_address_list=ip_address_list_string,
+                                          cookie_arguments=cookie_cli_string,
+                                          output_dir=output_dir)
 
                 config.tool_subset_evaluated[-1]['execute_string'] = config.tool_subset_evaluated[-1]['binary_location'] + " " + \
-                                                tool_arguments_instance
+                                                                     tool_arguments_instance
 
                 # Replace placeholders for pre tool command string
                 if 'pre_tool_execution' in config.tool_subset_evaluated[-1]:
                     config.tool_subset_evaluated[-1]['pre_tool_execution'] = config.tool_subset_evaluated[-1]['pre_tool_execution'].format(
-                                                    domain_name=host['domain_name'],
-                                                    ip=host['ip'], date=date,
-                                                    port_number=host['port_number'],
-                                                    protocol=host['protocol'],
-                                                    url=host['url'],
-                                                    name=host['name'],
-                                                    output_dir=output_dir)
+                                                                             domain_name=domain_name_string,
+                                                                             ip=ip_string, date=date,
+                                                                             port_number=port_number_string,
+                                                                             protocol=protocol_string,
+                                                                             url=url_string,
+                                                                             name=name_string,
+                                                                             output_dir=output_dir)
 
                 # Replace placeholders for post tool command string
                 if 'post_tool_execution' in config.tool_subset_evaluated[-1]:
                     config.tool_subset_evaluated[-1]['post_tool_execution'] = config.tool_subset_evaluated[-1]['post_tool_execution'].format(
-                                                    domain_name=host['domain_name'],
-                                                    ip=host['ip'], date=date,
-                                                    port_number=host['port_number'],
-                                                    protocol=host['protocol'],
-                                                    url=host['url'],
-                                                    name=host['name'],
-                                                    output_dir=output_dir)
+                                                                              domain_name=domain_name_string,
+                                                                              ip=ip_string, date=date,
+                                                                              port_number=port_number_string,
+                                                                              protocol=protocol_string,
+                                                                              url=url_string,
+                                                                              name=name_string,
+                                                                              output_dir=output_dir)
 
 class Menus:
     # Not 0 because this is a valid selection..
@@ -377,8 +428,8 @@ class Assessments:
 class Configuration:
     # Class vars
     autopwn_config = {'parallel':False,
-                            'parallel_override':False,
-                            'scripts_directory':''}
+                      'parallel_override':False,
+                      'scripts_directory':''}
     log_started = False
     tools_config = []
     assessments_config = []
@@ -437,10 +488,10 @@ class Configuration:
                 objects = yaml.load(stream)
 
                 self.tools_config.append({'name':'',
-                                                    'binary_location':'',
-                                                    'arguments':'',
-                                                    'stdout':''
-                                                    })
+                                          'binary_location':'',
+                                          'arguments':'',
+                                          'stdout':''
+                                          })
 
                 self.tools_config[index]['name'] = objects['name']
                 self.tools_config[index]['binary_location'] = objects['binary_location']
@@ -474,6 +525,10 @@ class Configuration:
                     self.tools_config[index]['cookie-file-option-format'] = objects['cookie-file-option-format']
                 except:
                     pass
+                try:
+                    self.tools_config[index]['file-option-format'] = objects['file-option-format']
+                except:
+                    pass
 
                 index = index + 1
 
@@ -490,8 +545,8 @@ class Configuration:
                 objects = yaml.load(stream)
 
                 self.assessments_config.append({'name':'','tools':'',
-                                                            'menu_name':'',
-                                                            'parallel':''})
+                                                'menu_name':'',
+                                                'parallel':''})
                 self.assessments_config[index]['name'] = objects['name']
                 self.assessments_config[index]['tools'] = objects['tools']
                 self.assessments_config[index]['menu_name'] = objects['menu_name']
@@ -543,9 +598,14 @@ class Configuration:
                     target_name = target['name']
                 try:
                     target_ip = target['ip_address']
+                    target_ip_address_list = None
                 except:
-                    print("[E] Target file missing IP address(es)")
-                    sys.exit(1)
+                    try:
+                        target_ip_address_list = target['ip_address_list']
+                        target_ip = None
+                    except:
+                        print("[E] Target file missing IP address target or file")
+                        sys.exit(1)
                 try:
                     target_domain_name = target['domain']
                 except:
@@ -553,11 +613,11 @@ class Configuration:
                 try:
                     target_port_number = target['port']
                 except:
-                    target_port_number = False
+                    target_port_number = None
                 try:
                     target_protocol = target['protocol']
                 except:
-                    target_protocol = False
+                    target_protocol = None
                 try:
                     target_cookies = target['cookies']
                 except:
@@ -575,13 +635,14 @@ class Configuration:
                     target_url = ''
 
                 self.target_list.append({'ip':target_ip,
-                                                 'domain_name':target_domain_name,
-                                                 'port_number':target_port_number,
-                                                 'url':target_url,
-                                                 'name':target_name,
-                                                 'protocol':target_protocol,
-                                                 'cookies':target_cookies,
-                                                 'cookies_file':target_cookies_file})
+                                         'ip_address_list':target_ip_address_list,
+                                         'domain_name':target_domain_name,
+                                         'port_number':target_port_number,
+                                         'url':target_url,
+                                         'name':target_name,
+                                         'protocol':target_protocol,
+                                         'cookies':target_cookies,
+                                         'cookies_file':target_cookies_file})
 
 class Prompt:
     def __init__(self, prompt, config, args, tools, assessment):
@@ -625,13 +686,11 @@ class Rules:
     def check(self, args, config, tools):
         # Hosts
         rule_violation = False
-        for host_index, host in enumerate(config.target_list):
+        for target_index, target in enumerate(config.target_list):
             # Tools
             for tool_config_index, tool_config in enumerate(config.tools_config):
                 check_tool_rule = False
                 for tool in config.tool_subset:
-                    #print tool_config['name']
-                    #print tool['name']
                     if tool_config['name'] == tool['name']:
                         check_tool_rule = True
 
@@ -642,19 +701,27 @@ class Rules:
                 try:
                     for rule_type in tool_config['rules']:
                         if rule_type == 'target-parameter-exists':
+                            print("debug1: target-parameter-exists hit")
+                            print("debug3: tool_config['rules'][rule_type] == " + str(tool_config['rules'][rule_type]))
                             for argument in tool_config['rules'][rule_type]:
-                                rule_violation_tmp = self.check_comparison(host,tool_config,
-                                                         rule_type,argument,
-                                                         False)
+                                if argument == list:
+                                    for argument_list in argument:
+                                        print("debug4: argument_list")
+                                print("debug2: argument == " + str(argument))
+                                rule_violation_tmp = self.check_comparison(target,tool_config,
+                                                     rule_type,argument,
+                                                     False)
                                 rule_violation = rule_violation or rule_violation_tmp
                         else:
                             for argument in tool_config['rules'][rule_type]:
-                                rule_violation_tmp = self.check_comparison(host,tool_config,
+                                rule_violation_tmp = self.check_comparison(target,tool_config,
                                                      rule_type,argument,
                                                      tool_config['rules'][rule_type][argument])
                         rule_violation = rule_violation or rule_violation_tmp
                 except:
-                    pass
+                    # debug
+                    raise
+                    #pass
 
         if rule_violation:
             error_type = '[E]'
@@ -667,38 +734,55 @@ class Rules:
             if args.ignore_rules == False:
                 sys.exit(1)
 
-    def check_comparison(self,host,tool_config,rule_type,argument,argument_value):
+    def check_comparison(self,target,tool_config,rule_type,argument,argument_value):
         error = False
         if rule_type == 'not-equals':
-            if host[argument] == argument_value:
+            if target[argument] == argument_value:
                 print("[W] Rule violation in " + tool_config['name'] + \
-                        " for host " + host['domain_name'] + \
+                        " for target " + target['name'] + \
                         ": '" + argument + "' must be '" + argument_value + "'")
                 error = True
         elif rule_type == 'equals':
-            if host[argument] != argument_value:
+            if target[argument] != argument_value:
                 print("[W] Rule violation in " + tool_config['name'] + \
-                        " for host " + host['domain_name'] + \
+                        " for target " + target['name'] + \
                         ": '" + argument + "' must be '" + argument_value + "'")
                 error = True
         elif rule_type == 'greater-than':
-            if host[argument] <= argument_value:
+            if target[argument] <= argument_value:
                 print("[W] Rule violation in " + tool_config['name'] + \
-                        " for host " + host['domain_name'] + \
+                        " for target " + target['name'] + \
                         ": '" + str(argument) + "' must be greater than " + str(argument_value))
                 error = True
         elif rule_type == 'less-than':
-            if host[argument] >= argument_value:
+            if target[argument] >= argument_value:
                 print("[W] Rule violation in " + tool_config['name'] + \
-                        " for host " + host['domain_name'] + \
+                        " for target " + target['name'] + \
                         ": '" + str(argument) + "' must be less than " + str(argument_value))
                 error = True
         elif rule_type == 'target-parameter-exists':
-            if host[argument] == False:
-                print("[W] Rule violation in " + tool_config['name'] + \
-                        " for host " + host['domain_name'] + \
-                        ": '" + argument + "' not specified in target")
-                error = True
+            # If list then make sure at least one of the items exists.
+            # This is essentially 'or' functionality
+            print("debug0: target[argument] == " + str(target[argument]))
+            if target[argument] is list:
+                parameter_found = False
+                for parameter in target[argument]:
+                    if parameter != False:
+                        parameter_found = True
+                        break
+                # Was the parameter found?
+                if parameter_found != True:
+                    print("[W] Rule violation in " + tool_config['name'] + \
+                          " for target " + target['name'] + \
+                          ": One of the arguments was not specified")
+                    error = True
+            else:
+                print("debug: target[argument] == " + target[argument])
+                if target[argument] == False:
+                    print("[W] Rule violation in " + tool_config['name'] + \
+                          " for target " + target['name'] + \
+                          ": '" + argument + "' not specified in target")
+                    error = True
 
         return error
 
@@ -730,8 +814,8 @@ class Commands:
                         subprocess.call(tool['pre_tool_execution'],shell = True)
                         print("[-] Pre-tool commands for " + tool['name'] + " have completed..")
                         log = Log(config,os.getcwd(),False,'tool_string',
-                                "# Pre-tool commands for " + tool['name'] + \
-                                " have finished")
+                                  "# Pre-tool commands for " + tool['name'] + \
+                                  " have finished")
 
             except:
                 pass
@@ -755,10 +839,10 @@ class Commands:
                         print("[+] Running post-tool commands for " + tool['name'])
                         subprocess.call(tool['post_tool_execution'],shell = True)
                         print("[-] Post-tool commands for " + tool['name'] + \
-                                " have completed..")
+                              " have completed..")
                         log = Log(config,os.getcwd(),False,'tool_string',
-                                "# Post-tool commands for " + tool['name'] + \
-                                " have finished")
+                                  "# Post-tool commands for " + tool['name'] + \
+                                  " have finished")
 
             except:
                 pass
@@ -777,7 +861,7 @@ class Sanitise:
 
 class Arguments:
     argparse_description = '''
-autopwn v0.14.0
+autopwn v0.15.0
 By Aidan Marlin
 Email: aidan [dot] marlin [at] nccgroup [dot] com'''
 
@@ -793,6 +877,7 @@ targets:
       protocol: <protocol>
       mac_address: <mac_address>
     - target_name: <target-name-1>
+      ip_address_list: <ip-address-list>
       ...
 
 Only 'name' and 'ip_address' are compulsory options.
@@ -805,8 +890,13 @@ targets:
       url: /test
       port: 80
       protocol: https
+      mac_address: ff:ff:ff:ff:ff:ff
+      cookies:
+        some-cookie-name: some-cookie-value
+        some-cookie-name1: some-cookie-value1
     - target_name: test-1
-      ip_address: 127.0.0.2
+      ip_address_list: ip_list.txt
+      cookies_file: cookies.txt
 
 autopwn uses the tools/ directory located where this
 script is to load tool definitions, which are yaml
@@ -829,26 +919,26 @@ Legal purposes only..
                                          description=self.argparse_description,
                                          epilog=self.argparse_epilog)
         self.parser.add_argument('-t', '--target',
-                            required=True,
-                            help='The file containing the targets')
+                                 required=True,
+                                 help='The file containing the targets')
         self.parser.add_argument('-a', '--assessment',
-                            help='Specify assessment name to run. Autopwn will not '
-                            'prompt to run tools with this option')
+                                 help='Specify assessment name to run. Autopwn will not '
+                                'prompt to run tools with this option')
         self.parser.add_argument('-d', '--assessment_directory',
-                            help='Specify assessment directory')
+                                 help='Specify assessment directory')
         self.parser.add_argument('-i', '--ignore_missing_binary',
-                            action='store_true',
-                            help='Deprecated (and buggy)\nIgnore missing binary conditions')
+                                 action='store_true',
+                                 help='Deprecated (and buggy)\nIgnore missing binary conditions')
         self.parser.add_argument('-r', '--ignore_rules',
-                            action='store_true',
-                            help='Deprecated (and buggy)\nIgnore tool rulesets')
+                                 action='store_true',
+                                 help='Deprecated (and buggy)\nIgnore tool rulesets')
         self.parser.add_argument('-s', '--with_screen',
-                            action='store_true',
-                            help='Run tools in screen session')
+                                 action='store_true',
+                                 help='Run tools in screen session')
         self.parser.add_argument('-p', '--parallel',
-                            action='store_true',
-                            help='Run tools in parallel regardless of assessment or '
-                            'global parallel option')
+                                 action='store_true',
+                                 help='Run tools in parallel regardless of assessment or '
+                                 'global parallel option')
 
         self.parser = self.parser.parse_args(argslist)
 

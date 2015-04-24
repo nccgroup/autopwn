@@ -3,7 +3,7 @@ binary_location: /usr/bin/dirb
 url: http://dirb.sourceforge.net/
 
 rules:
-   target-parameter-exists: ['ip','domain_name','port_number','protocol']
+   target-parameter-exists: [['ip','domain_name'],'port_number','protocol']
 
 cookie-cli-option-format:
    option: '-c'

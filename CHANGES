@@ -1,3 +1,12 @@
+autopwn v0.15.0 - 201504XX
+
+* Addded ability to specify ip address lists
+* Modified ruleset code to allow for lists within
+  lists for target-parameter-exists. This means
+  that a user can specify that as long as *one*
+  of the items in the list exists, then no
+  rule violation occurred
+
 autopwn v0.14.0 - 20150421
 
 * Added cookie support to some tools
