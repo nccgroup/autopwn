@@ -29,3 +29,4 @@ TODO
 10a) autopwn started/stopped logging entry
 11 - Improve exit condition handling
 12 - User agent string modification option is supported by a number of tools
+13 - Man page
