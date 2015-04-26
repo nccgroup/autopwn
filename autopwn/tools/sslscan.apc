@@ -1,11 +1,12 @@
 name: sslscan
 binary_location: /usr/bin/sslscan
 url: http://sourceforge.net/projects/sslscan/
+autopwn_version: 0.16.0
 
 rules:
-   equals:
-      'protocol': 'https'
-   target-parameter-exists: ['ip','port_number']
+    equals:
+        'protocol': 'https'
+    target-parameter-exists: ['ip','port_number']
 
 arguments: "{domain_name}:{port_number} > {output_dir}/{date}_{name}_sslscan_{domain_name}"
 stdout: False

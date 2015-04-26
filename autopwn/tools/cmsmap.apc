@@ -1,9 +1,10 @@
 name: cmsmap
 binary_location: /root/git/CMSmap/cmsmap.py
 url: https://github.com/Dionach/CMSmap 
+autopwn_version: 0.16.0
 
 rules:
-   target-parameter-exists: ['ip','protocol']
+    target-parameter-exists: ['ip','protocol']
 
 arguments: "-f D -t {protocol}://{domain_name} -o {output_dir}/{date}_{name}_cmsmap_{domain_name}"
 stdout: True

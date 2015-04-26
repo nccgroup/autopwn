@@ -1,17 +1,20 @@
 name: skipfish
 binary_location: /usr/bin/skipfish
 url: https://code.google.com/p/skipfish/
+autopwn_version: 0.16.0
 
 rules:
-   target-parameter-exists: ['ip','port_number']
+    target-parameter-exists: ['ip','port_number']
 
-cookie-cli-option-format:
-   option: '-C'
-   option-separator: ' '
-   substitution: '%(cookie-name)s=%(cookie-value)s'
-   argument-prepend-option: True
-   argument-separator: ' '
-   argument-encapsulation: ''
+option-formats:
+    cookie-cli-option-format:
+        option-placeholder: 'cookies'
+        option: '-C'
+        option-separator: ' '
+        substitution: '{0}={1}'
+        argument-prepend-option: True
+        argument-separator: ' '
+        argument-encapsulation: ''
 
 arguments: "-o {output_dir}/{date}_{name}_skipfish_{domain_name} {cookie_arguments} -u -U -O {protocol}://{domain_name}:{port_number}/{url}"
 stdout: True

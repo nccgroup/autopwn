@@ -1,9 +1,10 @@
 name: ssl-audit
 menu_name: SSL Audit
+autopwn_version: 0.16.0
 
 tools:
-   - sslyze
-   - sslscan
-   - testsslserver
+    - sslyze
+    - sslscan
+    - testsslserver
 
 parallel: False

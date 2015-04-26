@@ -1,9 +1,10 @@
 name: webapp
 menu_name: Web Application
+autopwn_version: 0.16.0
 
 tools:
-   - arachni
-   - nikto
-   - skipfish
+    - arachni
+    - nikto
+    - skipfish
 
 parallel: False

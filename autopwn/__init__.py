@@ -1,23 +1,24 @@
 #!/usr/bin/env /usr/bin/python
 
-import copy
-import sys
 import argparse
-import re
-import subprocess
+import copy
+import operator
 import os
+import re
 import shlex
+import subprocess
+import sys
 import threading
 import time
-from locale import getlocale
 from collections import OrderedDict
 from distutils.spawn import find_executable
+from locale import getlocale
 from subprocess import Popen, PIPE
 from time import gmtime, strftime
 
-import yaml
 import inquirer
 from screenutils import list_screens, Screen
+import yaml
 
 # Aidan Marlin @ NCC Group
 # Project born 201502
@@ -45,13 +46,11 @@ class Log:
             except OSError as e:
                 print("[E] Error creating log file: " + e)
                 sys.exit(1)
-            try:
-                if config.log_started != True:
-                    log_file.write("## autopwn v0.15.0 command output\n")
-                    log_file.write("## Started logging at " + date_time + "...\n")
-                    config.log_started = True
-            except:
-                pass
+            if config.log_started != True:
+                log_file.write("## autopwn v0.16.0 command output\n")
+                log_file.write("## Started logging at " + date_time + "...\n")
+                config.log_started = True
+
             log_file.write("# " + date_time + "\n")
             log_file.write(log_string + "\n")
             log_file.close()
@@ -77,17 +76,17 @@ class Run:
         for tool in tool_subset:
             # Run for real
             if config.dry_run != True:
-                try:
+                if 'url' in tool:
                     log = Log(config,os.getcwd(),False,'tool_string',"# Executing " + \
                               tool['name'] + " tool (" + tool['url'] + "):\n" + \
                               tool['execute_string'])
-                except:
+                else:
                     log = Log(config,os.getcwd(),False,'tool_string',"# Executing " + \
                               tool['name'] + " tool:\n# " + \
                               tool['execute_string'])
 
                 time.sleep (0.1);
-                self.thread.append(RunThreads(self.index, tool))
+                self.thread.append(RunThreads(config, tool))
                 # If main process dies, everything else *SHOULD* as well
                 self.thread[self.index].daemon = True
                 # Start threads
@@ -111,10 +110,9 @@ class Run:
                 #    tid.join(1)
 
 class RunThreads (threading.Thread):
-    def __init__(self, thread_ID, tool):
+    def __init__(self, config, tool):
         threading.Thread.__init__(self)
         self.kill_received = False
-        self.thread_ID = thread_ID
         self.tool_name = tool['name']
         self.tool_execute_string = tool['execute_string']
         self.tool_output_dir = tool['output_dir']
@@ -122,8 +120,9 @@ class RunThreads (threading.Thread):
         self.target_name = tool['target']['name']
         self.tool_stdout = ''
         self.tool_stderr = ''
+        self.config = config
 
-    def execute_tool(self, thread_ID, tool_name,
+    def execute_tool(self, tool_name,
                             tool_execute_string):
         # Always check any tools provided by
         # community members
@@ -139,15 +138,15 @@ class RunThreads (threading.Thread):
 
     def run(self):
         print("[+] Launching " + self.tool_name)
-        self.execute_tool(self.thread_ID, self.tool_name,
+        self.execute_tool(self.tool_name,
                           self.tool_execute_string)
         print("[-] " + self.tool_name + " is done..")
         # Should we create a stdout log for this tool?
         if self.tool_stdout_boolean == True:
-            log = Log(False, os.getcwd() + "/" + self.tool_output_dir,
+            log = Log(self.config, os.getcwd() + "/" + self.tool_output_dir,
                       self.target_name + "_" + self.tool_name,
                       'tool_output', self.tool_stdout)
-        log = Log(False, os.getcwd(), False, 'tool_string', "# " + \
+        log = Log(self.config, os.getcwd(), False, 'tool_string', "# " + \
                   self.tool_name + " has finished")
 
 class Tools:
@@ -157,7 +156,7 @@ class Tools:
             if tool['name'] in assessment['tools']:
                 config.tool_subset.append(tool)
 
-        print("autopwn v0.15.0 by Aidan Marlin")
+        print("autopwn v0.16.0 by Aidan Marlin")
         print("email: aidan [dot] marlin [at] nccgroup [dot] com")
         print()
 
@@ -236,92 +235,59 @@ class Tools:
                         sys.exit(1)
 
                 # Create target file in new directory
-                try:
-                    Log(config,output_dir,'individual_target',target['ip'] + \
-                        '#' + target['domain_name'] + '#' + \
-                        target['port_number'] + '#' + \
-                        target['protocol'])
-                except:
-                    # Not all target arguments specified
-                    Log(config,output_dir,False,
-                         'individual_target',target_string)
+                Log(config,output_dir,False,
+                    'individual_target',target_string)
 
-                # IP address file option string
-                try:
-                    ip_address_list_string = ''
-                    ip_address_list_option = tool['file-option-format']['option']
-                    ip_address_list_option_separator = tool['file-option-format']['option-separator']
-                    ip_address_list_substitution_format = tool['file-option-format']['substitution']
+                option_format_string = {}
+                # Option string processing
+                argument_prepend_option = False
+                argument_separator = ''
+                argument_encapsulation = ''
+                if 'option-formats' in tool:
+                    for option_format_instance in tool['option-formats']:
+                        individual_option_set = tool['option-formats'][option_format_instance]
 
-                    # Should the CLI argument be repeated for each cookie instance?
-                    ip_address_list_string = ip_address_list_option + \
-                                             ip_address_list_option_separator + ''.join(
-                                             [ip_address_list_substitution_format %
-                                             {'ip-address-list': key} for (key)
-                                             in target['ip_address_list']])
-                except:
-                    #raise
-                    # If no ip address file option was specified
-                    pass
+                        option = individual_option_set['option']
+                        option_separator = individual_option_set['option-separator']
+                        substitution_format = individual_option_set['substitution']
 
-                # Cookie cli option string
-                try:
-                    # Cookie from tool config
-                    cookie_cli_option = tool['cookie-cli-option-format']['option']
-                    cookie_cli_option_separator = tool['cookie-cli-option-format']['option-separator']
-                    cookie_cli_substitution_format = tool['cookie-cli-option-format']['substitution']
-                    cookie_cli_argument_prepend_option = tool['cookie-cli-option-format']['argument-prepend-option']
-                    cookie_cli_argument_separator = tool['cookie-cli-option-format']['argument-separator']
-                    cookie_cli_argument_encapsulation = tool['cookie-cli-option-format']['argument-encapsulation']
-                    # Initialise
-                    cookie_cli_string = ''
+                        if 'argument-prepend-option' in tool['option-formats'][option_format_instance]:
+                            argument_prepend_option = tool['option-formats'][option_format_instance]['argument-prepend-option']
+                        else:
+                            argument_prepend_option = False
+                        if 'argument-separator' in tool['option-formats'][option_format_instance]:
+                            argument_separator = tool['option-formats'][option_format_instance]['argument-separator']
+                        else:
+                            argument_separator = ''
+                        if 'argument-encapsulation' in tool['option-formats'][option_format_instance]:
+                            argument_encapsulation = tool['option-formats'][option_format_instance]['argument-encapsulation']
+                        else:
+                            argument_encapsulation = ''
 
-                    # Should the CLI argument be repeated for each cookie instance?
-                    if cookie_cli_argument_prepend_option == False:
-                        cookie_cli_string = cookie_cli_option
-                        cookie_cli_option = cookie_cli_option + \
-                                            cookie_cli_option_separator + \
-                                            cookie_cli_argument_encapsulation
-                        cookie_cli_string = cookie_cli_option + cookie_cli_argument_separator.join(
-                                            [cookie_cli_substitution_format %
-                                            {'cookie-name': key, 'cookie-value': value}
-                                            for (key, value) in
-                                            target['cookies'].items()]) + \
-                                            cookie_cli_argument_encapsulation
-                    else:
-                        # Prepend every argument with option
-                        cookie_cli_string = cookie_cli_option + \
-                                            cookie_cli_option_separator + \
-                                            str(' ' + cookie_cli_option + \
-                                            cookie_cli_option_separator).join(
-                                            [cookie_cli_substitution_format %
-                                            {'cookie-name': key,
-                                            'cookie-value': value}
-                                            for (key, value) in
-                                            target['cookies'].items()])
-                except:
-                    #raise
-                    # If no cookie string info was specified
-                    cookie_cli_string = ''
+                        option_placeholder = individual_option_set['option-placeholder']
+                        if target[option_placeholder] == None:
+                            continue
 
-                    try:
-                        # Cookie from tool config
-                        cookie_cli_option = tool['cookie-file-option-format']['option']
-                        cookie_cli_option_separator = tool['cookie-file-option-format']['option-separator']
-                        cookie_cli_substitution_format = tool['cookie-file-option-format']['substitution']
-                        # Initialise
-                        cookie_cli_string = ''
+                        option_format_string[option_placeholder] = [ option + option_separator + argument_encapsulation ]
+                        option_format_string_index = 1
 
-                        # Should the CLI argument be repeated for each cookie instance?
-                        cookie_cli_string = cookie_cli_option + \
-                                            cookie_cli_option_separator + ''.join(
-                                            [cookie_cli_substitution_format %
-                                            {'cookies-file': key} for (key)
-                                            in target['cookies_file']])
-                    except:
-                        #raise
-                        # If no cookie file option was specified
-                        pass
+                        # Argument stuff
+                        if isinstance(target[option_placeholder], str):
+                            option_format_string[option_placeholder][0] = \
+                                                                          option_format_string[option_placeholder][0] + \
+                                                                          ''.join(substitution_format.format(
+                                                                          target[option_placeholder]))
+                        else:
+                            for item in target[option_placeholder]:
+                                if option_format_string_index == 1:
+                                    option_format_string[option_placeholder][0] = \
+                                                                                  option_format_string[option_placeholder][0] + \
+                                                                                  ''.join(substitution_format.format(
+                                                                                  item,target[option_placeholder][item]))
+                                    option_format_string_index = option_format_string_index + 1
+                                else:
+                                    option_format_string[option_placeholder].append(''.join(substitution_format.format(
+                                                                                    item,target[option_placeholder][item])))
 
                 # Some of the target variables might be None,
                 # so these will need blanking
@@ -343,6 +309,33 @@ class Tools:
                 if name_string == None:
                     name_string = ''
 
+                if 'ip_address_list' not in option_format_string:
+                    option_format_ip_address_list = ''
+                else:
+                    option_format_ip_address_list = option_format_string['ip_address_list'][0]
+   
+                # Cookies string stuff 
+                option_format_cookies = ''
+                if 'cookies' not in option_format_string:
+                    if 'cookies_file' not in option_format_string:
+                        option_format_cookies = ''
+                    else:
+                        option_format_cookies = option_format_string['cookies_file'][0]
+                else:
+                    first_option = True
+                    for individual_option in option_format_string['cookies']:
+                        # TODO Review space
+                        if argument_prepend_option == True:
+                            if first_option == True:
+                                option_format_cookies = option_format_cookies + ' ' + individual_option
+                                first_option = False
+                            else:
+                                option_format_cookies = option_format_cookies + ' ' + option + option_separator + individual_option
+                        else:
+                            option_format_cookies = option_format_cookies + individual_option + argument_separator
+                option_format_cookies = option_format_cookies + argument_encapsulation
+
+
                 # Replace placeholders for tool argument string
                 tool_arguments_instance = config.tool_subset_evaluated[-1]['arguments'].format(
                                           domain_name=domain_name_string,
@@ -351,8 +344,8 @@ class Tools:
                                           protocol=protocol_string,
                                           url=url_string,
                                           name=name_string,
-                                          ip_address_list=ip_address_list_string,
-                                          cookie_arguments=cookie_cli_string,
+                                          ip_address_list=option_format_ip_address_list,
+                                          cookie_arguments=option_format_cookies,
                                           output_dir=output_dir)
 
                 config.tool_subset_evaluated[-1]['execute_string'] = config.tool_subset_evaluated[-1]['binary_location'] + " " + \
@@ -486,49 +479,7 @@ class Configuration:
                 stream = open(tools_directory + file, 'r')
                 objects = yaml.load(stream)
 
-                self.tools_config.append({'name':'',
-                                          'binary_location':'',
-                                          'arguments':'',
-                                          'stdout':''
-                                          })
-
-                self.tools_config[index]['name'] = objects['name']
-                self.tools_config[index]['binary_location'] = objects['binary_location']
-                self.tools_config[index]['arguments'] = objects['arguments']
-                try:
-                    self.tools_config[index]['stdout'] = objects['stdout']
-                except:
-                    self.tools_config[index]['stdout'] = False
-                # The following options are not compulsory
-                try:
-                    self.tools_config[index]['rules'] = objects['rules']
-                except:
-                    pass
-                try:
-                    self.tools_config[index]['pre_tool_execution'] = objects['pre_tool_execution']
-                except:
-                    pass
-                try:
-                    self.tools_config[index]['post_tool_execution'] = objects['post_tool_execution']
-                except:
-                    pass
-                try:
-                    self.tools_config[index]['url'] = objects['url']
-                except:
-                    pass
-                try:
-                    self.tools_config[index]['cookie-cli-option-format'] = objects['cookie-cli-option-format']
-                except:
-                    pass
-                try:
-                    self.tools_config[index]['cookie-file-option-format'] = objects['cookie-file-option-format']
-                except:
-                    pass
-                try:
-                    self.tools_config[index]['file-option-format'] = objects['file-option-format']
-                except:
-                    pass
-
+                self.tools_config.append(objects)
                 index = index + 1
 
         # Pull assessment configs
@@ -543,12 +494,7 @@ class Configuration:
                 stream = open(assessments_directory + file, 'r')
                 objects = yaml.load(stream)
 
-                self.assessments_config.append({'name':'','tools':'',
-                                                'menu_name':'',
-                                                'parallel':''})
-                self.assessments_config[index]['name'] = objects['name']
-                self.assessments_config[index]['tools'] = objects['tools']
-                self.assessments_config[index]['menu_name'] = objects['menu_name']
+                self.assessments_config.append(objects)
 
                 if self.autopwn_config['parallel_command_line_option'] == False:
                     if self.autopwn_config['parallel_global_override_option'] == False:
@@ -710,7 +656,6 @@ class Rules:
                                                                            tool_config['rules'][rule_type][argument])
                                 rule_violation = rule_violation or rule_violation_tmp
                 except:
-                    # debug
                     #raise
                     pass
 
@@ -727,31 +672,7 @@ class Rules:
 
     def check_comparison(self,target,tool_config,rule_type,argument,argument_value):
         error = False
-        if rule_type == 'not-equals':
-            if target[argument] == argument_value:
-                print("[W] Rule violation in " + tool_config['name'] + \
-                        " for target " + target['name'] + \
-                        ": '" + argument + "' must be '" + argument_value + "'")
-                error = True
-        elif rule_type == 'equals':
-            if target[argument] != argument_value:
-                print("[W] Rule violation in " + tool_config['name'] + \
-                        " for target " + target['name'] + \
-                        ": '" + argument + "' must be '" + argument_value + "'")
-                error = True
-        elif rule_type == 'greater-than':
-            if target[argument] <= argument_value:
-                print("[W] Rule violation in " + tool_config['name'] + \
-                        " for target " + target['name'] + \
-                        ": '" + str(argument) + "' must be greater than " + str(argument_value))
-                error = True
-        elif rule_type == 'less-than':
-            if target[argument] >= argument_value:
-                print("[W] Rule violation in " + tool_config['name'] + \
-                        " for target " + target['name'] + \
-                        ": '" + str(argument) + "' must be less than " + str(argument_value))
-                error = True
-        elif rule_type == 'target-parameter-exists':
+        if rule_type == 'target-parameter-exists':
             # If list then make sure at least one of the items exists.
             # This is essentially 'or' functionality
             if type(argument) is list:
@@ -772,7 +693,46 @@ class Rules:
                           " for target " + target['name'] + \
                           ": '" + argument + "' not specified in target")
                     error = True
+        else:
+            ops = {"not-equals": operator.eq,
+                   "equals": operator.ne,
+                   "greater-than": operator.lt,
+                   "less-than": operator.gt}
 
+            violation = {"not-equals": \
+                                       "[W] Rule violation in " + \
+                                       tool_config['name'] + \
+                                       " for target " + target['name'] + \
+                                       ": '" + argument + "' must be '" + \
+                                       str(argument_value) + "'",
+                         "equals": \
+                                   "[W] Rule violation in " + \
+                                   tool_config['name'] + \
+                                   " for target " + target['name'] + \
+                                   ": '" + argument + "' must be '" + \
+                                   str(argument_value) + "'",
+                         "greater-than": \
+                                         "[W] Rule violation in " + \
+                                         tool_config['name'] + \
+                                         " for target " + target['name'] + \
+                                         ": '" + argument + "' must be '" + \
+                                         str(argument_value) + "'",
+                        "less-than": \
+                                     "[W] Rule violation in " + \
+                                     tool_config['name'] + \
+                                     " for target " + target['name'] + \
+                                     ": '" + argument + "' must be '" + \
+                                     str(argument_value) + "'"}
+
+            try:
+                check_type = ops[rule_type]
+                violation_type = violation[rule_type]
+                if check_type(target[argument], argument_value):
+                    print(violation_type)
+                    error = True
+            except:
+                #raise
+                pass
         return error
 
 class Commands:
@@ -850,7 +810,7 @@ class Sanitise:
 
 class Arguments:
     argparse_description = '''
-autopwn v0.15.0
+autopwn v0.16.0
 By Aidan Marlin
 Email: aidan [dot] marlin [at] nccgroup [dot] com'''
 

@@ -1,9 +1,10 @@
 name: enum4linux
 binary_location: /usr/bin/enum4linux
 url: https://labs.portcullis.co.uk/tools/enum4linux/
+autopwn_version: 0.16.0
 
 rules:
-   target-parameter-exists: ['ip']
+    target-parameter-exists: ['ip']
 
 arguments: "-av {ip} > {output_dir}/{date}_{name}_enum4linux_{ip}"
 stdout: False

@@ -1,7 +1,8 @@
 name: nmap
 menu_name: Nmap Scan (All TCP Ports)
+autopwn_version: 0.16.0
 
 tools:
-   - nmap
+    - nmap
 
 parallel: False

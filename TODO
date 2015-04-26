@@ -16,6 +16,7 @@ TODO
 - DNS tools
 - Harvester?
 - recon tools?
+3b) Start looking more into tools
 4 - Flags
 5 - Windows support?
 6 - Improve Ctrl+c support
@@ -27,5 +28,4 @@ TODO
 10 - Improve command log file name to allow for multiple autopwn instances
 10a) autopwn started/stopped logging entry
 11 - Improve exit condition handling
-12 - Add capability to process lists of IPs
-13 - User agent string modification option is supported by a number of tools
+12 - User agent string modification option is supported by a number of tools

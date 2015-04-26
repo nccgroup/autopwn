@@ -1,6 +1,8 @@
 name: dir-brute
-tools:
-   - dirb
-
 menu_name: Directory Brute Forcing
+autopwn_version: 0.16.0
+
+tools:
+    - dirb
+
 parallel: False

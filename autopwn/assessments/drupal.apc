@@ -1,7 +1,8 @@
 name: drupal
-menu_name: Drupal Scans (Parallel)
+menu_name: Drupal Scans
+autopwn_version: 0.16.0
 
 tools:
-   - cmsmap
+    - cmsmap
 
-parallel: True
+parallel: False

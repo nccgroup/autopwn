@@ -1,9 +1,10 @@
 name: nbtscan
 binary_location: /usr/bin/nbtscan
 url: http://www.unixwiz.net/tools/nbtscan.html
+autopwn_version: 0.16.0
 
 rules:
-   target-parameter-exists: ['ip']
+    target-parameter-exists: ['ip']
 
 arguments: "-v {ip} > {output_dir}/{date}_{name}_nbtscan_{domain_name}"
 stdout: False

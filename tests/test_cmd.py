@@ -21,7 +21,7 @@ def test_cmd(monkeypatch, target):
     monkeypatch.setitem(__builtins__, 'input', lambda _: 'y')
 
     def select_nmap(self, menu_items):
-        self.item_selected = 4
+        self.item_selected = 5
     monkeypatch.setattr(Menus, 'display_assessment_menu', select_nmap)
 
     def fake(*args):

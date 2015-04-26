@@ -1,10 +1,13 @@
 name: test
-tools:
-#   - test
-#   - arachni
-#   - skipfish
-#   - nikto
-   - dirb
-
 menu_name: Test
+autopwn_version: 0.16.0
+
+tools:
+    - test
+#    - nmap
+#    - arachni
+#    - skipfish
+#    - nikto
+#    - dirb
+
 parallel: False

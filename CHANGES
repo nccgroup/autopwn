@@ -1,3 +1,13 @@
+autopwn v0.16.0 - 20150426
+
+* Documentation work
+* Code optimisations
+  (966 SLOC to 926 SLOC
+  in autopwn/__init__.py)
+* Tool config changes
+* Assessment config cleanup
+* Bug fixes
+
 autopwn v0.15.0 - 20150424
 
 * Addded ability to specify ip address lists

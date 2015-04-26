@@ -1,24 +1,28 @@
 name: arachni
 binary_location: /root/Downloads/arachni-1.0.6-0.5.6/bin/arachni
 url: http://www.arachni-scanner.com/
+autopwn_version: 0.16.0
 
 rules:
-   target-parameter-exists: ['ip','domain_name','port_number','protocol']
-   not-equals:
-      'domain_name': ['localhost','127.0.0.1']
+    target-parameter-exists: ['ip','domain_name','port_number','protocol']
+    not-equals:
+        'domain_name': ['localhost','127.0.0.1']
 
-cookie-cli-option-format:
-   option: '--http-cookie-string'
-   option-separator: ' '
-   substitution: '%(cookie-name)s=%(cookie-value)s'
-   argument-prepend-option: False
-   argument-separator: '\;'
-   argument-encapsulation: ''
+option-formats:
+    cookie-file-option-format:
+        option-placeholder: 'cookies_file'
+        option: '--http-cookie-jar'
+        option-separator: ' '
+        substitution: '{0}'
 
-cookie-file-option-format:
-   option: '--http-cookie-jar'
-   option-separator: ' '
-   substitution: '%(cookies-file)s'
+    cookie-cli-option-format:
+        option-placeholder: 'cookies'
+        option: '--http-cookie-string'
+        option-separator: ' '
+        substitution: '{0}={1}'
+        argument-prepend-option: False
+        argument-separator: '\;'
+        argument-encapsulation: ''
 
 post_tool_execution: "/root/Downloads/arachni-1.0.6-0.5.6/bin/arachni_reporter {output_dir}/*.afr --report=html:outfile={output_dir}/{date}_{name}_arachni_reporter_{domain_name}.zip  && mkdir {output_dir}/{date}_{name}_arachni_reporter_{domain_name} && unzip {output_dir}/{date}_{name}_arachni_reporter_{domain_name}.zip -d {output_dir}/{date}_{name}_arachni_reporter_{domain_name}"
 arguments: "{cookie_arguments} {protocol}://{domain_name}:{port_number}/{url} --report-save-path {output_dir}/"

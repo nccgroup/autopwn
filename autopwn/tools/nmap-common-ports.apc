@@ -1,14 +1,17 @@
 name: nmap-common-ports
 binary_location: /usr/bin/nmap
 url: http://nmap.org/
+autopwn_version: 0.16.0
 
 rules:
     target-parameter-exists: [['ip','ip_address_list']]
 
-file-option-format:
-   option: '-iL'
-   option-separator: ' '
-   substitution: '%(ip-address-list)s'
+option-formats:
+    file-option-format:
+        option-placeholder: ip_address_list
+        option: '-iL'
+        option-separator: ' '
+        substitution: '{0}'
 
-arguments: "-A -sS -sC -sV {ip_address_list} {domain_name} -oA {output_dir}/{date}_{name}_nmap_full_range"
+arguments: "-A -sS -sC -sV {ip_address_list} {domain_name} -oA {output_dir}/{date}_{name}_nmap_common_ports"
 stdout: True

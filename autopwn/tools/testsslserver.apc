@@ -1,11 +1,12 @@
 name: testsslserver
 binary_location: /usr/bin/java
 url: http://www.bolet.org/TestSSLServer/
+autopwn_version: 0.16.0
 
 rules:
-   equals:
-      'protocol': 'https'
-   target-parameter-exists: ['ip','port_number']
+    equals:
+        'protocol': 'https'
+    target-parameter-exists: ['ip','port_number']
 
 arguments: "-jar /root/Downloads/TestSSLServer.jar {domain_name} {port_number} > {output_dir}/{date}_{name}_testsslserver_{domain_name}"
 stdout: False

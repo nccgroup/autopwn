@@ -1,11 +1,12 @@
 name: sslyze
 binary_location: /usr/bin/sslyze
 url: https://github.com/iSECPartners/sslyze
+autopwn_version: 0.16.0
 
 rules:
-   equals:
-      'protocol': 'https'
-   target-parameter-exists: ['ip','port_number']
+    equals:
+        'protocol': 'https'
+    target-parameter-exists: ['ip','port_number']
 
 arguments: "--regular {domain_name}:{port_number} > {output_dir}/{date}_{name}_sslyze_{domain_name}"
 stdout: False
