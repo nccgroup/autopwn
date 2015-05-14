@@ -818,14 +818,14 @@ Email: aidan [dot] marlin [at] nccgroup [dot] com'''
 Format of the target file should be:
 
 targets:
-    - target_name: <target-name>
+    - name: <target-name>
       ip_address: <ip-address>
       domain: <domain>
       url: <url-path>
       port: <port-number>
       protocol: <protocol>
       mac_address: <mac_address>
-    - target_name: <target-name-1>
+    - name: <target-name-1>
       ip_address_list: <ip-address-list>
       ...
 
@@ -833,7 +833,7 @@ Only 'name' and 'ip_address' are compulsory options.
 Example file:
 
 targets:
-    - target_name: test
+    - name: test
       ip_address: 127.0.0.1
       domain: test.com
       url: /test
@@ -843,7 +843,7 @@ targets:
       cookies:
         some-cookie-name: some-cookie-value
         some-cookie-name1: some-cookie-value1
-    - target_name: test-1
+    - name: test-1
       ip_address_list: ip_list.txt
       cookies_file: cookies.txt
 
