@@ -10,5 +10,5 @@ assessment_groups: ['webapp']
 rules:
     target-parameter-exists: ['target_name', 'target', 'protocol', 'port_number']
 
-arguments: "{protocol}://{target_name}:{port_number}/{url} > {output_dir}/{date}_{name}_httrack_{target_name}"
+arguments: "{protocol}://{target}:{port_number}/{url} > {output_dir}/{date}_{name}_httrack_{target_name}"
 stdout: False

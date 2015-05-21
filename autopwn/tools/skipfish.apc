@@ -18,5 +18,5 @@ option-formats:
         argument-separator: ' '
         argument-encapsulation: ''
 
-arguments: "-o {output_dir}/{date}_{name}_skipfish_{target_name} {cookie_arguments} -u -U -O {protocol}://{target_name}:{port_number}/{url}"
+arguments: "-o {output_dir}/{date}_{name}_skipfish_{target_name} {cookie_arguments} -u -U -O {protocol}://{target}:{port_number}/{url}"
 stdout: True

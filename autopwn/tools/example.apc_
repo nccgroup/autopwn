@@ -99,7 +99,7 @@ post_tool_execution: "/usr/bin/example_report {output_dir}"
 # * output_dir (directory where tool output will be saved for specific target)
 # * ip_address_list (where the IP address option and argument go (e.g. '-i ips.txt')
 # * cookie_arguments (where the cookie arguments go (both the cookie files and cli options)
-arguments: "{protocol}://{target_name}:{port_number} {cookie_arguments} -o {output_dir}/{date}_example_{target_name}"
+arguments: "{protocol}://{target}:{port_number} {cookie_arguments} -o {output_dir}/{date}_example_{target_name}"
 
 # Given the arguments option, will this tool generate output? If redirection is used,
 # then this is not going to be the case (excluding stderr).

@@ -15,5 +15,5 @@ option-formats:
         option-separator: ' '
         substitution: '{0}'
 
-arguments: "-A -sS -sC -sV -p1-65535 {ip_address_list} {target_name} -oA {output_dir}/{date}_{target_name}_nmap_full_range"
+arguments: "-A -sS -sC -sV -p1-65535 {ip_address_list} {target} -oA {output_dir}/{date}_{target_name}_nmap_full_range"
 stdout: True

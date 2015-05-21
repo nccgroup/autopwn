@@ -8,5 +8,5 @@ assessment_groups: ['infrastructure']
 rules:
     target-parameter-exists: ['target_name', 'target']
 
-arguments: "{target_name} > {output_dir}/{date}_{name}_udp-proto-scanner_{target_name}"
+arguments: "{target} > {output_dir}/{date}_{name}_udp-proto-scanner_{target_name}"
 stdout: False

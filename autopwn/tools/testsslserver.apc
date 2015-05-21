@@ -10,5 +10,5 @@ rules:
         'protocol': 'https'
     target-parameter-exists: ['target_name', 'target', 'port_number']
 
-arguments: "-jar /root/Downloads/TestSSLServer.jar {target_name} {port_number} > {output_dir}/{date}_{name}_testsslserver_{target_name}"
+arguments: "-jar /root/Downloads/TestSSLServer.jar {target} {port_number} > {output_dir}/{date}_{name}_testsslserver_{target_name}"
 stdout: False
