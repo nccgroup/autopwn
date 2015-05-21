@@ -175,9 +175,9 @@ class Use:
     def __init__(self, config, arg):
         resource = arg.split('/')
         if resource[0] == 'tool':
-            return self.use_tool(config,resource[1])
+            self.use_tool(config,resource[1])
         if resource[0] == 'assessment':
-            return self.use_assessment(config,resource[1])
+            self.use_assessment(config,resource[1])
         else:
             print("Please specify a tool or assessment")
             return
