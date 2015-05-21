@@ -1,10 +1,12 @@
 name: enum4linux
 binary_location: /usr/bin/enum4linux
 url: https://labs.portcullis.co.uk/tools/enum4linux/
-autopwn_version: 0.16.0
+description: Enum4linux is a tool for enumerating information from Windows and Samba systems.
+autopwn_version: 0.17.0
+assessment_groups: ['infrastructure']
 
 rules:
-    target-parameter-exists: ['ip']
+    target-parameter-exists: ['target_name', 'target']
 
-arguments: "-av {ip} > {output_dir}/{date}_{name}_enum4linux_{ip}"
+arguments: "-av {target} > {output_dir}/{date}_{name}_enum4linux_{target}"
 stdout: False

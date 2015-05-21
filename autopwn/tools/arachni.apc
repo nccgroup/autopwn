@@ -1,12 +1,14 @@
 name: arachni
 binary_location: /root/Downloads/arachni-1.0.6-0.5.6/bin/arachni
 url: http://www.arachni-scanner.com/
-autopwn_version: 0.16.0
+description: Arachni is a Free/Open-Source Web Application Security Scanner aimed towards helping users evaluate the security of web applications.
+autopwn_version: 0.17.0
+assessment_groups: ['webapp']
 
 rules:
-    target-parameter-exists: ['ip','domain_name','port_number','protocol']
+    target-parameter-exists: ['target_name', 'target','port_number','protocol']
     not-equals:
-        'domain_name': ['localhost','127.0.0.1']
+        'target': ['localhost','127.0.0.1']
 
 option-formats:
     cookie-file-option-format:
@@ -24,6 +26,6 @@ option-formats:
         argument-separator: '\;'
         argument-encapsulation: ''
 
-post_tool_execution: "/root/Downloads/arachni-1.0.6-0.5.6/bin/arachni_reporter {output_dir}/*.afr --report=html:outfile={output_dir}/{date}_{name}_arachni_reporter_{domain_name}.zip  && mkdir {output_dir}/{date}_{name}_arachni_reporter_{domain_name} && unzip {output_dir}/{date}_{name}_arachni_reporter_{domain_name}.zip -d {output_dir}/{date}_{name}_arachni_reporter_{domain_name}"
-arguments: "{cookie_arguments} {protocol}://{domain_name}:{port_number}/{url} --report-save-path {output_dir}/"
+post_tool_execution: "/root/Downloads/arachni-1.0.6-0.5.6/bin/arachni_reporter {output_dir}/*.afr --report=html:outfile={output_dir}/{date}_{name}_arachni_reporter_{target}.zip  && mkdir {output_dir}/{date}_{name}_arachni_reporter_{target} && unzip {output_dir}/{date}_{name}_arachni_reporter_{target}.zip -d {output_dir}/{date}_{name}_arachni_reporter_{target}"
+arguments: "{cookie_arguments} {protocol}://{target}:{port_number}/{url} --report-save-path {output_dir}/"
 stdout: True

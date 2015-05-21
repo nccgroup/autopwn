@@ -1,9 +1,4 @@
 name: windows-audit
-menu_name: Windows Audit
+long_name: Windows Audit
 autopwn_version: 0.16.0
-
-tools:
-    - nbtscan
-    - enum4linux
-
-parallel: False
+description: Run Windows auditing tools against target

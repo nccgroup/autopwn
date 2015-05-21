@@ -1,8 +1,4 @@
 name: udp-scan
-menu_name: UDP Scanning
+long_name: UDP Scanning
 autopwn_version: 0.16.0
-
-tools:
-    - udp-proto-scanner
-
-parallel: False
+description: Run UDP scans against target.

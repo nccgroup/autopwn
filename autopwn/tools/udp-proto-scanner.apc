@@ -1,10 +1,12 @@
 name: udp-proto-scanner
 binary_location: /usr/local/bin/udp-proto-scanner.pl
 url: https://labs.portcullis.co.uk/tools/udp-proto-scanner/
-autopwn_version: 0.16.0
+description: udp-proto-scanner is a perl script which discovers UDP services by sending triggers to a list of hosts.
+autopwn_version: 0.17.0
+assessment_groups: ['infrastructure']
 
 rules:
-    target-parameter-exists: ['ip']
+    target-parameter-exists: ['target_name', 'target']
 
-arguments: "{ip} > {output_dir}/{date}_{name}_udp-proto-scanner_{domain_name}"
+arguments: "{target} > {output_dir}/{date}_{name}_udp-proto-scanner_{target}"
 stdout: False

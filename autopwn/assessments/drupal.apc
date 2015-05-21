@@ -1,8 +1,4 @@
 name: drupal
-menu_name: Drupal Scans
+long_name: Drupal Scans
 autopwn_version: 0.16.0
-
-tools:
-    - cmsmap
-
-parallel: False
+description: Run cmsmap Drupal scans against target.

@@ -1,10 +1,12 @@
 name: cmsmap
 binary_location: /root/git/CMSmap/cmsmap.py
 url: https://github.com/Dionach/CMSmap 
-autopwn_version: 0.16.0
+description: CMSmap is a python open source CMS scanner that automates the process of detecting security flaws of the most popular CMSs.
+autopwn_version: 0.17.0
+assessment_groups: ['webapp']
 
 rules:
-    target-parameter-exists: ['ip','protocol']
+    target-parameter-exists: ['target_name', 'ip','protocol']
 
-arguments: "-f D -t {protocol}://{domain_name} -o {output_dir}/{date}_{name}_cmsmap_{domain_name}"
+arguments: "-f D -t {protocol}://{target} -o {output_dir}/{date}_{name}_cmsmap_{target}"
 stdout: True

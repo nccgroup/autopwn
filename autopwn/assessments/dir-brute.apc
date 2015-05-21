@@ -1,8 +1,4 @@
 name: dir-brute
-menu_name: Directory Brute Forcing
+long_name: Directory Brute Forcing
 autopwn_version: 0.16.0
-
-tools:
-    - dirb
-
-parallel: False
+description: Brute force web application files.

@@ -1,9 +1,0 @@
-name: webapp-parallel
-menu_name: Web Application (Parallel)
-
-tools:
-   - arachni
-   - nikto
-   - skipfish
-
-parallel: True

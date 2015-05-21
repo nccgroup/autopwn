@@ -1,8 +1,4 @@
 name: nmap-common-ports
-menu_name: Nmap Scan (Common TCP Ports)
+long_name: Nmap Scan (Common TCP Ports)
 autopwn_version: 0.16.0
-
-tools:
-    - nmap-common-ports
-
-parallel: False
+description: Run nmap scanner against common TCP ports of target.

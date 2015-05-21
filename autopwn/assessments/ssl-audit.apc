@@ -1,10 +1,4 @@
 name: ssl-audit
-menu_name: SSL Audit
+long_name: SSL Audit
 autopwn_version: 0.16.0
-
-tools:
-    - sslyze
-    - sslscan
-    - testsslserver
-
-parallel: False
+description: Run SSL auditing tools against target.

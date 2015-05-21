@@ -1,12 +1,14 @@
 name: nikto
 binary_location: /usr/bin/nikto
 url: https://cirt.net/Nikto2
-autopwn_version: 0.16.0
+description: Nikto is an Open Source (GPL) web server scanner which performs comprehensive tests against web servers for multiple items.
+autopwn_version: 0.17.0
+assessment_groups: ['webapp']
 
 # TODO Add cookies? Add list option?
 
 rules:
-    target-parameter-exists: ['ip','port_number']
+    target-parameter-exists: ['target_name', 'target','port_number']
 
-arguments: "-h {protocol}://{domain_name}:{port_number} -root /{url} -o {output_dir}/{date}_{name}_nikto_{domain_name}.txt"
+arguments: "-h {protocol}://{target}:{port_number} -root /{url} -o {output_dir}/{date}_{name}_nikto_{target}.txt"
 stdout: True

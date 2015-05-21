@@ -1,10 +1,4 @@
 name: webapp
-menu_name: Web Application
-autopwn_version: 0.16.0
-
-tools:
-    - arachni
-    - nikto
-    - skipfish
-
-parallel: False
+long_name: Web Application
+autopwn_version: 0.17.0
+description: Run web application specific tools against target

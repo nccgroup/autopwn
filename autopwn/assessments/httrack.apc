@@ -1,8 +1,4 @@
 name: httrack
-menu_name: HTTrack (Mirror website)
+long_name: HTTrack (Mirror website)
 autopwn_version: 0.16.0
-
-tools:
-    - httrack
-
-parallel: False
+description: Mirror website using httrack

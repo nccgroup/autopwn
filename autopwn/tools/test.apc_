@@ -1,7 +1,7 @@
 name: test
 binary_location: /usr/bin/test
 url: http://test.sourceforge.net/
-autopwn_version: 0.16.0
+autopwn_version: 0.17.0
 
 rules:
     target-parameter-exists: [['ip','ip_address_list']]
@@ -22,5 +22,5 @@ option-formats:
         argument-separator: '\;'
         argument-encapsulation: ''
 
-arguments: "{protocol}://{domain_name}:{port_number}/{url} -o {output_dir}/{date}_{name}_test_{domain_name} {cookie_arguments}"
+arguments: "{protocol}://{target}:{port_number}/{url} -o {output_dir}/{date}_{name}_test_{target} {cookie_arguments}"
 stdout: True
