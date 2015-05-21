@@ -26,6 +26,6 @@ option-formats:
         argument-separator: '\;'
         argument-encapsulation: ''
 
-post_tool_execution: "/root/Downloads/arachni-1.0.6-0.5.6/bin/arachni_reporter {output_dir}/*.afr --report=html:outfile={output_dir}/{date}_{name}_arachni_reporter_{target}.zip  && mkdir {output_dir}/{date}_{name}_arachni_reporter_{target} && unzip {output_dir}/{date}_{name}_arachni_reporter_{target}.zip -d {output_dir}/{date}_{name}_arachni_reporter_{target}"
-arguments: "{cookie_arguments} {protocol}://{target}:{port_number}/{url} --report-save-path {output_dir}/"
+post_tool_execution: "/root/Downloads/arachni-1.0.6-0.5.6/bin/arachni_reporter {output_dir}/*.afr --report=html:outfile={output_dir}/{date}_{name}_arachni_reporter_{target_name}.zip  && mkdir {output_dir}/{date}_{name}_arachni_reporter_{target_name} && unzip {output_dir}/{date}_{name}_arachni_reporter_{target_name}.zip -d {output_dir}/{date}_{name}_arachni_reporter_{target_name}"
+arguments: "{cookie_arguments} {protocol}://{target_name}:{port_number}/{url} --report-save-path {output_dir}/"
 stdout: True

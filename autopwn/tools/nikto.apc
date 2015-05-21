@@ -8,7 +8,7 @@ assessment_groups: ['webapp']
 # TODO Add cookies? Add list option?
 
 rules:
-    target-parameter-exists: ['target_name', 'target','port_number']
+    target-parameter-exists: ['target_name', 'protocol', 'target','port_number']
 
-arguments: "-h {protocol}://{target}:{port_number} -root /{url} -o {output_dir}/{date}_{name}_nikto_{target}.txt"
+arguments: "-h {protocol}://{target_name}:{port_number} -root /{url} -o {output_dir}/{date}_{target_name}_nikto.txt"
 stdout: True

@@ -10,5 +10,5 @@ rules:
         'protocol': 'https'
     target-parameter-exists: ['target_name', 'target', 'port_number']
 
-arguments: "{target}:{port_number} > {output_dir}/{date}_{name}_sslscan_{target}"
+arguments: "{target_name}:{port_number} > {output_dir}/{date}_{name}_sslscan_{target_name}"
 stdout: False

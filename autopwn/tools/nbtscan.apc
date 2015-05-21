@@ -8,5 +8,5 @@ assessment_groups: ['infrastructure']
 rules:
     target-parameter-exists: ['target_name', 'target']
 
-arguments: "-v {target} > {output_dir}/{date}_{name}_nbtscan_{target}"
+arguments: "-v {target_name} > {output_dir}/{date}_{name}_nbtscan_{target_name}"
 stdout: False

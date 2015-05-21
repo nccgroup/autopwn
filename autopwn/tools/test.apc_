@@ -22,5 +22,5 @@ option-formats:
         argument-separator: '\;'
         argument-encapsulation: ''
 
-arguments: "{protocol}://{target}:{port_number}/{url} -o {output_dir}/{date}_{name}_test_{target} {cookie_arguments}"
+arguments: "{protocol}://{target_name}:{port_number}/{url} -o {output_dir}/{date}_{name}_test_{target_name} {cookie_arguments}"
 stdout: True

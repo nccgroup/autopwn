@@ -8,5 +8,5 @@ assessment_groups: ['webapp']
 rules:
     target-parameter-exists: ['target_name', 'ip','protocol']
 
-arguments: "-f D -t {protocol}://{target} -o {output_dir}/{date}_{name}_cmsmap_{target}"
+arguments: "-f D -t {protocol}://{target_name} -o {output_dir}/{date}_{name}_cmsmap_{target_name}"
 stdout: True

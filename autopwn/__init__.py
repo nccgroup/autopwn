@@ -113,6 +113,7 @@ class Configuration:
         self.directory['assessments'] = os.path.abspath(pathname) + "/assessments/"
 
         self.log_started = False
+        self.tool_found = False
 
         self.tools = []
         self.assessments = []
@@ -174,14 +175,21 @@ class Use:
     def __init__(self, config, arg):
         resource = arg.split('/')
         if resource[0] == 'tool':
-            self.use_tool(config,resource[1])
+            return self.use_tool(config,resource[1])
         if resource[0] == 'assessment':
-            self.use_assessment(config,resource[1])
+            return self.use_assessment(config,resource[1])
+        else:
+            print("Please specify a tool or assessment")
+            return
 
-    def use_tool(self,config,tool_name):
+    def use_tool(self, config, tool_name):
+        config.tool_found = False
+
         for tool in config.tools:
             if tool['name'] == tool_name:
+                config.tool_found = True
                 config.instance_name = tool_name
+
                 print('Name: ' + tool['name'])
                 print('Description: ' + tool['description'])
                 print('URL: ' + tool['url'])
@@ -194,6 +202,11 @@ class Use:
                             print("        - " + arg)
                     else:
                         print("    - " + required_arg)
+
+        if config.tool_found == False:
+            print("Tool not found")
+            return
+
         print()
 
     def use_assessment(self,config,assessment_name):
@@ -214,6 +227,9 @@ class Show:
             print(job)
 
     def show_options(self,config):
+        if hasattr(config, 'instance_name') == False:
+            print("You need to select a tool or assessment first.")
+            return False
         for tool in config.tools:
             if tool['name'] == config.instance_name:
                 print()
@@ -248,6 +264,10 @@ class Process:
     def __init__(self, config):
         info = {}
 
+        if len(config.job_queue) == 0:
+            print("No jobs to run")
+            return
+
         for instance in config.job_queue:
             instance['parallel'] = False
             instance['options']['date'] = strftime("%Y%m%d_%H%M%S%z")
@@ -265,6 +285,9 @@ class Process:
             # Option replacements
             instance['execute_string'] = instance['execute_string'].format(**ddict_options)
 
+        # Run jobs
+        Execute(config)
+
 class Save:
     def __init__(self, config, arg):
         print(config.instance_name)
@@ -274,6 +297,23 @@ class Save:
                 config.job_queue[-1]['options'] = {}
                 for option in config.instance_option:
                     config.job_queue[-1]['options'][option] = config.instance_option[option]
+
+                # Check all required parameters exist before save
+                for parameter in tool['rules']['target-parameter-exists']:
+                    parameter_found = False
+                    if type(parameter) is list:
+                        for arg in parameter:
+                            if arg in config.job_queue[-1]['options']:
+                                parameter_found = parameter_found or True
+                    else:
+                        print(config.job_queue[-1]['options'])
+                        if parameter in config.job_queue[-1]['options']:
+                            parameter_found = True
+
+                    if parameter_found == False:
+                        config.job_queue.pop()
+                        print("Some required parameters have not been set")
+                        return
 
                 for option in config.job_queue[-1]['options']:
                     print(config.job_queue[-1]['options'][option])
@@ -416,8 +456,6 @@ class Run:
     def __init__(self, config, arg):
         # Process job queue (replace placeholders)
         Process(config)
-        # Run jobs
-        Execute(config)
 
 class Debug:
     def __init__(self, config, arg):
@@ -427,7 +465,7 @@ class Debug:
 class Shell(cmd.Cmd):
     config = Configuration()
 
-    intro = 'Autopwn v0.17.0 shell. Type help or ? to list commands.\n'
+    intro = 'autopwn v0.17.0 shell. Type help or ? to list commands.\n'
     prompt = 'autopwn > '
 
     def do_search(self, arg):
@@ -453,7 +491,8 @@ class Shell(cmd.Cmd):
     def do_use(self, arg):
         'Setup a tool or assessment'
         Use(self.config,arg)
-        self.prompt = 'autopwn (' + arg + ') > '
+        if self.config.tool_found == True:
+            self.prompt = 'autopwn (' + arg + ') > '
 
     def do_set(self, arg):
         Set(self.config,arg)

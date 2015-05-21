@@ -10,5 +10,5 @@ rules:
         'protocol': 'https'
     target-parameter-exists: ['target_name', 'target', 'port_number']
 
-arguments: "--regular {target}:{port_number} > {output_dir}/{date}_{name}_sslyze_{target}"
+arguments: "--regular {target_name}:{port_number} > {output_dir}/{date}_{name}_sslyze_{target_name}"
 stdout: False
