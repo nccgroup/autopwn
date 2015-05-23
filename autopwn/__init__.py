@@ -106,20 +106,17 @@ Legal purposes only..
 
 class Configuration:
     def __init__(self):
-        pathname = os.path.abspath(self.find_path(__file__) or find_path(sys.argv[0]))
-
-        self.directory = {}
-        self.directory['tools'] = os.path.abspath(pathname) + "/tools/"
-        self.directory['assessments'] = os.path.abspath(pathname) + "/assessments/"
-
         self.log_started = False
         self.tool_found = False
 
+        self.global_config = {}
         self.tools = []
         self.assessments = []
         self.job_queue = []
-        self.instance_option = {}
-        self.load()
+        self.instance_config = {}
+        self.load("tools")
+        self.load("assessments")
+        self.load("global_config")
 
     def find_path(self, candidate):
          basepath = os.path.dirname(candidate)
@@ -127,24 +124,33 @@ class Configuration:
          if os.path.exists(tools_dir):
              return basepath
 
-    def load(self):
-        # Pull tool configs
-        for file in os.listdir(self.directory['tools']):
-            if file.endswith(".apc"):
-                stream = open(self.directory['tools'] + file, 'r')
-                objects = yaml.load(stream)
-                self.tools.append(objects)
+    def load(self, load_type):
+        pathname = os.path.abspath(self.find_path(__file__) or find_path(sys.argv[0]))
 
-        # Check assessments directory exists
-        if not os.path.isdir(self.directory['assessments']):
-            Error(10,"[E] Assessments directory does not exist")
+        if load_type == "tools":
+            load_directory = os.path.abspath(pathname) + "/tools/"
+            load_string = "Tools"
+        elif load_type == "assessments":
+            load_directory = os.path.abspath(pathname) + "/assessments/"
+            load_string = "Assessments"
+        elif load_type == "global_config":
+            load_directory = os.path.abspath(pathname) + "/"
+            load_string = "Global configuration"
 
-        # Pull assessment configs
-        for file in os.listdir(self.directory['assessments']):
+        if not os.path.isdir(load_directory):
+            Error(10,"[E] " + load_string + "directory does not exist")
+
+        for file in os.listdir(load_directory):
             if file.endswith(".apc"):
-                stream = open(self.directory['assessments'] + file, 'r')
+                stream = open(load_directory + file, 'r')
                 objects = yaml.load(stream)
-                self.assessments.append(objects)
+                # TODO Make this better
+                if load_type == "tools":
+                    self.tools.append(objects)
+                elif load_type == "assessments":
+                    self.assessments.append(objects)
+                elif load_type == "global_config":
+                    self.global_config = objects
 
 class Error:
     def __init__(self, error_code, error_message):
@@ -158,7 +164,7 @@ class Search:
 
     def search(self,config_item,item_type_string,item_type_prepend,search_string):
         print('{0:30} {1}'.format(item_type_string, "Description"))
-        print('-'*48)
+        print('-'*40)
         print()
         for item in config_item:
             if search_string in item['name'] \
@@ -219,12 +225,39 @@ class Show:
     def __init__(self, config, arg):
         if arg == 'options':
             self.show_options(config)
-        if arg == 'jobs':
+        elif arg == 'jobs':
             self.show_jobs(config)
+        elif arg == 'config':
+            self.show_config(config)
+        else:
+            self.show_help(config)
+
+    def show_help(self,config):
+        info = '''
+Valid arguments for show are:
+    options    - Show options for tool or assessment
+    jobs       - Show jobs
+    config     - Show autopwn config
+'''
+        print(info)
+        return True
+
+    def show_config(self,config):
+        print()
+        print("        {0:30} {1}".format("Option", "Value"))
+        print("        "+"-"*40)
+        for option in config.global_config:
+            print("        {0:30} {1}".format(option, config.global_config[option]))
+        print()
 
     def show_jobs(self,config):
+        if len(config.job_queue) == 1:
+            print("There is 1 job in the queue")
+        else:
+            print("There are " + str(len(config.job_queue)) + " jobs in the queue")
         for job in config.job_queue:
             print(job)
+        print()
 
     def show_options(self,config):
         if hasattr(config, 'instance_name') == False:
@@ -236,32 +269,57 @@ class Show:
                 print("Options for " + tool['name'] + ".")
                 print()
                 print("        {0:30} {1}".format("Option", "Value"))
-                print("        "+"-"*48)
+                print("        "+"-"*40)
                 for required_arg in tool['rules']['target-parameter-exists']:
                     if type(required_arg) is list:
                         for arg in required_arg:
                             try:
-                                print("        {0:30} {1}".format(arg,config.instance_option[arg]))
+                                print("        {0:30} {1}".format(arg,config.instance_config[arg]))
                             except:
                                 print("        {0:30}".format(arg))
                     else:
                         try:
                             print("        {0:30} {1}".format(required_arg,\
-                                config.instance_option[required_arg]))
+                                config.instance_config[required_arg]))
                         except:
                             print("        {0:30}".format(required_arg))
         print()
 
 class Set:
     def __init__(self, config, arg):
+        context = ''
         args = arg.split(" ")
+
+        # Check number of arguments specified
         if len(args) != 2:
             print("Wrong number of arguments specified for set")
             return
         option = args[0]
         value = args[1]
-        config.instance_option[option] = value
-        print(option + " = " + value)
+
+        # If global.some_option set, switch context
+        option_with_context = option.split('.')
+        if len(option_with_context) == 2:
+            context = option_with_context[0]
+            option = option_with_context[1]
+
+        # Boolean conversions
+        if value.lower() == 'true':
+            value = True
+        elif value.lower() == 'false':
+            value = False
+
+        # If context is 'global', set in global config file and load?
+        if context == 'global':
+            config.global_config[option] = value
+            # TODO check file exists etc
+            with open('autopwn.apc', 'w') as global_config_file:
+                global_config_file.write( yaml.dump(config.global_config, default_flow_style=True) )
+            config.load("global_config")
+        else:
+            config.instance_config[option] = value
+
+        print(option + " = " + str(value))
 
 class Process:
     def __init__(self, config):
@@ -278,7 +336,7 @@ class Process:
             instance['options']['output_dir'] = instance['options']['date_day'] + \
                                 "_autopwn_" + \
                                 instance['options']['target_name'] + \
-                                "_" + instance['name']
+                                "_" + instance['options']['target']
             instance['execute_string'] = instance['binary_location'] + " " + instance['arguments']
 
             ddict_options = defaultdict(lambda : '')
@@ -293,13 +351,15 @@ class Process:
 
 class Save:
     def __init__(self, config, arg):
-        print(config.instance_name)
         for tool in config.tools:
+            if hasattr(config, 'instance_name') == False:
+                print("No tool options to save")
+                return
             if tool['name'] == config.instance_name:
                 config.job_queue.append(copy.deepcopy(tool))
                 config.job_queue[-1]['options'] = {}
-                for option in config.instance_option:
-                    config.job_queue[-1]['options'][option] = config.instance_option[option]
+                for option in config.instance_config:
+                    config.job_queue[-1]['options'][option] = config.instance_config[option]
 
                 # Check all required parameters exist before save
                 for parameter in tool['rules']['target-parameter-exists']:
@@ -309,7 +369,6 @@ class Save:
                             if arg in config.job_queue[-1]['options']:
                                 parameter_found = parameter_found or True
                     else:
-                        print(config.job_queue[-1]['options'])
                         if parameter in config.job_queue[-1]['options']:
                             parameter_found = True
 
@@ -317,9 +376,6 @@ class Save:
                         config.job_queue.pop()
                         print("Some required parameters have not been set")
                         return
-
-                for option in config.job_queue[-1]['options']:
-                    print(config.job_queue[-1]['options'][option])
 
         if len(config.job_queue) == 1:
             print("There is 1 job in the queue")
@@ -353,9 +409,9 @@ class Execute:
             time.sleep (0.1);
             self.thread.append(RunThreads(config,instance))
             # If main process dies, everything else *SHOULD* as well
-            self.thread[self.index].daemon = True
+            self.thread[-1].daemon = True
             # Start threads
-            self.thread[self.index].start()
+            self.thread[-1].start()
 
             # Parallel or singular?
             if instance['parallel'] != True:
@@ -407,10 +463,6 @@ class RunThreads (threading.Thread):
         log = Log(self.config, os.getcwd(), False, 'tool_string', "# " + \
                   self.instance['name'] + " has finished")
 
-
-
-
-
 class Log:
     def __init__(self, config, directory, log_filename, log_type, log_string):
         date = strftime("%Y%m%d")
@@ -433,7 +485,7 @@ class Log:
             except OSError as e:
                 Error(30,"[E] Error creating log file: " + e)
             if config.log_started != True:
-                log_file.write("## autopwn v0.16.0 command output\n")
+                log_file.write("## autopwn v0.17.0 command output\n")
                 log_file.write("## Started logging at " + date_time + "...\n")
                 config.log_started = True
 
@@ -449,12 +501,6 @@ class Log:
             log_file.write(log_string + "\n")
             log_file.close()
 
-
-
-
-
-
-
 class Run:
     def __init__(self, config, arg):
         # Process job queue (replace placeholders)
@@ -465,11 +511,20 @@ class Debug:
         for item in config.tools:
             print(item)
 
+class Clear:
+    def __init__(self, config, arg):
+        config.job_queue = []
+        print("Job queue cleared")
+
 class Shell(cmd.Cmd):
     config = Configuration()
 
     intro = 'autopwn v0.17.0 shell. Type help or ? to list commands.\n'
     prompt = 'autopwn > '
+
+    def do_clear(self, arg):
+        'Clear job queue'
+        Clear(self.config,arg)
 
     def do_search(self, arg):
         'Search function'
@@ -532,7 +587,6 @@ class Shell(cmd.Cmd):
         sys.exit(0)
 
 def _main(arglist):
-    #processArguments()
     Shell().cmdloop()
 
 def main():

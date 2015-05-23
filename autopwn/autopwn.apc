@@ -1,8 +1,1 @@
-# autopwn global config file
-
-# Run tools in parallel? Uncommenting this option will override
-# any parallel option specified in assessment configurations
-#parallel: True
-
-# The scripts_directory value will be used to search for tools
-scripts_directory: /root/scripts/
+{parallel: true, scripts_directory: /root/scripts/, update: true, update_check: true}
