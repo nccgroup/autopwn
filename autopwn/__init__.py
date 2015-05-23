@@ -255,6 +255,9 @@ class Show:
 class Set:
     def __init__(self, config, arg):
         args = arg.split(" ")
+        if len(args) != 2:
+            print("Wrong number of arguments specified for set")
+            return
         option = args[0]
         value = args[1]
         config.instance_option[option] = value
