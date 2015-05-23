@@ -17,16 +17,17 @@ TODO
 - Harvester?
 - recon tools?
 3b) Start looking more into tools
-4 - Flags
-5 - Windows support?
-6 - Improve Ctrl+c support
-6b) Clean up files?
-7 - If a tool doesn't like http:// or https://, need to specify what it does like
-    (for example -ssl)
-8 - Check return codes for commands
-9 - Auto resolve ip if not specified using domain.. ip or domain *required*
-10 - Improve command log file name to allow for multiple autopwn instances
-10a) autopwn started/stopped logging entry
-11 - Improve exit condition handling
-12 - User agent string modification option is supported by a number of tools
-13 - Man page
+4 - Windows support?
+5 - Improve Ctrl+c support
+5b) Clean up files?
+6 - Check return codes for commands
+7 - Auto resolve ip if not specified using domain.. ip or domain *required*
+8 - Improve command log file name to allow for multiple autopwn instances
+9 - Improve exit condition handling
+10 - User agent string modification option is supported by a number of tools
+11 - Man page
+12 - Finish autopwn shell feature
+12a) Fix stdout stderr
+12b) Make assessments work
+12c) Bring back flags
+12d) Allow for comments in yaml files?

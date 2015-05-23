@@ -113,7 +113,11 @@ class Configuration:
         self.tools = []
         self.assessments = []
         self.job_queue = []
-        self.instance_config = {}
+
+        self.instance = {}
+        self.instance['tool'] = []
+        self.instance['config'] = {}
+
         self.load("tools")
         self.load("assessments")
         self.load("global_config")
@@ -194,7 +198,7 @@ class Use:
         for tool in config.tools:
             if tool['name'] == tool_name:
                 config.tool_found = True
-                config.instance_name = tool_name
+                config.instance['tool'].append(tool_name)
 
                 print('Name: ' + tool['name'])
                 print('Description: ' + tool['description'])
@@ -215,10 +219,17 @@ class Use:
 
         print()
 
-    def use_assessment(self,config,assessment_name):
+    def use_assessment(self, config, assessment_name):
         for assessment in config.assessments:
             if assessment['name'] == assessment_name:
-                print('Name: ' + tool['name'])
+                config.assessment_found = True
+                print('Name: ' + assessment['name'])
+                # Find all tools with assessment type
+                for tool in config.tools:
+                    for assessment_type in tool['assessment_groups']:
+                        if assessment_type == assessment_name: 
+                            config.instance['tool'].append(tool['name'])
+                            print("    - " + tool['name'])
         print()
 
 class Show:
@@ -274,13 +285,13 @@ Valid arguments for show are:
                     if type(required_arg) is list:
                         for arg in required_arg:
                             try:
-                                print("        {0:30} {1}".format(arg,config.instance_config[arg]))
+                                print("        {0:30} {1}".format(arg,config.instance['config'][arg]))
                             except:
                                 print("        {0:30}".format(arg))
                     else:
                         try:
                             print("        {0:30} {1}".format(required_arg,\
-                                config.instance_config[required_arg]))
+                                config.instance['config'][required_arg]))
                         except:
                             print("        {0:30}".format(required_arg))
         print()
@@ -317,7 +328,7 @@ class Set:
                 global_config_file.write( yaml.dump(config.global_config, default_flow_style=True) )
             config.load("global_config")
         else:
-            config.instance_config[option] = value
+            config.instance['config'][option] = value
 
         print(option + " = " + str(value))
 
@@ -358,8 +369,8 @@ class Save:
             if tool['name'] == config.instance_name:
                 config.job_queue.append(copy.deepcopy(tool))
                 config.job_queue[-1]['options'] = {}
-                for option in config.instance_config:
-                    config.job_queue[-1]['options'][option] = config.instance_config[option]
+                for option in config.instance['config']:
+                    config.job_queue[-1]['options'][option] = config.instance['config'][option]
 
                 # Check all required parameters exist before save
                 for parameter in tool['rules']['target-parameter-exists']:
