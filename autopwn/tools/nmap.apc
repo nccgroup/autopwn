@@ -1,5 +1,5 @@
 name: nmap
-binary_location: /usr/bin/nmap
+binary_name: nmap
 url: http://nmap.org/
 description: Nmap ("Network Mapper") is a free and open source (license) utility for network discovery and security auditing.
 autopwn_version: 0.17.0

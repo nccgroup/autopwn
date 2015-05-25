@@ -1,5 +1,5 @@
 name: nikto
-binary_location: /usr/bin/nikto
+binary_name: nikto
 url: https://cirt.net/Nikto2
 description: Nikto is an Open Source (GPL) web server scanner which performs comprehensive tests against web servers for multiple items.
 autopwn_version: 0.17.0

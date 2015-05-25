@@ -1,5 +1,5 @@
 name: dirb
-binary_location: /usr/bin/dirb
+binary_name: dirb
 url: http://dirb.sourceforge.net/
 description: URL Bruteforcer - DIRB is a Web Content Scanner. It looks for hidden Web Objects.
 autopwn_version: 0.17.0

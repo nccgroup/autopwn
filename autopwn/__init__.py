@@ -89,9 +89,10 @@ Legal purposes only..
         self.parser.add_argument('-t', '--target',
                                  required=True,
                                  help='The file containing the targets')
-        self.parser.add_argument('-a', '--assessment',
-                                 help='Specify assessment name to run. Autopwn will not '
-                                'prompt to run tools with this option')
+        self.parser.add_argument('-m', '--module',
+                                 help='Specify module (tool or assessment) to run. Autopwn will not '
+                                 'drop to shell if this option is specified',
+                                 required=True)
         self.parser.add_argument('-d', '--assessment_directory',
                                  help='Specify assessment directory')
         self.parser.add_argument('-s', '--with_screen',
@@ -104,15 +105,43 @@ Legal purposes only..
 
         self.parser = self.parser.parse_args(argslist)
 
+        # TODO check file exists
+        stream = open(self.parser.target, 'r')
+        target_objects = yaml.load(stream)
+
+        config = Configuration()
+        config.arguments['command_line'] = True
+
+        # Process boolean command line arguments
+        if self.parser.with_screen == True:
+            config.arguments['screen'] = True
+        if self.parser.parallel == True:
+            config.arguments['parallel'] = True
+
+        for target in target_objects['targets']:
+            Use(config,self.parser.module)
+            AutoSet(config,target,self.parser.module)
+            Save(config)
+            View('command_line_save',config,target=target)
+
+            # Reset for next target
+            config.instance = {}
+            config.instance['tool'] = []
+            config.instance['config'] = {}
+        Show(config,'jobs')
+
 class Configuration:
     def __init__(self):
         self.log_started = False
         self.resource_found = False
 
         self.global_config = {}
+        self.command_line = False
         self.tools = []
         self.assessments = []
         self.job_queue = []
+
+        self.arguments = ddict_options = defaultdict(lambda : '')
 
         self.instance = {}
         self.instance['tool'] = []
@@ -183,13 +212,17 @@ class Search:
 
 class Use:
     def __init__(self, config, arg):
+        config.instance = {}
+        config.instance['tool'] = []
+        config.instance['config'] = {}
+
         resource = arg.split('/')
         if resource[0] == 'tool':
             self.use_tool(config,resource[1])
         elif resource[0] == 'assessment':
             self.use_assessment(config,resource[1])
         else:
-            print("Please specify a tool or assessment")
+            config.resource_found = False
             return
 
     def use_tool(self, config, tool_name):
@@ -199,19 +232,6 @@ class Use:
             if tool['name'] == tool_name:
                 config.resource_found = True
                 config.instance['tool'].append(tool['name'])
-
-                print('Name: ' + tool['name'])
-                print('Description: ' + tool['description'])
-                print('URL: ' + tool['url'])
-                print()
-                print("Required options:")
-                for required_arg in tool['rules']['target-parameter-exists']:
-                    if type(required_arg) is list:
-                        print("    One of the following:")
-                        for arg in required_arg:
-                            print("        - " + arg)
-                    else:
-                        print("    - " + required_arg)
 
         if config.resource_found == False:
             print("Tool not found")
@@ -223,14 +243,17 @@ class Use:
         for assessment in config.assessments:
             if assessment['name'] == assessment_name:
                 config.resource_found = True
-                print('Name: ' + assessment['name'])
+                if config.command_line != True:
+                    print('Name: ' + assessment['name'])
                 # Find all tools with assessment type
                 for tool in config.tools:
                     for assessment_type in tool['assessment_groups']:
                         if assessment_type == assessment_name:
                             config.instance['tool'].append(tool['name'])
-                            print("    - " + tool['name'])
-        print()
+                            if config.command_line != True:
+                                print("    - " + tool['name'])
+        if config.command_line != True:
+          print()
 
 class Show:
     def __init__(self, config, arg):
@@ -266,8 +289,6 @@ Valid arguments for show are:
             print("There is 1 job in the queue")
         else:
             print("There are " + str(len(config.job_queue)) + " jobs in the queue")
-        for job in config.job_queue:
-            print(job['name'])
         print()
 
     def show_options(self,config):
@@ -288,18 +309,18 @@ Valid arguments for show are:
                         continue
                     else:
                         option_displayed.append(required_arg)
-                    if type(required_arg) is list:
-                        for arg in required_arg:
+                        if type(required_arg) is list:
+                            for arg in required_arg:
+                                try:
+                                    print("        {0:30} {1}".format(arg,config.instance['config'][arg]))
+                                except:
+                                    print("        {0:30}".format(arg))
+                        else:
                             try:
-                                print("        {0:30} {1}".format(arg,config.instance['config'][arg]))
+                                print("        {0:30} {1}".format(required_arg,\
+                                    config.instance['config'][required_arg]))
                             except:
-                                print("        {0:30}".format(arg))
-                    else:
-                        try:
-                            print("        {0:30} {1}".format(required_arg,\
-                                config.instance['config'][required_arg]))
-                        except:
-                            print("        {0:30}".format(required_arg))
+                                print("        {0:30}".format(required_arg))
         print()
 
 class Unset:
@@ -330,6 +351,12 @@ class Unset:
             config.instance['config'][option] = ''
 
         print(option + " = " + "''")
+
+# When a target file is specified
+class AutoSet:
+    def __init__(self, config, target_objects, selected_module):
+        for option in target_objects:
+            config.instance['config'][option] = target_objects[option]
 
 class Set:
     def __init__(self, config, arg):
@@ -383,8 +410,21 @@ class Process:
                                 "_autopwn_" + \
                                 instance['options']['target_name'] + \
                                 "_" + instance['options']['target']
-            instance['execute_string'] = instance['binary_location'] + " " + instance['arguments']
 
+            if self.binary_exists(instance['binary_name']) != True:
+                Error(50,"[E] Missing binary/script - " + instance['binary_name'])
+
+            instance['execute_string'] = instance['binary_name'] + " " + instance['arguments']
+
+            if config.arguments['screen'] == True:
+                if binary_exists('screen') != True and binary_exists('bash') != True:
+                    Error(50,"[E] Missing binary")
+                instance['execute_string'] = "screen -D -m -S autopwn_" + \
+                        instance['target_name'] + "_" + \
+                        instance['target'] + "_" + \
+                        instance['tool'] + " " + "bash -c '" + \
+                        instance['execute_string'] + \
+                        "'"
             ddict_options = defaultdict(lambda : '')
             for option in instance['options']:
                 ddict_options[option] = instance['options'][option]
@@ -395,18 +435,29 @@ class Process:
         # Run jobs
         Execute(config)
 
+    def binary_exists(self, binary_string):
+        try:
+            which_return_code = subprocess.call(["which",binary_string],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)
+            if which_return_code == 0:
+                return True
+            else:
+                return False
+        except OSError as e:
+            if e.errno == os.errno.ENOENT:
+                Error(55,"[E] 'which' binary couldn't be found")
+            else:
+                # Not sure what's happening at this point
+                raise
+
 class Save:
-    def __init__(self, config, arg):
+    def __init__(self, config):
         if len(config.instance['tool']) == 0:
             print("No tool options to save")
             return
-        print("debug: " + str(config.instance['tool']))
         for imported_tool in config.tools:
             for selected_tool in config.instance['tool']:
                 if selected_tool == imported_tool['name']:
-                    print("debug: " + str(selected_tool))
                     config.job_queue.append(copy.deepcopy(imported_tool))
-                    print("debug: " + str(config.job_queue))
                     config.job_queue[-1]['options'] = {}
                     for option in config.instance['config']:
                         config.job_queue[-1]['options'][option] = config.instance['config'][option]
@@ -423,14 +474,16 @@ class Save:
                                 parameter_found = True
 
                         if parameter_found == False:
+                            # TODO Check this actually works now assessments are in
                             config.job_queue.pop()
                             print("Some required parameters have not been set")
                             return
 
-        if len(config.job_queue) == 1:
-            print("There is 1 job in the queue")
-        else:
-            print("There are " + str(len(config.job_queue)) + " jobs in the queue")
+        if config.command_line != True:
+            if len(config.job_queue) == 1:
+                print("There is 1 job in the queue")
+            else:
+                print("There are " + str(len(config.job_queue)) + " jobs in the queue")
 
 class Execute:
     thread = []
@@ -566,6 +619,41 @@ class Clear:
         config.job_queue = []
         print("Job queue cleared")
 
+class View:
+    def __init__(self, view, config, **kwargs):
+        if kwargs is None:
+            kwargs = defaultdict(lambda : '')
+
+        if view == 'clear':
+            pass
+        if view == 'command_line_save':
+            for key, value in kwargs.items():
+                print("Loading " + value['target_name'] + "...")
+                print("Done!")
+        if view == 'use':
+            if config.resource_found == False:
+                print("Please specify a valid tool or assessment")
+            else:
+                for key, value in kwargs.items():
+                    print('Name: ' + value['name'])
+                    print('Description: ' + value['description'])
+                    print('URL: ' + value['url'])
+                    print()
+                    print("Required options:")
+                    for required_arg in value['rules']['target-parameter-exists']:
+                        if type(required_arg) is list:
+                            if config.command_line != True:
+                                print("    One of the following:")
+                                for arg in required_arg:
+                                    print("        - " + arg)
+                        else:
+                            if config.command_line != True:
+                                print("    - " + required_arg)
+
+class CleanUp():
+    def __init__(self):
+        pass
+
 class Shell(cmd.Cmd):
     config = Configuration()
 
@@ -575,40 +663,49 @@ class Shell(cmd.Cmd):
     def do_clear(self, arg):
         'Clear job queue'
         Clear(self.config,arg)
+        View('clear',self.config)
 
     def do_search(self, arg):
         'Search function'
         Search(self.config,arg)
+        View('search',self.config)
 
     def do_debug(self, arg):
         'Show debug information'
         Debug(self.config,arg)
+        View('debug',self.config)
 
     def do_show(self, arg):
         'Show information'
         Show(self.config,arg)
+        View('show',self.config)
 
     def do_save(self, arg):
         'Save instance settings'
-        Save(self.config,arg)
+        Save(self.config)
+        View('save',self.config)
 
     def do_run(self, arg):
         'Run job queue'
         Run(self.config,arg)
+        View('run',self.config)
 
     def do_use(self, arg):
         'Setup a tool or assessment'
         Use(self.config,arg)
+        View('use',self.config)
         if self.config.resource_found == True:
             self.prompt = 'autopwn (' + arg + ') > '
 
     def do_set(self, arg):
         'Set configuration option'
         Set(self.config,arg)
+        View('set',self.config)
 
     def do_unset(self, arg):
         'Clear configuration option'
         Unset(self.config,arg)
+        View('unset',self.config)
 
     def do_bye(self, arg):
         'Quit autopwn'
@@ -643,7 +740,12 @@ class Shell(cmd.Cmd):
         sys.exit(0)
 
 def _main(arglist):
-    Shell().cmdloop()
+    # Process command line arguments
+    if len(sys.argv) > 1:
+        Arguments(sys.argv[1:]).parser
+    else:
+        # Drop user to shell
+        Shell().cmdloop()
 
 def main():
     try:

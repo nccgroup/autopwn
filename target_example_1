@@ -1,0 +1,5 @@
+targets:
+   - target_name: test
+     target: 127.0.0.1
+     port_number: 80
+     protocol: http
