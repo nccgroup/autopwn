@@ -15,5 +15,5 @@ option-formats:
         option-separator: ' '
         substitution: '{0}'
 
-arguments: "-A -sS -sC -sV {ip_address_list} {target} -oA {output_dir}/{date}_{name}_nmap_common_ports"
+arguments: "-A -sS -sC -sV {ip_address_list} {target} -oA {output_dir}/{date}_{target_name}_nmap_common_ports"
 stdout: True

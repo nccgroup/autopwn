@@ -107,7 +107,7 @@ Legal purposes only..
 class Configuration:
     def __init__(self):
         self.log_started = False
-        self.tool_found = False
+        self.resource_found = False
 
         self.global_config = {}
         self.tools = []
@@ -186,19 +186,19 @@ class Use:
         resource = arg.split('/')
         if resource[0] == 'tool':
             self.use_tool(config,resource[1])
-        if resource[0] == 'assessment':
+        elif resource[0] == 'assessment':
             self.use_assessment(config,resource[1])
         else:
             print("Please specify a tool or assessment")
             return
 
     def use_tool(self, config, tool_name):
-        config.tool_found = False
+        config.resource_found = False
 
         for tool in config.tools:
             if tool['name'] == tool_name:
-                config.tool_found = True
-                config.instance['tool'].append(tool_name)
+                config.resource_found = True
+                config.instance['tool'].append(tool['name'])
 
                 print('Name: ' + tool['name'])
                 print('Description: ' + tool['description'])
@@ -213,7 +213,7 @@ class Use:
                     else:
                         print("    - " + required_arg)
 
-        if config.tool_found == False:
+        if config.resource_found == False:
             print("Tool not found")
             return
 
@@ -222,12 +222,12 @@ class Use:
     def use_assessment(self, config, assessment_name):
         for assessment in config.assessments:
             if assessment['name'] == assessment_name:
-                config.assessment_found = True
+                config.resource_found = True
                 print('Name: ' + assessment['name'])
                 # Find all tools with assessment type
                 for tool in config.tools:
                     for assessment_type in tool['assessment_groups']:
-                        if assessment_type == assessment_name: 
+                        if assessment_type == assessment_name:
                             config.instance['tool'].append(tool['name'])
                             print("    - " + tool['name'])
         print()
@@ -267,21 +267,27 @@ Valid arguments for show are:
         else:
             print("There are " + str(len(config.job_queue)) + " jobs in the queue")
         for job in config.job_queue:
-            print(job)
+            print(job['name'])
         print()
 
     def show_options(self,config):
-        if hasattr(config, 'instance_name') == False:
+        if len(config.instance['tool']) == 0:
             print("You need to select a tool or assessment first.")
             return False
+        # Determine what options are needed for tool(s)
+        print("Options for tool/assessment.")
+        print()
+        print("        {0:30} {1}".format("Option", "Value"))
+        print("        "+"-"*40)
+        option_displayed = []
         for tool in config.tools:
-            if tool['name'] == config.instance_name:
-                print()
-                print("Options for " + tool['name'] + ".")
-                print()
-                print("        {0:30} {1}".format("Option", "Value"))
-                print("        "+"-"*40)
+            if tool['name'] in config.instance['tool']:
                 for required_arg in tool['rules']['target-parameter-exists']:
+                    # Don't print options more than once
+                    if required_arg in option_displayed:
+                        continue
+                    else:
+                        option_displayed.append(required_arg)
                     if type(required_arg) is list:
                         for arg in required_arg:
                             try:
@@ -295,6 +301,35 @@ Valid arguments for show are:
                         except:
                             print("        {0:30}".format(required_arg))
         print()
+
+class Unset:
+    def __init__(self, config, arg):
+        context = ''
+        args = arg.split(" ")
+
+        # Check number of arguments specified
+        if len(args) != 1:
+            print("Wrong number of arguments specified for set")
+            return
+        option = args[0]
+
+        # If global.some_option set, switch context
+        option_with_context = option.split('.')
+        if len(option_with_context) == 2:
+            context = option_with_context[0]
+            option = option_with_context[1]
+
+        # If context is 'global', set in global config file and load?
+        if context == 'global':
+            config.global_config[option] = ''
+            # TODO check file exists etc
+            with open('autopwn.apc', 'w') as global_config_file:
+                global_config_file.write( yaml.dump(config.global_config, default_flow_style=True) )
+            config.load("global_config")
+        else:
+            config.instance['config'][option] = ''
+
+        print(option + " = " + "''")
 
 class Set:
     def __init__(self, config, arg):
@@ -362,31 +397,35 @@ class Process:
 
 class Save:
     def __init__(self, config, arg):
-        for tool in config.tools:
-            if hasattr(config, 'instance_name') == False:
-                print("No tool options to save")
-                return
-            if tool['name'] == config.instance_name:
-                config.job_queue.append(copy.deepcopy(tool))
-                config.job_queue[-1]['options'] = {}
-                for option in config.instance['config']:
-                    config.job_queue[-1]['options'][option] = config.instance['config'][option]
+        if len(config.instance['tool']) == 0:
+            print("No tool options to save")
+            return
+        print("debug: " + str(config.instance['tool']))
+        for imported_tool in config.tools:
+            for selected_tool in config.instance['tool']:
+                if selected_tool == imported_tool['name']:
+                    print("debug: " + str(selected_tool))
+                    config.job_queue.append(copy.deepcopy(imported_tool))
+                    print("debug: " + str(config.job_queue))
+                    config.job_queue[-1]['options'] = {}
+                    for option in config.instance['config']:
+                        config.job_queue[-1]['options'][option] = config.instance['config'][option]
 
-                # Check all required parameters exist before save
-                for parameter in tool['rules']['target-parameter-exists']:
-                    parameter_found = False
-                    if type(parameter) is list:
-                        for arg in parameter:
-                            if arg in config.job_queue[-1]['options']:
-                                parameter_found = parameter_found or True
-                    else:
-                        if parameter in config.job_queue[-1]['options']:
-                            parameter_found = True
+                    # Check all required parameters exist before save
+                    for parameter in imported_tool['rules']['target-parameter-exists']:
+                        parameter_found = False
+                        if type(parameter) is list:
+                            for arg in parameter:
+                                if arg in config.job_queue[-1]['options']:
+                                    parameter_found = parameter_found or True
+                        else:
+                            if parameter in config.job_queue[-1]['options']:
+                                parameter_found = True
 
-                    if parameter_found == False:
-                        config.job_queue.pop()
-                        print("Some required parameters have not been set")
-                        return
+                        if parameter_found == False:
+                            config.job_queue.pop()
+                            print("Some required parameters have not been set")
+                            return
 
         if len(config.job_queue) == 1:
             print("There is 1 job in the queue")
@@ -560,19 +599,27 @@ class Shell(cmd.Cmd):
     def do_use(self, arg):
         'Setup a tool or assessment'
         Use(self.config,arg)
-        if self.config.tool_found == True:
+        if self.config.resource_found == True:
             self.prompt = 'autopwn (' + arg + ') > '
 
     def do_set(self, arg):
+        'Set configuration option'
         Set(self.config,arg)
 
+    def do_unset(self, arg):
+        'Clear configuration option'
+        Unset(self.config,arg)
+
     def do_bye(self, arg):
+        'Quit autopwn'
         self.terminate()
 
     def do_exit(self, arg):
+        'Quit autopwn'
         self.terminate()
 
     def do_quit(self, arg):
+        'Quit autopwn'
         self.terminate()
 
     def terminate(self):
@@ -587,9 +634,7 @@ class Shell(cmd.Cmd):
         quote.append("The first rule of optimisation is: Don't do it. The second rule of optimisation is: Don't do it yet.")
         quote.append("Q: How many software engineers does it take to change a lightbulb? A: It can't be done; it's a hardware problem.")
         quote.append("Hackers are not crackers.")
-        quote.append("Hacking just means building something quickly or testing the boundaries of what can be done.")
         quote.append("Behind every successful Coder there an even more successful De-coder ")
-        quote.append("COBOL programmers understand why women hate periods.")
         quote.append("If at first you don't succeed; call it version 1.0.")
         quote.append("F*ck it, we'll do it in production.")
         quote.append("Programmers are tools for converting caffeine into code.")

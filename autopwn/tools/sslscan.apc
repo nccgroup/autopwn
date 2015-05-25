@@ -3,12 +3,12 @@ binary_location: /usr/bin/sslscan
 url: http://sourceforge.net/projects/sslscan/
 description: sslscan tests SSL/TLS enabled services to discover supported cipher suites.
 autopwn_version: 0.17.0
-assessment_groups: ['ssl']
+assessment_groups: ['ssl-audit']
 
 rules:
     equals:
         'protocol': 'https'
     target-parameter-exists: ['target_name', 'target', 'port_number']
 
-arguments: "{target}:{port_number} > {output_dir}/{date}_{name}_sslscan_{target_name}"
+arguments: "{target}:{port_number} > {output_dir}/{date}_{target_name}_sslscan"
 stdout: False
