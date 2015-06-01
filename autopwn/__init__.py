@@ -670,6 +670,7 @@ class View:
                                     else:
                                         print("    - " + str(required_arg))
                                     option_displayed.append(required_arg)
+                        print()
 
             if config.instance['config']['single_tool'] == True:
                 if config.resource_found == False:
