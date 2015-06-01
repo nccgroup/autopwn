@@ -4,7 +4,7 @@ binary_name: /root/work/git/CMSmap/cmsmap.py
 url: https://github.com/Dionach/CMSmap 
 description: CMSmap - Drupal instance.
 autopwn_version: 0.17.0
-assessment_groups: ['webapp', 'drupal']
+assessment_groups: ['drupal']
 
 rules:
     target-parameter-exists: ['target_name', 'target','protocol', 'port_number']
