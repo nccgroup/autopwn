@@ -1,12 +1,13 @@
-name: cmsmap
-binary_name: cmsmap.py
+name: cmsmap-drupal
+binary_prepend: python2
+binary_name: /root/work/git/CMSmap/cmsmap.py
 url: https://github.com/Dionach/CMSmap 
-description: CMSmap is a python open source CMS scanner that automates the process of detecting security flaws of the most popular CMSs.
+description: CMSmap - Drupal instance.
 autopwn_version: 0.17.0
-assessment_groups: ['webapp']
+assessment_groups: ['webapp', 'drupal']
 
 rules:
-    target-parameter-exists: ['target_name', 'target','protocol']
+    target-parameter-exists: ['target_name', 'target','protocol', 'port_number']
 
-arguments: "-f D -t {protocol}://{target} -o {output_dir}/{date}_{target_name}_cmsmap"
+arguments: "-f D -t {protocol}://{target}:{port_number} -o {output_dir}/{date}_{target_name}_cmsmap"
 stdout: True

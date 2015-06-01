@@ -31,52 +31,46 @@ class Arguments:
     argparse_description = '''
 autopwn v0.17.0
 By Aidan Marlin
-Email: aidan [dot] marlin [at] nccgroup [dot] com'''
+Email: aidan [dot] marlin [at] nccgroup [dot] trust'''
 
     argparse_epilog = '''
+Specify targets and run sets of tools against them.
+
+The autopwn shell should feel familiar, it is based on 
+msfconsole. You can 'use' tools and assessments, and 'set'
+options for them. You can then 'save' the options, and 'run'
+the tool or assessment against the specified target.
+
+Flags are also supported along with target files which will
+set autopwn running a tool or assessment against targets
+specified in the target file. No interaction necessary.
+
 Format of the target file should be:
 
 targets:
-    - name: <target-name>
-      ip_address: <ip-address>
-      domain: <domain>
-      url: <url-path>
-      port: <port-number>
-      protocol: <protocol>
-      mac_address: <mac_address>
-    - name: <target-name-1>
-      ip_address_list: <ip-address-list>
-      ...
+   - target_name: <name_of_target>
+     target: <ip_address/device_name/directory/etc>
+     port_number: <port>
+     protocol: <http|https|ssh|etc>
 
-Only 'name' and 'ip_address' are compulsory options.
+Only 'target_name' and 'target' are compulsory options.
 Example file:
 
 targets:
-    - name: test
-      ip_address: 127.0.0.1
-      domain: test.com
-      url: /test
-      port: 80
-      protocol: https
-      mac_address: ff:ff:ff:ff:ff:ff
-      cookies:
-        some-cookie-name: some-cookie-value
-        some-cookie-name1: some-cookie-value1
-    - name: test-1
-      ip_address_list: ip_list.txt
-      cookies_file: cookies.txt
+   - target_name: test
+     target: 127.0.0.1
+     port_number: 80
+     protocol: http
 
-autopwn uses the tools/ directory located where this
-script is to load tool definitions, which are yaml
-files. You can find some examples in the directory
-already. If you think one is missing, mention it on
-GitHub or email me and I might add it.
+autopwn uses the tools/ directory under autopwn to
+load tool definitions, which are yaml files. You can
+find some examples in the directory already. If you
+think one is missing, mention it on GitHub or email
+me and I might add it.
 
 autopwn also uses assessments/ for assessment definitions.
 Instead of selecting which tools you would like to run,
 you specify which assessment you would like to run.
-Assessment configuration files contain lists of tools
-which will be run as a result.
 
 Have fun!
 Legal purposes only..
@@ -128,7 +122,7 @@ Legal purposes only..
             config.instance = {}
             config.instance['tool'] = []
             config.instance['config'] = {}
-        Show(config,'jobs')
+        Run(config)
 
 class Configuration:
     def __init__(self):
@@ -197,7 +191,7 @@ class Search:
 
     def search(self,config_item,item_type_string,item_type_prepend,search_string):
         print('{0:30} {1}'.format(item_type_string, "Description"))
-        print('-'*40)
+        print("-"*64)
         print()
         for item in config_item:
             if search_string in item['name'] \
@@ -215,6 +209,8 @@ class Use:
         config.instance = {}
         config.instance['tool'] = []
         config.instance['config'] = {}
+        config.instance['config']['assessment'] = False
+        config.instance['config']['single_tool'] = False
 
         resource = arg.split('/')
         if resource[0] == 'tool':
@@ -226,6 +222,7 @@ class Use:
             return
 
     def use_tool(self, config, tool_name):
+        config.instance['config']['single_tool'] = True
         config.resource_found = False
 
         for tool in config.tools:
@@ -240,20 +237,16 @@ class Use:
         print()
 
     def use_assessment(self, config, assessment_name):
+        config.instance['config']['assessment'] = True
+        config.instance['config']['assessment_name'] = assessment_name
         for assessment in config.assessments:
             if assessment['name'] == assessment_name:
                 config.resource_found = True
-                if config.command_line != True:
-                    print('Name: ' + assessment['name'])
                 # Find all tools with assessment type
                 for tool in config.tools:
                     for assessment_type in tool['assessment_groups']:
                         if assessment_type == assessment_name:
                             config.instance['tool'].append(tool['name'])
-                            if config.command_line != True:
-                                print("    - " + tool['name'])
-        if config.command_line != True:
-          print()
 
 class Show:
     def __init__(self, config, arg):
@@ -279,7 +272,7 @@ Valid arguments for show are:
     def show_config(self,config):
         print()
         print("        {0:30} {1}".format("Option", "Value"))
-        print("        "+"-"*40)
+        print("        "+"-"*48)
         for option in config.global_config:
             print("        {0:30} {1}".format(option, config.global_config[option]))
         print()
@@ -299,7 +292,7 @@ Valid arguments for show are:
         print("Options for tool/assessment.")
         print()
         print("        {0:30} {1}".format("Option", "Value"))
-        print("        "+"-"*40)
+        print("        "+"-"*48)
         option_displayed = []
         for tool in config.tools:
             if tool['name'] in config.instance['tool']:
@@ -344,7 +337,10 @@ class Unset:
         if context == 'global':
             config.global_config[option] = ''
             # TODO check file exists etc
-            with open('autopwn.apc', 'w') as global_config_file:
+            pathname = os.path.abspath(config.find_path(__file__) or config.find_path(sys.argv[0]))
+            autopwn_config_file = os.path.abspath(pathname) + "/autopwn.apc"
+
+            with open(autopwn_config_file, 'w') as global_config_file:
                 global_config_file.write( yaml.dump(config.global_config, default_flow_style=True) )
             config.load("global_config")
         else:
@@ -386,7 +382,10 @@ class Set:
         if context == 'global':
             config.global_config[option] = value
             # TODO check file exists etc
-            with open('autopwn.apc', 'w') as global_config_file:
+            pathname = os.path.abspath(config.find_path(__file__) or config.find_path(sys.argv[0]))
+            autopwn_config_file = os.path.abspath(pathname) + "/autopwn.apc"
+
+            with open(autopwn_config_file, 'w') as global_config_file:
                 global_config_file.write( yaml.dump(config.global_config, default_flow_style=True) )
             config.load("global_config")
         else:
@@ -403,7 +402,7 @@ class Process:
             return
 
         for instance in config.job_queue:
-            instance['parallel'] = False
+            instance['parallel'] = config.arguments['parallel'] or config.global_config['parallel']
             instance['options']['date'] = strftime("%Y%m%d_%H%M%S%z")
             instance['options']['date_day'] = strftime("%Y%m%d")
             instance['options']['output_dir'] = instance['options']['date_day'] + \
@@ -411,18 +410,29 @@ class Process:
                                 instance['options']['target_name'] + \
                                 "_" + instance['options']['target']
 
+            if hasattr(instance,'binary_prepend') == True:
+                if self.binary_exists(instance['binary_prepend']) != True:
+                    print("[I] Missing binary/script - " + instance['binary_prepend'])
+                    return
             if self.binary_exists(instance['binary_name']) != True:
-                Error(50,"[E] Missing binary/script - " + instance['binary_name'])
+                # Error(50,"[E] Missing binary/script - " + instance['binary_name'])
+                print("[I] Missing binary/script - " + instance['binary_name'])
+                return
 
-            instance['execute_string'] = instance['binary_name'] + " " + instance['arguments']
+            if hasattr(instance,'binary_prepend') == True:
+                instance['execute_string'] = instance['binary_prepend'] + " " + instance['binary_name'] + " " + instance['arguments']
+            else:
+                instance['execute_string'] = instance['binary_name'] + " " + instance['arguments']
 
             if config.arguments['screen'] == True:
-                if binary_exists('screen') != True and binary_exists('bash') != True:
-                    Error(50,"[E] Missing binary")
-                instance['execute_string'] = "screen -D -m -S autopwn_" + \
-                        instance['target_name'] + "_" + \
-                        instance['target'] + "_" + \
-                        instance['tool'] + " " + "bash -c '" + \
+                if self.binary_exists('screen') != True and self.binary_exists('bash') != True:
+                    Error(50,"[E] Missing binary - screen or bash")
+                instance['screen_name'] = "autopwn_" + \
+                        instance['options']['target_name'] + "_" + \
+                        instance['options']['target'] + "_" + \
+                        instance['name']
+                instance['execute_string'] = "screen -D -m -S " + \
+                instance['screen_name'] + " " + "bash -c '" + \
                         instance['execute_string'] + \
                         "'"
             ddict_options = defaultdict(lambda : '')
@@ -437,7 +447,7 @@ class Process:
 
     def binary_exists(self, binary_string):
         try:
-            which_return_code = subprocess.call(["which",binary_string],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)
+            which_return_code = subprocess.call(["which",binary_string],stdout=open(os.devnull,'wb'),stderr=open(os.devnull,'wb'))
             if which_return_code == 0:
                 return True
             else:
@@ -491,7 +501,7 @@ class Execute:
 
     def __init__(self, config):
         for instance in config.job_queue:
-            print(instance['execute_string'])
+            #print(instance['execute_string'])
 
             # Create log directory in CWD
             if not os.path.exists(instance['options']['output_dir']):
@@ -570,12 +580,13 @@ class Log:
     def __init__(self, config, directory, log_filename, log_type, log_string):
         date = strftime("%Y%m%d")
         date_time = strftime("%Y%m%d %H:%M:%S %z")
+        date_time_filename = strftime("%Y%m%d_%H%M%S%z")
 
         if log_type == 'tool_output':
             try:
                 # log_filename is pikey, make it better
-                log_file = open(directory + "/" + date + "_autopwn_" + \
-                                log_filename + "_stdout.log","a")
+                log_file = open(directory + "/" + date_time_filename + \
+                                "_" + log_filename + "_stdout.log","a")
             except OSError as e:
                 Error(30,"[E] Error creating log file: " + e)
 
@@ -605,7 +616,7 @@ class Log:
             log_file.close()
 
 class Run:
-    def __init__(self, config, arg):
+    def __init__(self, config):
         # Process job queue (replace placeholders)
         Process(config)
 
@@ -631,28 +642,60 @@ class View:
                 print("Loading " + value['target_name'] + "...")
                 print("Done!")
         if view == 'use':
-            if config.resource_found == False:
-                print("Please specify a valid tool or assessment")
-            else:
-                for key, value in kwargs.items():
-                    print('Name: ' + value['name'])
-                    print('Description: ' + value['description'])
-                    print('URL: ' + value['url'])
-                    print()
-                    print("Required options:")
-                    for required_arg in value['rules']['target-parameter-exists']:
-                        if type(required_arg) is list:
-                            if config.command_line != True:
-                                print("    One of the following:")
-                                for arg in required_arg:
-                                    print("        - " + arg)
-                        else:
-                            if config.command_line != True:
-                                print("    - " + required_arg)
+            option_displayed = []
+            # Show assessment info
+            if config.instance['config']['assessment'] == True:
+                for assessment in config.assessments:
+                    if assessment['name'] == \
+                       config.instance['config']['assessment_name']:
+                        print('Name: ' + assessment['name'])
+                        print('Long name: ' + assessment['long_name'])
+                        print('Description: ' + assessment['description'])
+                        print()
+                        print('The follwing tools are used in this assessment:')
+                        for tool in config.tools:
+                            if assessment['name'] in tool['assessment_groups']:
+                                print("- " + tool['name'])
+                        print()
+                        print('The following options are required for this assessment:')
+                        for tool in config.tools:
+                            if assessment['name'] in tool['assessment_groups']:
+                                for required_arg in tool['rules']['target-parameter-exists']:
+                                    if required_arg in option_displayed:
+                                        continue
+                                    if type(required_arg) is list:
+                                        print("    One of the following:")
+                                        for arg in required_arg:
+                                            print("        - " + arg)
+                                    else:
+                                        print("    - " + str(required_arg))
+                                    option_displayed.append(required_arg)
 
-class CleanUp():
+            if config.instance['config']['single_tool'] == True:
+                if config.resource_found == False:
+                    print("Please specify a valid tool or assessment")
+                else:
+                    for tool in config.tools:
+                        if tool['name'] == config.instance['tool'][0]:
+                            print('Name: ' + tool['name'])
+                            print('Description: ' + tool['description'])
+                            print('URL: ' + tool['url'])
+                            print()
+                            print("Required options:")
+                            for required_arg in tool['rules']['target-parameter-exists']:
+                                if type(required_arg) is list:
+                                    print("    One of the following:")
+                                    for arg in required_arg:
+                                        print("        - " + arg)
+                                else:
+                                    print("    - " + required_arg)
+
+class CleanUp:
     def __init__(self):
-        pass
+        # Kill screen sessions. Needs improvement
+        for screen in list_screens():
+            if screen.name.startswith("autopwn"):
+                screen.kill()
 
 class Shell(cmd.Cmd):
     config = Configuration()
@@ -687,13 +730,13 @@ class Shell(cmd.Cmd):
 
     def do_run(self, arg):
         'Run job queue'
-        Run(self.config,arg)
+        Run(self.config)
         View('run',self.config)
 
     def do_use(self, arg):
         'Setup a tool or assessment'
         Use(self.config,arg)
-        View('use',self.config)
+        View('use',self.config,target=self.config.instance)
         if self.config.resource_found == True:
             self.prompt = 'autopwn (' + arg + ') > '
 

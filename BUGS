@@ -5,3 +5,5 @@ What probably needs to happen is in the tools config file, an output file placeh
 2 - Log directories are created before tool confirmation
 
 3 - When using screen, tool stdout files will be empty
+
+4 - When quitting autopwn, screen sessions which were created must die, but right now there's no nice way to store the session names, so all sessions starting with "autopwn" get murdered - this sucks for many reasons.

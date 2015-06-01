@@ -3,7 +3,7 @@ binary_name: enum4linux
 url: https://labs.portcullis.co.uk/tools/enum4linux/
 description: Enum4linux is a tool for enumerating information from Windows and Samba systems.
 autopwn_version: 0.17.0
-assessment_groups: ['infrastructure']
+assessment_groups: ['infrastructure', 'windows-audit']
 
 rules:
     target-parameter-exists: ['target_name', 'target']

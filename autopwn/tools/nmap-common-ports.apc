@@ -3,7 +3,7 @@ binary_name: nmap
 url: http://nmap.org/
 description: Nmap ("Network Mapper") is a free and open source (license) utility for network discovery and security auditing.
 autopwn_version: 0.17.0
-assessment_groups: ['infrastructure']
+assessment_groups: ['nmap-common-ports', 'infrastructure']
 
 rules:
     target-parameter-exists: ['target_name', ['target', 'ip_address_list']]

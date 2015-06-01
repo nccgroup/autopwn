@@ -6,7 +6,7 @@ autopwn_version: 0.17.0
 assessment_groups: ['webapp']
 
 rules:
-    target-parameter-exists: ['target_name', 'target', 'port_number']
+    target-parameter-exists: ['target_name', 'target', 'port_number', 'protocol']
 
 option-formats:
     cookie-cli-option-format:

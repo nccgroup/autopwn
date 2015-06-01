@@ -3,3 +3,7 @@ targets:
      target: 127.0.0.1
      port_number: 80
      protocol: http
+   - target_name: test1
+     target: 127.0.0.1
+     port_number: 81
+     protocol: http

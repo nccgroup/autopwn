@@ -1,12 +1,10 @@
 TODO
 
 1 - TDD?
-1b) Have online repo where users can share yaml
+2 - Have online repo where users can share yaml
     configs?
-2 - What if tool requires root?
-3 - Add support for:
-- enum4linux
-- nbtscan
+3 - What if tool requires root?
+4 - Add support for:
 - smb_scan
 - w3af ?
 - snmpwalk/check/etc
@@ -15,19 +13,18 @@ TODO
 - davtest?
 - DNS tools
 - Harvester?
+- patator
 - recon tools?
-3b) Start looking more into tools
-4 - Windows support?
-5 - Improve Ctrl+c support
-5b) Clean up files?
-6 - Check return codes for commands
-7 - Auto resolve ip if not specified using domain.. ip or domain *required*
+4b) Start looking more into tools
+5 - Windows support?
+6 - Improve Ctrl+c support
+6b) Clean up files?
+7 - Check return codes for commands
 8 - Improve command log file name to allow for multiple autopwn instances
 9 - Improve exit condition handling
 10 - User agent string modification option is supported by a number of tools
 11 - Man page
 12 - Finish autopwn shell feature
-12a) Fix stdout stderr
-12b) Make assessments work
-12c) Bring back flags
-12d) Allow for comments in yaml files?
+12a) Description for options
+12b) Cleaner screen death
+12c) not-equals etc rules

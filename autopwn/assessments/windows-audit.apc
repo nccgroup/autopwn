@@ -1,4 +1,4 @@
 name: windows-audit
 long_name: Windows Audit
-autopwn_version: 0.16.0
+autopwn_version: 0.17.0
 description: Run Windows auditing tools against target

@@ -1,13 +1,4 @@
-name: test
-menu_name: Test
-autopwn_version: 0.16.0
-
-tools:
-    - test
-#    - nmap
-#    - arachni
-#    - skipfish
-#    - nikto
-#    - dirb
-
-parallel: False
+name: ssl-audit
+long_name: SSL Audit
+autopwn_version: 0.17.0
+description: Run SSL auditing tools against target.
