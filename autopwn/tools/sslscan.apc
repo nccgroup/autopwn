@@ -2,7 +2,7 @@ name: sslscan
 binary_name: sslscan
 url: http://sourceforge.net/projects/sslscan/
 description: sslscan tests SSL/TLS enabled services to discover supported cipher suites.
-autopwn_version: 0.17.0
+autopwn_version: 0.18.0
 assessment_groups: ['ssl-audit']
 
 rules:

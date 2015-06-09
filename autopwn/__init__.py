@@ -29,7 +29,7 @@ import yaml
 
 class Arguments:
     argparse_description = '''
-autopwn v0.17.0
+autopwn 0.18.0
 By Aidan Marlin
 Email: aidan [dot] marlin [at] nccgroup [dot] trust'''
 
@@ -599,7 +599,7 @@ class Log:
             except OSError as e:
                 Error(30,"[E] Error creating log file: " + e)
             if config.log_started != True:
-                log_file.write("## autopwn v0.17.0 command output\n")
+                log_file.write("## autopwn 0.18.0 command output\n")
                 log_file.write("## Started logging at " + date_time + "...\n")
                 config.log_started = True
 
@@ -622,8 +622,7 @@ class Run:
 
 class Debug:
     def __init__(self, config, arg):
-        for item in config.tools:
-            print(item)
+        import IPython; IPython.embed()
 
 class Clear:
     def __init__(self, config, arg):
@@ -701,8 +700,16 @@ class CleanUp:
 class Shell(cmd.Cmd):
     config = Configuration()
 
-    intro = 'autopwn v0.17.0 shell. Type help or ? to list commands.\n'
+    print("autopwn 0.18.0 shell. Type help or ? to list commands.\n")
     prompt = 'autopwn > '
+
+    def cmdloop(self):
+        try:
+            cmd.Cmd.cmdloop(self)
+        except KeyboardInterrupt as e:
+            print()
+            print("Type 'quit' to exit autopwn shell")
+            self.cmdloop()
 
     def do_clear(self, arg):
         'Clear job queue'
@@ -724,6 +731,18 @@ class Shell(cmd.Cmd):
         Show(self.config,arg)
         View('show',self.config)
 
+    def complete_show(self, text, line, begin, end):
+        operations = ['options','jobs','config']
+
+        if not text:
+            completions = operations
+        else:
+            completions = [ operation
+                            for operation in operations
+                                if operation.startswith(text)
+                          ]
+        return completions
+
     def do_save(self, arg):
         'Save instance settings'
         Save(self.config)
@@ -739,17 +758,69 @@ class Shell(cmd.Cmd):
         Use(self.config,arg)
         View('use',self.config,target=self.config.instance)
         if self.config.resource_found == True:
+            if (sys.stdout.isatty()) == True:
+                arg = '\x1b[%sm%s\x1b[0m' % \
+                    (';'.join(['31']), arg)
             self.prompt = 'autopwn (' + arg + ') > '
+
+    def complete_use(self, text, line, begin, end):
+        if not text:
+            # Add assessments
+            completions = [ 'assessment/' + assessment['name']
+                            for assessment in self.config.assessments
+                          ]
+            # Add tools
+            completions = completions + [ 'tool/' + tool['name']
+                            for tool in self.config.tools
+                          ]
+        else:
+            # Drop tool/ and assessment/ from input so we have
+            # a chance of finding what we're looking for
+            text = text.replace('assessment/','')
+            text = text.replace('tool/','')
+            # Add assessments which match
+            completions = [ 'assessment/' + assessment['name']
+                            for assessment in self.config.assessments
+                                if assessment['name'].startswith(text)
+                          ]
+            # Add tools which match
+            completions = completions + [ 'tool/' + tool['name']
+                            for tool in self.config.tools
+                                if tool['name'].startswith(text)
+                          ]
+        return completions
 
     def do_set(self, arg):
         'Set configuration option'
         Set(self.config,arg)
         View('set',self.config)
 
+    def complete_set(self, text, line, begin, end):
+        for tool in self.config.tools:
+            if tool['name'] in self.config.instance['tool']:
+                completions = tool['rules']['target-parameter-exists']
+        if text != None:
+            completions = [ parameter
+                            for parameter in completions
+                                if parameter.startswith(text)
+                          ]
+        return completions
+
     def do_unset(self, arg):
         'Clear configuration option'
         Unset(self.config,arg)
         View('unset',self.config)
+
+    def complete_unset(self, text, line, begin, end):
+        for tool in self.config.tools:
+            if tool['name'] in self.config.instance['tool']:
+                completions = tool['rules']['target-parameter-exists']
+        if text != None:
+            completions = [ parameter
+                            for parameter in completions
+                                if parameter.startswith(text)
+                          ]
+        return completions
 
     def do_bye(self, arg):
         'Quit autopwn'
@@ -781,6 +852,7 @@ class Shell(cmd.Cmd):
         quote.append("Programmers are tools for converting caffeine into code.")
         quote.append("Those who can't write programs, write help files.")
         print(random.choice(quote))
+        CleanUp()
         sys.exit(0)
 
 def _main(arglist):

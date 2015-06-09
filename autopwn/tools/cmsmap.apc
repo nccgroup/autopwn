@@ -3,7 +3,7 @@ binary_prepend: python2
 binary_name: /root/work/git/CMSmap/cmsmap.py
 url: https://github.com/Dionach/CMSmap 
 description: CMSmap - Drupal instance.
-autopwn_version: 0.17.0
+autopwn_version: 0.18.0
 assessment_groups: ['drupal']
 
 rules:
