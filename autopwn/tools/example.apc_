@@ -1,4 +1,4 @@
-# autopwn v0.18.0 yaml tool config file
+# autopwn v0.19.0 yaml tool config file
 
 # The name as it will be referenced by in assessments
 name: example
@@ -15,28 +15,40 @@ description: Describes which options can be set and what they mean
 
 # Version
 # The autopwn version with which this config file is compatible with
-autopwn_version: 0.18.0
+autopwn_version: 0.19.0
 
 # Assessment groups
 # To which assessments this tool should belong
 assessment_groups: ['example']
 
-# Rules which must be abided by in order for the tool to be executed
-# Valid items are:
-# * equals
-# * not-equals
-# * less-than
-# * greater-than
-# * target-parameter-exists
+# Valid tool options
+# Which options does the tool support and which should be shown
+# when running 'show options'?
 #
-# With target-parameter-exists, specifying a list within the list means that
-# as long as one of the parameters have been specified, the rule is satisfied
-rules:
-    target-parameter-exists: ['target_name', 'target','port_number','protocol']
-    equals:
-        'protocol': 'https'
-    not-equals:
-        'target': ['localhost','127.0.0.1']
+# required - Is this option required? True or no required
+# example_values - Example values which will appear
+#                  in 'show options'
+# default_value - Default value assigned if no target
+#                 is loaded (thus no option set)
+# type - Field type. Checks will be performed to ensure
+#        user enters expected type
+options:
+    target_name:
+        required: True
+        example_values: target1
+    target:
+        type: ip_address
+        required: True
+        example_values: 127.0.0.1|example.org
+    port_number:
+        type: port_number
+        required: True
+        example_values: 80|443
+        default_value: 80
+    protocol:
+        required: True
+        example_values: http|https
+        default_value: http
 
 option-formats:
     # Some tools accept cookie strings on the command line, the following options

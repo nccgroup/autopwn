@@ -2,13 +2,28 @@ name: httrack
 binary_name: httrack
 url: http://www.httrack.com/
 description: HTTrack is a free (GPL, libre/free software) and easy-to-use offline browser utility. It allows you to download a World Wide Web site from the Internet
-autopwn_version: 0.18.0
+autopwn_version: 0.19.0
 assessment_groups: ['webapp']
 
 # TODO Add cookies?
 
-rules:
-    target-parameter-exists: ['target_name', 'target', 'protocol', 'port_number']
+options:
+    target_name:
+        required: True
+        example_values: target1
+    target:
+        type: ip_address
+        required: True
+        example_values: 127.0.0.1|example.org
+    port_number:
+        type: port_number
+        required: True
+        example_values: 80|443
+        default_value: 80
+    protocol:
+        required: True
+        example_values: http|https
+        default_value: http
 
 arguments: "{protocol}://{target}:{port_number}/{url} -O {output_dir}/ > {output_dir}/{date}_{target_name}_httrack"
 stdout: False

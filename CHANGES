@@ -1,3 +1,12 @@
+autopwn v0.19.0 - 20150610
+
+* Fixed buggy tab completion
+* Added access to shell (e.g. ! ls OR shell ls)
+* Added new tools
+* 'show options' now shows user whether
+  the option is required and example values
+* Bug fixes
+
 autopwn v0.18.0 - 20150609
 
 * Tab completion

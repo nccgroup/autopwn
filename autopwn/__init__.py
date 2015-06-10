@@ -7,6 +7,7 @@ import operator
 import os
 import random
 import re
+import readline
 import shlex
 import subprocess
 import sys
@@ -29,7 +30,7 @@ import yaml
 
 class Arguments:
     argparse_description = '''
-autopwn 0.18.0
+autopwn 0.19.0
 By Aidan Marlin
 Email: aidan [dot] marlin [at] nccgroup [dot] trust'''
 
@@ -145,6 +146,12 @@ class Configuration:
         self.load("assessments")
         self.load("global_config")
 
+        # Remove / from completer delim so tab completion works
+        # with tool/nmap, for example
+        old_delims = readline.get_completer_delims()
+        readline.set_completer_delims(old_delims.replace('/', ''))
+
+
     def find_path(self, candidate):
          basepath = os.path.dirname(candidate)
          tools_dir = os.path.join(basepath, 'tools')
@@ -171,10 +178,13 @@ class Configuration:
             if file.endswith(".apc"):
                 stream = open(load_directory + file, 'r')
                 objects = yaml.load(stream)
+                #for obj in objects:
                 # TODO Make this better
                 if load_type == "tools":
+                    objects['search_name'] = "tool/" + objects['name']
                     self.tools.append(objects)
                 elif load_type == "assessments":
+                    objects['search_name'] = "assessment/" + objects['name']
                     self.assessments.append(objects)
                 elif load_type == "global_config":
                     self.global_config = objects
@@ -186,17 +196,17 @@ class Error:
 
 class Search:
     def __init__(self, config, search_string):
-        self.search(config.assessments,"Assessment","assessment/",search_string)
-        self.search(config.tools,"Tool","tool/",search_string)
+        self.search(config.assessments,"Assessment",search_string)
+        self.search(config.tools,"Tool",search_string)
 
-    def search(self,config_item,item_type_string,item_type_prepend,search_string):
+    def search(self,config_item,item_type_string,search_string):
         print('{0:30} {1}'.format(item_type_string, "Description"))
         print("-"*64)
         print()
         for item in config_item:
-            if search_string in item['name'] \
+            if search_string in item['search_name'] \
                or str.lower(search_string) in str.lower(item['description']):
-                name = item_type_prepend + item['name']
+                name = item['search_name']
                 description = item['description']
                 if (sys.stdout.isatty()) == True:
                     description = '\x1b[%sm%s\x1b[0m' % \
@@ -229,6 +239,14 @@ class Use:
             if tool['name'] == tool_name:
                 config.resource_found = True
                 config.instance['tool'].append(tool['name'])
+
+                # Set default values for options
+                for option in tool['options']:
+                    default_value = tool['options'][option].\
+                                    get('default_value', None)
+                    if default_value != None:
+                        config.instance['config'][option] = str(default_value)
+                break
 
         if config.resource_found == False:
             print("Tool not found")
@@ -291,29 +309,19 @@ Valid arguments for show are:
         # Determine what options are needed for tool(s)
         print("Options for tool/assessment.")
         print()
-        print("        {0:30} {1}".format("Option", "Value"))
-        print("        "+"-"*48)
+        print("        {0:16} {1:16} {2:12} {3}".format("Option", "Value", "Required", "Example Values"))
+        print("        "+"-"*64)
         option_displayed = []
         for tool in config.tools:
             if tool['name'] in config.instance['tool']:
-                for required_arg in tool['rules']['target-parameter-exists']:
-                    # Don't print options more than once
-                    if required_arg in option_displayed:
-                        continue
-                    else:
-                        option_displayed.append(required_arg)
-                        if type(required_arg) is list:
-                            for arg in required_arg:
-                                try:
-                                    print("        {0:30} {1}".format(arg,config.instance['config'][arg]))
-                                except:
-                                    print("        {0:30}".format(arg))
-                        else:
-                            try:
-                                print("        {0:30} {1}".format(required_arg,\
-                                    config.instance['config'][required_arg]))
-                            except:
-                                print("        {0:30}".format(required_arg))
+                for option in tool['options']:
+                    required = str(tool['options'][option].\
+                                   get('required',False))
+                    example_values = str(tool['options'][option].\
+                                         get('example_values',None))
+                    option_value = config.instance['config'].get(option,'')
+                    print("        {0:16} {1:16} {2:12} {3}".\
+                          format(option,option_value,required,example_values))
         print()
 
 class Unset:
@@ -407,8 +415,7 @@ class Process:
             instance['options']['date_day'] = strftime("%Y%m%d")
             instance['options']['output_dir'] = instance['options']['date_day'] + \
                                 "_autopwn_" + \
-                                instance['options']['target_name'] + \
-                                "_" + instance['options']['target']
+                                instance['options']['target_name']
 
             if hasattr(instance,'binary_prepend') == True:
                 if self.binary_exists(instance['binary_prepend']) != True:
@@ -473,21 +480,17 @@ class Save:
                         config.job_queue[-1]['options'][option] = config.instance['config'][option]
 
                     # Check all required parameters exist before save
-                    for parameter in imported_tool['rules']['target-parameter-exists']:
+                    for option in imported_tool['options']:
                         parameter_found = False
-                        if type(parameter) is list:
-                            for arg in parameter:
-                                if arg in config.job_queue[-1]['options']:
-                                    parameter_found = parameter_found or True
-                        else:
-                            if parameter in config.job_queue[-1]['options']:
+                        if imported_tool['options'][option].get('required',False) == True:
+                            if option in config.job_queue[-1]['options']:
                                 parameter_found = True
 
-                        if parameter_found == False:
-                            # TODO Check this actually works now assessments are in
-                            config.job_queue.pop()
-                            print("Some required parameters have not been set")
-                            return
+                            if parameter_found == False:
+                                # TODO Check this actually works now that assessments are in
+                                config.job_queue.pop()
+                                print("Some required parameters have not been set")
+                                return
 
         if config.command_line != True:
             if len(config.job_queue) == 1:
@@ -501,8 +504,6 @@ class Execute:
 
     def __init__(self, config):
         for instance in config.job_queue:
-            #print(instance['execute_string'])
-
             # Create log directory in CWD
             if not os.path.exists(instance['options']['output_dir']):
                 try:
@@ -599,7 +600,7 @@ class Log:
             except OSError as e:
                 Error(30,"[E] Error creating log file: " + e)
             if config.log_started != True:
-                log_file.write("## autopwn 0.18.0 command output\n")
+                log_file.write("## autopwn 0.19.0 command output\n")
                 log_file.write("## Started logging at " + date_time + "...\n")
                 config.log_started = True
 
@@ -681,14 +682,6 @@ class View:
                             print('Description: ' + tool['description'])
                             print('URL: ' + tool['url'])
                             print()
-                            print("Required options:")
-                            for required_arg in tool['rules']['target-parameter-exists']:
-                                if type(required_arg) is list:
-                                    print("    One of the following:")
-                                    for arg in required_arg:
-                                        print("        - " + arg)
-                                else:
-                                    print("    - " + required_arg)
 
 class CleanUp:
     def __init__(self):
@@ -700,7 +693,7 @@ class CleanUp:
 class Shell(cmd.Cmd):
     config = Configuration()
 
-    print("autopwn 0.18.0 shell. Type help or ? to list commands.\n")
+    print("autopwn 0.19.0 shell. Type help or ? to list commands.\n")
     prompt = 'autopwn > '
 
     def cmdloop(self):
@@ -710,6 +703,13 @@ class Shell(cmd.Cmd):
             print()
             print("Type 'quit' to exit autopwn shell")
             self.cmdloop()
+
+    def emptyline(self):
+        pass
+
+    def do_shell(self, arg):
+        'Execute shell commands'
+        os.system(arg)
 
     def do_clear(self, arg):
         'Clear job queue'
@@ -722,7 +722,7 @@ class Shell(cmd.Cmd):
         View('search',self.config)
 
     def do_debug(self, arg):
-        'Show debug information'
+        'Drop to IPython shell'
         Debug(self.config,arg)
         View('debug',self.config)
 
@@ -739,7 +739,7 @@ class Shell(cmd.Cmd):
         else:
             completions = [ operation
                             for operation in operations
-                                if operation.startswith(text)
+                                if text in operation
                           ]
         return completions
 
@@ -764,29 +764,27 @@ class Shell(cmd.Cmd):
             self.prompt = 'autopwn (' + arg + ') > '
 
     def complete_use(self, text, line, begin, end):
+        completions = ''
         if not text:
             # Add assessments
-            completions = [ 'assessment/' + assessment['name']
+            completions = [ assessment['search_name']
                             for assessment in self.config.assessments
                           ]
             # Add tools
-            completions = completions + [ 'tool/' + tool['name']
+            completions = completions + [ tool['search_name']
                             for tool in self.config.tools
                           ]
         else:
-            # Drop tool/ and assessment/ from input so we have
-            # a chance of finding what we're looking for
-            text = text.replace('assessment/','')
-            text = text.replace('tool/','')
             # Add assessments which match
-            completions = [ 'assessment/' + assessment['name']
+            completions = [ assessment['search_name']
                             for assessment in self.config.assessments
-                                if assessment['name'].startswith(text)
+                                if line.split(' ')[1] in assessment['search_name']
                           ]
+
             # Add tools which match
-            completions = completions + [ 'tool/' + tool['name']
+            completions = completions + [ tool['search_name']
                             for tool in self.config.tools
-                                if tool['name'].startswith(text)
+                                if line.split(' ')[1] in tool['search_name']
                           ]
         return completions
 
@@ -798,11 +796,11 @@ class Shell(cmd.Cmd):
     def complete_set(self, text, line, begin, end):
         for tool in self.config.tools:
             if tool['name'] in self.config.instance['tool']:
-                completions = tool['rules']['target-parameter-exists']
+                completions = tool['options']
         if text != None:
             completions = [ parameter
                             for parameter in completions
-                                if parameter.startswith(text)
+                                if text in parameter
                           ]
         return completions
 
@@ -818,7 +816,7 @@ class Shell(cmd.Cmd):
         if text != None:
             completions = [ parameter
                             for parameter in completions
-                                if parameter.startswith(text)
+                                if text in parameter
                           ]
         return completions
 

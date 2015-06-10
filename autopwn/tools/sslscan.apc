@@ -2,13 +2,26 @@ name: sslscan
 binary_name: sslscan
 url: http://sourceforge.net/projects/sslscan/
 description: sslscan tests SSL/TLS enabled services to discover supported cipher suites.
-autopwn_version: 0.18.0
+autopwn_version: 0.19.0
 assessment_groups: ['ssl-audit']
 
-rules:
-    equals:
-        'protocol': 'https'
-    target-parameter-exists: ['target_name', 'target', 'port_number']
+options:
+    target_name:
+        required: True
+        example_values: target1
+    target:
+        type: ip_address
+        required: True
+        example_values: 127.0.0.1|example.org
+    port_number:
+        type: port_number
+        required: True
+        example_values: 443
+        default_value: 443
+    protocol:
+        required: True
+        example_values: https
+        default_value: https
 
 arguments: "--no-colour {target}:{port_number} > {output_dir}/{date}_{target_name}_sslscan"
 stdout: False

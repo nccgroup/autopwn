@@ -2,11 +2,26 @@ name: dirb
 binary_name: dirb
 url: http://dirb.sourceforge.net/
 description: URL Bruteforcer - DIRB is a Web Content Scanner. It looks for hidden Web Objects.
-autopwn_version: 0.18.0
+autopwn_version: 0.19.0
 assessment_groups: ['webapp', 'dir-brute']
 
-rules:
-    target-parameter-exists: ['target_name', 'target', 'port_number', 'protocol']
+options:
+    target_name:
+        required: True
+        example_values: target1
+    target:
+        type: ip_address
+        required: True
+        example_values: 127.0.0.1|example.org
+    port_number:
+        type: port_number
+        required: True
+        example_values: 80|443
+        default_value: 80
+    protocol:
+        required: True
+        example_values: http|https
+        default_value: http
 
 option-formats:
     cookie-cli-option-format:

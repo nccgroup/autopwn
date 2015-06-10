@@ -1,12 +1,22 @@
-name: nmap-common-ports
+name: nmap_common_ports
 binary_name: nmap
 url: http://nmap.org/
 description: Nmap ("Network Mapper") is a free and open source (license) utility for network discovery and security auditing.
-autopwn_version: 0.18.0
+autopwn_version: 0.19.0
 assessment_groups: ['nmap-common-ports', 'infrastructure']
 
-rules:
-    target-parameter-exists: ['target_name', ['target', 'ip_address_list']]
+options:
+    target_name:
+        required: True
+        example_values: target1
+    target:
+        type: ip_address
+        required: ['ip_address_list']
+        example_values: 127.0.0.1|example.org
+    ip_address_list:
+        type: file
+        required: ['target']
+        example_values: ~/ips.txt
 
 option-formats:
     file-option-format:
