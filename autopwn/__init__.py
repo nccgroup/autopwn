@@ -151,7 +151,6 @@ class Configuration:
         old_delims = readline.get_completer_delims()
         readline.set_completer_delims(old_delims.replace('/', ''))
 
-
     def find_path(self, candidate):
          basepath = os.path.dirname(candidate)
          tools_dir = os.path.join(basepath, 'tools')
@@ -178,7 +177,6 @@ class Configuration:
             if file.endswith(".apc"):
                 stream = open(load_directory + file, 'r')
                 objects = yaml.load(stream)
-                #for obj in objects:
                 # TODO Make this better
                 if load_type == "tools":
                     objects['search_name'] = "tool/" + objects['name']
