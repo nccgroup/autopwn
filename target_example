@@ -1,14 +1,9 @@
 targets:
-   - name: test
-     ip_address: 127.0.0.1
-     domain: test.com
+   - target_name: test
+     target: 127.0.0.1
      url: /test
-     port: 80
+     port_number: 80
      protocol: https
-     mac_address: ff:ff:ff:ff:ff:ff
-     cookies:
-       some-cookie-name: some-cookie-value
-       some-cookie-name1: some-cookie-value1
-   - name: test-1
-     ip_address_list: ip_list.txt
-     cookies_file: cookie_file
+     user_file: /tmp/users
+     password_file: /tmp/passwords
+     modules: ['tool/nmap', 'tool/hydra', 'assessment/webapp']

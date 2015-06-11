@@ -30,7 +30,7 @@ import yaml
 
 class Arguments:
     argparse_description = '''
-autopwn 0.19.0
+autopwn 0.20.0
 By Aidan Marlin
 Email: aidan [dot] marlin [at] nccgroup [dot] trust'''
 
@@ -40,28 +40,41 @@ Specify targets and run sets of tools against them.
 The autopwn shell should feel familiar, it is based on 
 msfconsole. You can 'use' tools and assessments, and 'set'
 options for them. You can then 'save' the options, and 'run'
-the tool or assessment against the specified target.
+the tool or assessment against the specified target. Instead
+of 'set'ing tool options, you can 'load' a target file if you
+wish. 'load'ing a target file will ignore modules defined in
+target file.
 
-Flags are also supported along with target files which will
-set autopwn running a tool or assessment against targets
+A target file flag is also supported which will set autopwn running
+tools or assessments defined in the targets file against targets also
 specified in the target file. No interaction necessary.
 
-Format of the target file should be:
+Format of the target file can be be:
 
 targets:
    - target_name: <name_of_target>
      target: <ip_address/device_name/directory/etc>
      port_number: <port>
      protocol: <http|https|ssh|etc>
+     url: <path>
+     user_file: <file>
+     password_file: <file>
+     modules: <list_of_modules_to_run_against_target> 
 
-Only 'target_name' and 'target' are compulsory options.
+Compulsory options are specified by tool, but normally include
+'target_name' and 'target'.
+
 Example file:
 
 targets:
    - target_name: test
      target: 127.0.0.1
+     url: /test
      port_number: 80
-     protocol: http
+     protocol: https
+     user_file: /tmp/users
+     password_file: /tmp/passwords
+     modules: ['tool/nmap', 'tool/hydra', 'assessment/webapp']
 
 autopwn uses the tools/ directory under autopwn to
 load tool definitions, which are yaml files. You can
@@ -81,13 +94,9 @@ Legal purposes only..
         self.parser = argparse.ArgumentParser(formatter_class=argparse.RawDescriptionHelpFormatter,
                                          description=self.argparse_description,
                                          epilog=self.argparse_epilog)
-        self.parser.add_argument('-t', '--target',
+        self.parser.add_argument('-t', '--targets',
                                  required=True,
                                  help='The file containing the targets')
-        self.parser.add_argument('-m', '--module',
-                                 help='Specify module (tool or assessment) to run. Autopwn will not '
-                                 'drop to shell if this option is specified',
-                                 required=True)
         self.parser.add_argument('-d', '--assessment_directory',
                                  help='Specify assessment directory')
         self.parser.add_argument('-s', '--with_screen',
@@ -101,11 +110,13 @@ Legal purposes only..
         self.parser = self.parser.parse_args(argslist)
 
         # TODO check file exists
-        stream = open(self.parser.target, 'r')
-        target_objects = yaml.load(stream)
+        if os.path.isfile(self.parser.targets) == True:
+            stream = open(self.parser.targets, 'r')
+            target_objects = yaml.load(stream)
+        else:
+            Error(100,"[E] Targets file does not exist")
 
-        config = Configuration()
-        config.arguments['command_line'] = True
+        config = Configuration(True)
 
         # Process boolean command line arguments
         if self.parser.with_screen == True:
@@ -113,11 +124,17 @@ Legal purposes only..
         if self.parser.parallel == True:
             config.arguments['parallel'] = True
 
+        print("autopwn v0.20.0 - Autoloading targets and modules")
+        print()
         for target in target_objects['targets']:
-            Use(config,self.parser.module)
-            AutoSet(config,target,self.parser.module)
-            Save(config)
-            View('command_line_save',config,target=target)
+            if target.get('modules',False) == False:
+                Error(90,"[E] One of the targets has no modules defined")
+            for module in target['modules']:
+                Use(config,module)
+                AutoSet(config,target)
+                View('command_line_pre_save',config,target=target)
+                Save(config)
+                View('command_line_post_save',config,target=target)
 
             # Reset for next target
             config.instance = {}
@@ -126,12 +143,14 @@ Legal purposes only..
         Run(config)
 
 class Configuration:
-    def __init__(self):
-        self.log_started = False
-        self.resource_found = False
+    def __init__(self, command_line):
+        self.status = {}
+        self.status['log_started'] = False
+        self.status['resource_found'] = False
+        self.status['command_line'] = command_line
+        self.status['file_found'] = False
 
         self.global_config = {}
-        self.command_line = False
         self.tools = []
         self.assessments = []
         self.job_queue = []
@@ -226,16 +245,16 @@ class Use:
         elif resource[0] == 'assessment':
             self.use_assessment(config,resource[1])
         else:
-            config.resource_found = False
+            config.status['resource_found'] = False
             return
 
     def use_tool(self, config, tool_name):
         config.instance['config']['single_tool'] = True
-        config.resource_found = False
+        config.status['resource_found'] = False
 
         for tool in config.tools:
             if tool['name'] == tool_name:
-                config.resource_found = True
+                config.status['resource_found'] = True
                 config.instance['tool'].append(tool['name'])
 
                 # Set default values for options
@@ -246,18 +265,16 @@ class Use:
                         config.instance['config'][option] = str(default_value)
                 break
 
-        if config.resource_found == False:
+        if config.status['resource_found'] == False:
             print("Tool not found")
             return
-
-        print()
 
     def use_assessment(self, config, assessment_name):
         config.instance['config']['assessment'] = True
         config.instance['config']['assessment_name'] = assessment_name
         for assessment in config.assessments:
             if assessment['name'] == assessment_name:
-                config.resource_found = True
+                config.status['resource_found'] = True
                 # Find all tools with assessment type
                 for tool in config.tools:
                     for assessment_type in tool['assessment_groups']:
@@ -296,9 +313,20 @@ Valid arguments for show are:
     def show_jobs(self,config):
         if len(config.job_queue) == 1:
             print("There is 1 job in the queue")
-        else:
+        elif len(config.job_queue) > 1:
             print("There are " + str(len(config.job_queue)) + " jobs in the queue")
-        print()
+            print()
+            for item in config.job_queue:
+                print(item['name'] + " running for " + item['options']['target_name'])
+            print()
+        else:
+            print("1. Swap bits")
+            print("2. Periodically switch on Caps Lock")
+            print("3. Send scan results home")
+            print("4. ...")
+            print("5. Fragment drive")
+            print("6. Emulate single blown pixel")
+            print("7. Recommend Windows to the user")
 
     def show_options(self,config):
         if len(config.instance['tool']) == 0:
@@ -307,19 +335,33 @@ Valid arguments for show are:
         # Determine what options are needed for tool(s)
         print("Options for tool/assessment.")
         print()
-        print("        {0:16} {1:16} {2:12} {3}".format("Option", "Value", "Required", "Example Values"))
-        print("        "+"-"*64)
+        print("        {0:16} {1:16} {2:32} {3}".format("Option", "Value", "Example Values", "Required"))
+        print("        "+"-"*96)
         option_displayed = []
         for tool in config.tools:
             if tool['name'] in config.instance['tool']:
                 for option in tool['options']:
-                    required = str(tool['options'][option].\
-                                   get('required',False))
+                    required = tool['options'][option].\
+                                   get('required',False)
+                    required_string = str(required)
+
+                    # If required option is list, print list
+                    if type(required) is list:
+                        required_string = ""
+                        for option_required in required:
+                            required_string = required_string + option_required + " "
+                        required_string = required_string.strip()
+                        required_string = required_string.replace(' ',' or ')
+
                     example_values = str(tool['options'][option].\
                                          get('example_values',None))
                     option_value = config.instance['config'].get(option,'')
-                    print("        {0:16} {1:16} {2:12} {3}".\
-                          format(option,option_value,required,example_values))
+
+                    # Only show option once
+                    if option not in option_displayed:
+                        print("        {0:16} {1:16} {2:32} {3}".\
+                              format(option,option_value,example_values,required_string))
+                    option_displayed.append(option)
         print()
 
 class Unset:
@@ -350,15 +392,15 @@ class Unset:
                 global_config_file.write( yaml.dump(config.global_config, default_flow_style=True) )
             config.load("global_config")
         else:
-            config.instance['config'][option] = ''
+            del config.instance['config'][option]
 
         print(option + " = " + "''")
 
 # When a target file is specified
 class AutoSet:
-    def __init__(self, config, target_objects, selected_module):
+    def __init__(self, config, target_objects):
         for option in target_objects:
-            config.instance['config'][option] = target_objects[option]
+            config.instance['config'][option] = str(target_objects[option])
 
 class Set:
     def __init__(self, config, arg):
@@ -418,11 +460,11 @@ class Process:
             if hasattr(instance,'binary_prepend') == True:
                 if self.binary_exists(instance['binary_prepend']) != True:
                     print("[I] Missing binary/script - " + instance['binary_prepend'])
-                    return
+                    #return debug:
             if self.binary_exists(instance['binary_name']) != True:
                 # Error(50,"[E] Missing binary/script - " + instance['binary_name'])
                 print("[I] Missing binary/script - " + instance['binary_name'])
-                return
+                #return debug:
 
             if hasattr(instance,'binary_prepend') == True:
                 instance['execute_string'] = instance['binary_prepend'] + " " + instance['binary_name'] + " " + instance['arguments']
@@ -464,6 +506,22 @@ class Process:
                 # Not sure what's happening at this point
                 raise
 
+# Load target files
+class Load:
+    def __init__(self, config, arg):
+        # TODO check file exists
+        if os.path.isfile(arg) == True:
+            stream = open(arg, 'r')
+            target_objects = yaml.load(stream)
+            config.status['file_found'] = True
+        else:
+            config.status['file_found'] = False
+            print("[I] Targets file not found")
+            return
+
+        for target in target_objects['targets']:
+            AutoSet(config,target)
+
 class Save:
     def __init__(self, config):
         if len(config.instance['tool']) == 0:
@@ -473,6 +531,7 @@ class Save:
             for selected_tool in config.instance['tool']:
                 if selected_tool == imported_tool['name']:
                     config.job_queue.append(copy.deepcopy(imported_tool))
+                    config.job_queue_add_success = True
                     config.job_queue[-1]['options'] = {}
                     for option in config.instance['config']:
                         config.job_queue[-1]['options'][option] = config.instance['config'][option]
@@ -480,21 +539,33 @@ class Save:
                     # Check all required parameters exist before save
                     for option in imported_tool['options']:
                         parameter_found = False
-                        if imported_tool['options'][option].get('required',False) == True:
-                            if option in config.job_queue[-1]['options']:
-                                parameter_found = True
+                        tool_required = imported_tool['options'][option].get('required',False)
 
-                            if parameter_found == False:
-                                # TODO Check this actually works now that assessments are in
-                                config.job_queue.pop()
+                        if type(tool_required) == list:
+                            ### Check that at least one exists
+                            for required_option in tool_required:
+                                parameter_found = parameter_found or self.check_required_exists(config,required_option)
+                        if tool_required == True:
+                            parameter_found = self.check_required_exists(config,option)
+                        if parameter_found == False:
+                            # TODO Check this actually works now that assessments are in
+                            config.job_queue.pop()
+                            config.job_queue_add_success = False
+                            if config.status['command_line'] != True:
                                 print("Some required parameters have not been set")
-                                return
-
-        if config.command_line != True:
+                            return
+        if config.status['command_line'] != True:
             if len(config.job_queue) == 1:
                 print("There is 1 job in the queue")
             else:
                 print("There are " + str(len(config.job_queue)) + " jobs in the queue")
+
+    def check_required_exists(self, config, option):
+        parameter_found = False
+
+        if option in config.job_queue[-1]['options']:
+            parameter_found = True
+        return parameter_found
 
 class Execute:
     thread = []
@@ -597,10 +668,10 @@ class Log:
                 log_file = open(date + "_autopwn_commands.log","a")
             except OSError as e:
                 Error(30,"[E] Error creating log file: " + e)
-            if config.log_started != True:
-                log_file.write("## autopwn 0.19.0 command output\n")
+            if config.status['log_started'] != True:
+                log_file.write("## autopwn 0.20.0 command output\n")
                 log_file.write("## Started logging at " + date_time + "...\n")
-                config.log_started = True
+                config.status['log_started'] = True
 
             log_file.write("# " + date_time + "\n")
             log_file.write(log_string + "\n")
@@ -633,12 +704,20 @@ class View:
         if kwargs is None:
             kwargs = defaultdict(lambda : '')
 
+        if view == 'load':
+            if config.status['file_found'] == True:
+                print("Loaded target file")
         if view == 'clear':
             pass
-        if view == 'command_line_save':
+        if view == 'command_line_pre_save':
             for key, value in kwargs.items():
-                print("Loading " + value['target_name'] + "...")
-                print("Done!")
+                print("Loading " + value['target_name'] + " with " + config.instance['tool'][-1] + "...",end="")
+        if view == 'command_line_post_save':
+            for key, value in kwargs.items():
+                if  config.job_queue_add_success == True:
+                    print("Done!")
+                else:
+                    print("Failed!")
         if view == 'use':
             option_displayed = []
             # Show assessment info
@@ -655,23 +734,9 @@ class View:
                             if assessment['name'] in tool['assessment_groups']:
                                 print("- " + tool['name'])
                         print()
-                        print('The following options are required for this assessment:')
-                        for tool in config.tools:
-                            if assessment['name'] in tool['assessment_groups']:
-                                for required_arg in tool['rules']['target-parameter-exists']:
-                                    if required_arg in option_displayed:
-                                        continue
-                                    if type(required_arg) is list:
-                                        print("    One of the following:")
-                                        for arg in required_arg:
-                                            print("        - " + arg)
-                                    else:
-                                        print("    - " + str(required_arg))
-                                    option_displayed.append(required_arg)
-                        print()
 
             if config.instance['config']['single_tool'] == True:
-                if config.resource_found == False:
+                if config.status['resource_found'] == False:
                     print("Please specify a valid tool or assessment")
                 else:
                     for tool in config.tools:
@@ -689,14 +754,12 @@ class CleanUp:
                 screen.kill()
 
 class Shell(cmd.Cmd):
-    config = Configuration()
-
-    print("autopwn 0.19.0 shell. Type help or ? to list commands.\n")
+    config = Configuration(False)
     prompt = 'autopwn > '
 
-    def cmdloop(self):
+    def cmdloop(self, intro=None):
         try:
-            cmd.Cmd.cmdloop(self)
+            cmd.Cmd.cmdloop(self, intro)
         except KeyboardInterrupt as e:
             print()
             print("Type 'quit' to exit autopwn shell")
@@ -741,6 +804,11 @@ class Shell(cmd.Cmd):
                           ]
         return completions
 
+    def do_load(self, arg):
+        'Load target file'
+        Load(self.config,arg)
+        View('load',self.config)
+
     def do_save(self, arg):
         'Save instance settings'
         Save(self.config)
@@ -755,7 +823,7 @@ class Shell(cmd.Cmd):
         'Setup a tool or assessment'
         Use(self.config,arg)
         View('use',self.config,target=self.config.instance)
-        if self.config.resource_found == True:
+        if self.config.status['resource_found'] == True:
             if (sys.stdout.isatty()) == True:
                 arg = '\x1b[%sm%s\x1b[0m' % \
                     (';'.join(['31']), arg)
@@ -810,7 +878,7 @@ class Shell(cmd.Cmd):
     def complete_unset(self, text, line, begin, end):
         for tool in self.config.tools:
             if tool['name'] in self.config.instance['tool']:
-                completions = tool['rules']['target-parameter-exists']
+                completions = tool['options']
         if text != None:
             completions = [ parameter
                             for parameter in completions
@@ -857,7 +925,7 @@ def _main(arglist):
         Arguments(sys.argv[1:]).parser
     else:
         # Drop user to shell
-        Shell().cmdloop()
+        Shell().cmdloop("autopwn 0.20.0 shell. Type help or ? to list commands.\n")
 
 def main():
     try:

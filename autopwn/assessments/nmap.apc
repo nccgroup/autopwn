@@ -1,4 +1,4 @@
 name: nmap
 long_name: Nmap Scan (All TCP Ports)
-autopwn_version: 0.19.0
+autopwn_version: 0.20.0
 description: Run nmap scanner against all TCP ports on target.

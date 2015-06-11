@@ -27,4 +27,4 @@ TODO
 12 - Finish autopwn shell feature
 12a) Description for options
 12b) Cleaner screen death
-12c) not-equals etc rules
+13 - stderr handling for tools

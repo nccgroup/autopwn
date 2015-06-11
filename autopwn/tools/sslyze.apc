@@ -2,7 +2,7 @@ name: sslyze
 binary_name: sslyze
 url: https://github.com/iSECPartners/sslyze
 description: Fast and full-featured SSL scanner.
-autopwn_version: 0.19.0
+autopwn_version: 0.20.0
 assessment_groups: ['ssl-audit']
 
 options:

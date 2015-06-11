@@ -1,3 +1,13 @@
+autopwn v0.20.0 - 20150611
+
+* Added load ability. Can now load
+  target files while on the shell
+* Fixed tab completion for unset
+* Required field in 'show options' now shows
+  whether current field or others required
+* Modules can now be specified in targets file
+* Bug fixes
+
 autopwn v0.19.0 - 20150610
 
 * Fixed buggy tab completion
