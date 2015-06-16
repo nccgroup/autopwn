@@ -30,7 +30,7 @@ import yaml
 
 class Arguments:
     argparse_description = '''
-autopwn 0.20.0
+autopwn 0.21.0
 By Aidan Marlin
 Email: aidan [dot] marlin [at] nccgroup [dot] trust'''
 
@@ -124,13 +124,18 @@ Legal purposes only..
         if self.parser.parallel == True:
             config.arguments['parallel'] = True
 
-        print("autopwn v0.20.0 - Autoloading targets and modules")
+        print("autopwn v0.21.0 - Autoloading targets and modules")
         print()
         for target in target_objects['targets']:
             if target.get('modules',False) == False:
                 Error(90,"[E] One of the targets has no modules defined")
             for module in target['modules']:
                 Use(config,module)
+
+                # Check resource exists
+                if config.status['resource_found'] == False:
+                    Error(100,"[E] A tool or assessment could not be found")
+
                 AutoSet(config,target)
                 View('command_line_pre_save',config,target=target)
                 Save(config)
@@ -171,13 +176,16 @@ class Configuration:
         readline.set_completer_delims(old_delims.replace('/', ''))
 
     def find_path(self, candidate):
-         basepath = os.path.dirname(candidate)
-         tools_dir = os.path.join(basepath, 'tools')
-         if os.path.exists(tools_dir):
-             return basepath
+        basepath = os.path.dirname(candidate)
+        tools_dir = os.path.join(basepath, 'tools')
+        if os.path.exists(tools_dir):
+            return basepath
+        else:
+            return None
 
     def load(self, load_type):
-        pathname = os.path.abspath(self.find_path(__file__) or find_path(sys.argv[0]))
+        pathname = os.path.abspath(self.find_path(__file__) \
+                   or self.find_path(sys.argv[0]))
 
         if load_type == "tools":
             load_directory = os.path.abspath(pathname) + "/tools/"
@@ -190,7 +198,7 @@ class Configuration:
             load_string = "Global configuration"
 
         if not os.path.isdir(load_directory):
-            Error(10,"[E] " + load_string + "directory does not exist")
+            Error(10,"[E] " + load_string + " directory does not exist")
 
         for file in os.listdir(load_directory):
             if file.endswith(".apc"):
@@ -582,7 +590,8 @@ class Execute:
 
             if 'url' in instance:
                 log = Log(config, os.getcwd(), False, 'tool_string',"# Executing " + \
-                          instance['name'] + " tool (" + instance['url'] + "):\n" + \
+                          instance['name'] + " tool (" + instance['url'] + ") for " + \
+                          instance['options']['target_name'] + ":\n" + \
                           instance['execute_string'])
             else:
                 log = Log(config, os.getcwd(), False, 'tool_string',"# Executing " + \
@@ -634,9 +643,11 @@ class RunThreads (threading.Thread):
         exitcode = proc.returncode
 
     def run(self):
-        print("[+] Launching " + self.instance['name'])
+        print("[+] Launching " + self.instance['name'] + \
+              " for " + self.instance['options']['target_name'])
         self.execute_tool()
-        print("[-] " + self.instance['name'] + " is done..")
+        print("[-] " + self.instance['name'] + " for " + \
+              self.instance['options']['target_name'] + " is done..")
         # Should we create a stdout log for this tool?
         stdout_boolean = self.instance['stdout']
         if stdout_boolean == True:
@@ -644,7 +655,8 @@ class RunThreads (threading.Thread):
                       self.instance['options']['target_name'] + "_" + self.instance['name'],
                       'tool_output', self.tool_stdout)
         log = Log(self.config, os.getcwd(), False, 'tool_string', "# " + \
-                  self.instance['name'] + " has finished")
+                  self.instance['name'] + " for " + \
+                  self.instance['options']['target_name'] + " has finished")
 
 class Log:
     def __init__(self, config, directory, log_filename, log_type, log_string):
@@ -669,7 +681,7 @@ class Log:
             except OSError as e:
                 Error(30,"[E] Error creating log file: " + e)
             if config.status['log_started'] != True:
-                log_file.write("## autopwn 0.20.0 command output\n")
+                log_file.write("## autopwn 0.21.0 command output\n")
                 log_file.write("## Started logging at " + date_time + "...\n")
                 config.status['log_started'] = True
 
@@ -925,7 +937,7 @@ def _main(arglist):
         Arguments(sys.argv[1:]).parser
     else:
         # Drop user to shell
-        Shell().cmdloop("autopwn 0.20.0 shell. Type help or ? to list commands.\n")
+        Shell().cmdloop("autopwn 0.21.0 shell. Type help or ? to list commands.\n")
 
 def main():
     try:
