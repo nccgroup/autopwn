@@ -1,9 +1,9 @@
-name: nmap
+name: nmap-aggressive
 binary_name: nmap
 url: http://nmap.org/
 description: Nmap ("Network Mapper") is a free and open source (license) utility for network discovery and security auditing.
 autopwn_version: 0.21.0
-assessment_groups: ['infrastructure', 'nmap']
+assessment_groups: ['infrastructure', 'nmap_aggressive']
 
 options:
     target_name:
@@ -25,5 +25,5 @@ option-formats:
         option-separator: ' '
         substitution: '{0}'
 
-arguments: "-A -sS -sC -sV -p1-65535 {ip_address_list} {target} -oA {output_dir}/{date}_{target_name}_nmap_full_range"
+arguments: "-T4 {ip_address_list} {target} -oA {output_dir}/{date}_{target_name}_nmap_full_range"
 stdout: True

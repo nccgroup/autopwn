@@ -2,7 +2,7 @@ name: patator_ftp
 binary_name: patator
 url: https://github.com/lanjelot/patator/
 description: Patator brute force tool - FTP module
-autopwn_version: 0.20.0
+autopwn_version: 0.21.0
 assessment_groups: ['brute']
 
 options:

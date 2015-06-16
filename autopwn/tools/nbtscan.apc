@@ -2,8 +2,8 @@ name: nbtscan
 binary_name: nbtscan
 url: http://www.unixwiz.net/tools/nbtscan.html
 description: NBTScan is a program for scanning IP networks for NetBIOS name information (similar to what the Windows nbtstat tool provides against single hosts).
-autopwn_version: 0.20.0
-assessment_groups: ['infrastructure', 'windows-audit']
+autopwn_version: 0.21.0
+assessment_groups: ['infrastructure', 'windows_audit']
 
 options:
     target_name:

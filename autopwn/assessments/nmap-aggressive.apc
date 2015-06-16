@@ -1,0 +1,4 @@
+name: nmap_aggressive
+long_name: Nmap Scan (Aggressive Common Ports)
+autopwn_version: 0.21.0
+description: Run aggressive nmap scan against common TCP ports of target.

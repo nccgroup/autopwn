@@ -1,0 +1,21 @@
+name: msfconsole_scanner_smb_version
+binary_name: msfconsole
+url: http://www.rapid7.com/db/modules/auxiliary/scanner/smb/smb_version
+description: Display version information about each system
+autopwn_version: 0.21.0
+assessment_groups: ['infrastructure', 'msf']
+
+options:
+    target_name:
+        required: True
+        example_values: target1
+    target:
+        type: ip_address
+        required: ['target','ip_address_list']
+        example_values: 127.0.0.1|example.org
+    smbdomain:
+        required: True
+        example_values: WORKGROUP
+
+arguments: "-o {output_dir}/{date}_{target_name}_msf-scanner-smb-version -q -x \"use scanner/smb/smb_version; set SMBDomain '{smbdomain}'; set RHOSTS '{target}'; run; exit\""
+stdout: True
