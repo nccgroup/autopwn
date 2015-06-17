@@ -2,7 +2,7 @@ name: udp_proto_scanner
 binary_name: udp-proto-scanner.pl
 url: https://labs.portcullis.co.uk/tools/udp-proto-scanner/
 description: udp-proto-scanner is a perl script which discovers UDP services by sending triggers to a list of hosts.
-autopwn_version: 0.21.0
+autopwn_version: 0.21.1
 assessment_groups: ['infrastructure', 'udp-scan']
 
 options:

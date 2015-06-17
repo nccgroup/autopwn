@@ -2,7 +2,7 @@ name: patator_ftp
 binary_name: patator
 url: https://github.com/lanjelot/patator/
 description: Patator brute force tool - FTP module
-autopwn_version: 0.21.0
+autopwn_version: 0.21.1
 assessment_groups: ['brute']
 
 options:
@@ -15,7 +15,6 @@ options:
         example_values: 127.0.0.1|example.org
     port_number:
         type: port_number
-        required: True
         example_values: 21
         default_value: 21
     user_file:

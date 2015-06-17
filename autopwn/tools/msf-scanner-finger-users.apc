@@ -1,0 +1,27 @@
+name: msfconsole_scanner_finger_users
+binary_name: msfconsole
+url: http://linux.about.com/library/cmd/blcmdl1_finger.htm
+description: The finger displays information about the system users.
+autopwn_version: 0.21.1
+assessment_groups: ['infrastructure', 'finger']
+
+options:
+    target_name:
+        required: True
+        example_values: target1
+    target:
+        type: ip_address
+        required: True
+        example_values: 127.0.0.1|example.org
+    user_file:
+        type: file
+        required: True
+        example_values: ~/users.txt
+    port_number:
+        type: port_number
+        required: True
+        example_values: 79
+        default_value: 79
+
+arguments: "-o {output_dir}/{date}_{target_name}_msf-scanner-finger-users -q -x \"use auxiliary/scanner/finger/finger_users; set USERS_FILE '{user_file}'; set RHOSTS '{target}'; set RPORT '{port_number}'; run; exit\""
+stdout: True

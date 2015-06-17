@@ -30,7 +30,7 @@ import yaml
 
 class Arguments:
     argparse_description = '''
-autopwn 0.21.0
+autopwn 0.21.1
 By Aidan Marlin
 Email: aidan [dot] marlin [at] nccgroup [dot] trust'''
 
@@ -124,7 +124,7 @@ Legal purposes only..
         if self.parser.parallel == True:
             config.arguments['parallel'] = True
 
-        print("autopwn v0.21.0 - Autoloading targets and modules")
+        print("autopwn v0.21.1 - Autoloading targets and modules")
         print()
         for target in target_objects['targets']:
             if target.get('modules',False) == False:
@@ -555,7 +555,7 @@ class Save:
                                 parameter_found = parameter_found or self.check_required_exists(config,required_option)
                         if tool_required == True:
                             parameter_found = self.check_required_exists(config,option)
-                        if parameter_found == False:
+                        if parameter_found == False and tool_required == True:
                             # TODO Check this actually works now that assessments are in
                             config.job_queue.pop()
                             config.job_queue_add_success = False
@@ -681,7 +681,7 @@ class Log:
             except OSError as e:
                 Error(30,"[E] Error creating log file: " + e)
             if config.status['log_started'] != True:
-                log_file.write("## autopwn 0.21.0 command output\n")
+                log_file.write("## autopwn 0.21.1 command output\n")
                 log_file.write("## Started logging at " + date_time + "...\n")
                 config.status['log_started'] = True
 
@@ -937,7 +937,7 @@ def _main(arglist):
         Arguments(sys.argv[1:]).parser
     else:
         # Drop user to shell
-        Shell().cmdloop("autopwn 0.21.0 shell. Type help or ? to list commands.\n")
+        Shell().cmdloop("autopwn 0.21.1 shell. Type help or ? to list commands.\n")
 
 def main():
     try:
