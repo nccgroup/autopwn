@@ -3,6 +3,7 @@
 import argparse
 import copy
 import cmd
+import collections
 import operator
 import os
 import random
@@ -126,6 +127,14 @@ Legal purposes only..
 
         print("autopwn v0.21.1 - Autoloading targets and modules")
         print()
+
+        dup_check = {}
+        for target in target_objects['targets']:
+            if dup_check.get(target['target_name'],None) == None:
+                dup_check[target['target_name']] = True
+            else:
+                Error(110,"[E] The following duplicate target_name was identified: " + target['target_name'])
+
         for target in target_objects['targets']:
             if target.get('modules',False) == False:
                 Error(90,"[E] One of the targets has no modules defined")
@@ -145,6 +154,7 @@ Legal purposes only..
             config.instance = {}
             config.instance['tool'] = []
             config.instance['config'] = {}
+
         Run(config)
 
 class Configuration:
@@ -542,36 +552,75 @@ class Save:
                     config.job_queue_add_success = True
                     config.job_queue[-1]['options'] = {}
                     for option in config.instance['config']:
-                        config.job_queue[-1]['options'][option] = config.instance['config'][option]
+                        config.job_queue[-1]['options'][option] = \
+                            config.instance['config'][option]
 
                     # Check all required parameters exist before save
                     for option in imported_tool['options']:
                         parameter_found = False
-                        tool_required = imported_tool['options'][option].get('required',False)
+                        tool_option = imported_tool['options'][option]\
+                                        .get('required', False)
 
-                        if type(tool_required) == list:
+                        if type(tool_option) == list:
                             ### Check that at least one exists
-                            for required_option in tool_required:
-                                parameter_found = parameter_found or self.check_required_exists(config,required_option)
-                        if tool_required == True:
-                            parameter_found = self.check_required_exists(config,option)
-                        if parameter_found == False and tool_required == True:
-                            # TODO Check this actually works now that assessments are in
-                            config.job_queue.pop()
-                            config.job_queue_add_success = False
-                            if config.status['command_line'] != True:
-                                print("Some required parameters have not been set")
+                            for required_option in tool_option:
+                                parameter_found = parameter_found or \
+                                                  self.check_required_exists\
+                                                  (config,required_option)
+                        if tool_option == True:
+                            parameter_found = self.check_required_exists\
+                                              (config,option)
+
+                        if parameter_found == False and tool_option == True:
+                            #print("debug: remove_instance to be called due to parameter_found == false and tool_option == true")
+                            self.remove_instance(config)
                             return
+
+                    # Set default option values for options
+                    # (An option value becomes another option value)
+                    for option in imported_tool['options']:
+                        #print("debug: option == " + option)
+                        default_option_value = imported_tool['options'][option].\
+                                        get('default_option_value', None)
+                        # Is there a default option
+                        if default_option_value != None:
+                            #print("debug: config.instance = " + str(config.instance['config']))
+                            config.instance['config'][option] = \
+                                str(config.instance['config'][option][default_option_value])
+                        #else:
+                        #    print("debug config.instance = " + str(config.instance['config']))
+                        #    print("debug: remove_instance to be called due to default_option set to none")
+                        #    self.remove_instance(config)
+                        #    return
+
         if config.status['command_line'] != True:
             if len(config.job_queue) == 1:
                 print("There is 1 job in the queue")
             else:
-                print("There are " + str(len(config.job_queue)) + " jobs in the queue")
+                print("There are " + str(len(config.job_queue)) + \
+                      " jobs in the queue")
+
+    def remove_instance(self, config):
+        # TODO Check this actually works 
+        # now that assessments are in
+        #print("debug: remove_instance trigger!")
+        config.job_queue.pop()
+        config.job_queue_add_success = False
+
+        if config.status['command_line'] != True:
+            print("Some required parameters have not been set")
 
     def check_required_exists(self, config, option):
         parameter_found = False
 
-        if option in config.job_queue[-1]['options']:
+        for tool in config.tools:
+            if config.job_queue[-1]['name'] == tool['name']:
+                instance_tool = tool
+                break
+
+        if option in config.job_queue[-1]['options'] or \
+           instance_tool['options'][option]\
+           .get('default_option_value', None) != None:
             parameter_found = True
         return parameter_found
 

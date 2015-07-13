@@ -28,3 +28,8 @@ TODO
 12a) Description for options
 12b) Cleaner screen death
 13 - stderr handling for tools
+
+14 - Lists of IPs, target_list..
+15 - No target_name? Name default to target (remember to replace / with _)
+16 - Batch process (option to limit to X number of processes
+17 - Work on documentation (man page, wiki, youtube)

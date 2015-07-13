@@ -3,12 +3,13 @@ binary_name: sslscan
 url: http://sourceforge.net/projects/sslscan/
 description: sslscan tests SSL/TLS enabled services to discover supported cipher suites.
 autopwn_version: 0.21.1
-assessment_groups: ['ssl-audit']
+assessment_groups: ['ssl_audit']
 
 options:
     target_name:
         required: True
         example_values: target1
+        default_option_value: target
     target:
         type: ip_address
         required: True
