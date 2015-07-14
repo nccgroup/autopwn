@@ -8,7 +8,7 @@ long_desc = '''autopwn is designed to make a pentester's life easier and more co
 setup(
     name='autopwn',
     version='0.21.1',
-    description='Specify pentest targets and run sets of tools against them',
+    description='Specify targets and run sets of tools against them',
     long_description=long_desc,
     author='Aidan Marlin',
     author_email='aidan.marlin@nccgroup.trust',
@@ -26,5 +26,6 @@ setup(
         'Programming Language :: Python :: 3',
         'Intended Audience :: Information Technology',
         'Topic :: Security',
-        'Environment :: Console']
+        'Environment :: Console'],
+    keywords='autopwn pentest automate toolset hack'
 )
