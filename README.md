@@ -11,6 +11,12 @@ probably be useful during certain exams as well..
 
 ## Installation
 
+### From the Python Package Index:
+
+1. Execute ``pip install autopwn``
+
+### From this repository:
+
 1. Clone the Git repository
 2. Change into the newly created directory
 3. Execute ``pip install .``
