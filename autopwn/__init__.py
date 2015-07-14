@@ -31,7 +31,7 @@ import yaml
 
 class Arguments:
     argparse_description = '''
-autopwn 0.21.1
+autopwn 0.21.2
 By Aidan Marlin
 Email: aidan [dot] marlin [at] nccgroup [dot] trust'''
 
@@ -110,14 +110,9 @@ Legal purposes only..
 
         self.parser = self.parser.parse_args(argslist)
 
-        # TODO check file exists
-        if os.path.isfile(self.parser.targets) == True:
-            stream = open(self.parser.targets, 'r')
-            target_objects = yaml.load(stream)
-        else:
-            Error(100,"[E] Targets file does not exist")
-
+        # Load targets file
         config = Configuration(True)
+        Load(config, self.parser.targets)
 
         # Process boolean command line arguments
         if self.parser.with_screen == True:
@@ -125,16 +120,19 @@ Legal purposes only..
         if self.parser.parallel == True:
             config.arguments['parallel'] = True
 
-        print("autopwn v0.21.1 - Autoloading targets and modules")
+        print("autopwn v0.21.2 - Autoloading targets and modules")
         print()
 
+        # Check for duplicate target names
         dup_check = {}
+
         for target in target_objects['targets']:
             if dup_check.get(target['target_name'],None) == None:
                 dup_check[target['target_name']] = True
             else:
                 Error(110,"[E] The following duplicate target_name was identified: " + target['target_name'])
 
+        # Check for module presence, which is a requirement when running CLI only
         for target in target_objects['targets']:
             if target.get('modules',False) == False:
                 Error(90,"[E] One of the targets has no modules defined")
@@ -527,18 +525,32 @@ class Process:
 # Load target files
 class Load:
     def __init__(self, config, arg):
-        # TODO check file exists
+        # Load targets file
         if os.path.isfile(arg) == True:
             stream = open(arg, 'r')
-            target_objects = yaml.load(stream)
-            config.status['file_found'] = True
+            try:
+                target_objects = yaml.load(stream)
+            except:
+                Error(1,"[E] Targets file is not valid YAML format")
         else:
-            config.status['file_found'] = False
-            print("[I] Targets file not found")
-            return
+            Error(100,"[E] Targets file does not exist")
 
-        for target in target_objects['targets']:
-            AutoSet(config,target)
+        # Check validity of targets file
+        if target_objects.get('targets', None) == None:
+            Error(2,"[E] Targets file missing targets entry")
+        else:
+            for target in target_objects['targets']:
+                # If targets exists we must check its type before interrogating
+                if type(target) != dict:
+                    Error(3,"[E] Target entry missing target_name and/or target")
+                if target.get('target_name', None) == None or \
+                   target.get('target', None) == None:
+                    Error(3,"[E] Target entry missing target_name and/or target")
+
+        # If autopwn shell is in use, we should AutoSet()
+        if config.status['command_line'] != True:
+            for target in target_objects['targets']:
+                AutoSet(config,target)
 
 class Save:
     def __init__(self, config):
@@ -730,7 +742,7 @@ class Log:
             except OSError as e:
                 Error(30,"[E] Error creating log file: " + e)
             if config.status['log_started'] != True:
-                log_file.write("## autopwn 0.21.1 command output\n")
+                log_file.write("## autopwn 0.21.2 command output\n")
                 log_file.write("## Started logging at " + date_time + "...\n")
                 config.status['log_started'] = True
 
@@ -986,7 +998,7 @@ def _main(arglist):
         Arguments(sys.argv[1:]).parser
     else:
         # Drop user to shell
-        Shell().cmdloop("autopwn 0.21.1 shell. Type help or ? to list commands.\n")
+        Shell().cmdloop("autopwn 0.21.2 shell. Type help or ? to list commands.\n")
 
 def main():
     try:

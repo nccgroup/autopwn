@@ -1,4 +1,4 @@
-# autopwn v0.21.1 yaml tool config file
+# autopwn v0.21.2 yaml tool config file
 
 # The name as it will be referenced by in assessments
 name: example
@@ -15,7 +15,7 @@ description: Describes which options can be set and what they mean
 
 # Version
 # The autopwn version with which this config file is compatible with
-autopwn_version: 0.21.1
+autopwn_version: 0.21.2
 
 # Assessment groups
 # To which assessments this tool should belong
