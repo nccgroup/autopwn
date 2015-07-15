@@ -31,7 +31,7 @@ import yaml
 
 class Arguments:
     argparse_description = '''
-autopwn 0.22.0
+autopwn 0.22.1
 By Aidan Marlin
 Email: aidan [dot] marlin [at] nccgroup [dot] trust'''
 
@@ -120,20 +120,21 @@ Legal purposes only..
         if self.parser.parallel == True:
             config.arguments['parallel'] = True
 
-        print("autopwn v0.22.0 - Autoloading targets and modules")
+        print("autopwn v0.22.1 - Autoloading targets and modules")
         print()
 
         # Check for duplicate target names
         dup_check = {}
 
-        for target in target_objects['targets']:
+        print("debug: config.instance == " + str(config.instance))
+        for target in config.target_objects['targets']:
             if dup_check.get(target['target_name'],None) == None:
                 dup_check[target['target_name']] = True
             else:
                 Error(110,"[E] The following duplicate target_name was identified: " + target['target_name'])
 
         # Check for module presence, which is a requirement when running CLI only
-        for target in target_objects['targets']:
+        for target in config.target_objects['targets']:
             if target.get('modules',False) == False:
                 Error(90,"[E] One of the targets has no modules defined")
             for module in target['modules']:
@@ -541,6 +542,7 @@ class Load:
             stream = open(arg, 'r')
             try:
                 target_objects = yaml.load(stream)
+                config.target_objects = target_objects
             except:
                 Error(1,"[E] Targets file is not valid YAML format")
         else:
@@ -753,7 +755,7 @@ class Log:
             except OSError as e:
                 Error(30,"[E] Error creating log file: " + e)
             if config.status['log_started'] != True:
-                log_file.write("## autopwn 0.22.0 command output\n")
+                log_file.write("## autopwn 0.22.1 command output\n")
                 log_file.write("## Started logging at " + date_time + "...\n")
                 config.status['log_started'] = True
 
@@ -1009,7 +1011,7 @@ def _main(arglist):
         Arguments(sys.argv[1:]).parser
     else:
         # Drop user to shell
-        Shell().cmdloop("autopwn 0.22.0 shell. Type help or ? to list commands.\n")
+        Shell().cmdloop("autopwn 0.22.1 shell. Type help or ? to list commands.\n")
 
 def main():
     try:
