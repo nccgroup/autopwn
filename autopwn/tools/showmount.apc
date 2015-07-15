@@ -1,8 +1,8 @@
 name: showmount
-binary_name: showmount
+dependencies: ['showmount']
 url: http://linuxcommand.org/man_pages/showmount8.html
 description: showmount - show mount information for an NFS server
-autopwn_version: 0.21.2
+autopwn_version: 0.22.0
 assessment_groups: ['infrastructure', 'showmount']
 
 options:
@@ -14,5 +14,5 @@ options:
         required: True
         example_values: 127.0.0.1|example.org
 
-arguments: "-e {target} > {output_dir}/{date}_{target_name}_showmount"
+execute_string: "showmount -e {target} > {output_dir}/{date}_{target_name}_showmount"
 stdout: True

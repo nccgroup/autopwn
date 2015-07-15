@@ -1,4 +1,4 @@
 name: ssl-audit
 long_name: SSL Audit
-autopwn_version: 0.21.2
+autopwn_version: 0.22.0
 description: Run SSL auditing tools against target.

@@ -1,8 +1,8 @@
 name: sslscan
-binary_name: sslscan
+dependencies: ['sslscan']
 url: http://sourceforge.net/projects/sslscan/
 description: sslscan tests SSL/TLS enabled services to discover supported cipher suites.
-autopwn_version: 0.21.2
+autopwn_version: 0.22.0
 assessment_groups: ['ssl_audit']
 
 options:
@@ -24,5 +24,5 @@ options:
         example_values: https
         default_value: https
 
-arguments: "--no-colour {target}:{port_number} > {output_dir}/{date}_{target_name}_sslscan"
+execute_string: "sslscan --no-colour {target}:{port_number} > {output_dir}/{date}_{target_name}_sslscan"
 stdout: False

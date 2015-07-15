@@ -1,8 +1,8 @@
 name: sslyze
-binary_name: sslyze
+dependencies: ['sslyze']
 url: https://github.com/iSECPartners/sslyze
 description: Fast and full-featured SSL scanner.
-autopwn_version: 0.21.2
+autopwn_version: 0.22.0
 assessment_groups: ['ssl_audit']
 
 options:
@@ -23,5 +23,5 @@ options:
         example_values: http|https
         default_value: https
 
-arguments: "--regular {target}:{port_number} > {output_dir}/{date}_{target_name}_sslyze"
+execute_string: "sslyze --regular {target}:{port_number} > {output_dir}/{date}_{target_name}_sslyze"
 stdout: False

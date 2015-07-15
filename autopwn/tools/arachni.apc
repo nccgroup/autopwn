@@ -1,8 +1,8 @@
 name: arachni
-binary_name: arachni
+dependencies: ['arachni']
 url: http://www.arachni-scanner.com/
 description: Arachni is a Free/Open-Source Web Application Security Scanner aimed towards helping users evaluate the security of web applications.
-autopwn_version: 0.21.2
+autopwn_version: 0.22.0
 assessment_groups: ['webapp']
 
 options:
@@ -40,5 +40,5 @@ option-formats:
         argument-encapsulation: ''
 
 post_tool_execution: "arachni_reporter {output_dir}/*.afr --report=html:outfile={output_dir}/{date}_{name}_arachni_reporter_{target_name}.zip  && mkdir {output_dir}/{date}_{name}_arachni_reporter_{target_name} && unzip {output_dir}/{date}_{name}_arachni_reporter_{target_name}.zip -d {output_dir}/{date}_{name}_arachni_reporter_{target_name}"
-arguments: "{cookie_arguments} {protocol}://{target}:{port_number}/{url} --report-save-path {output_dir}/"
+execute_string: "arachni {cookie_arguments} {protocol}://{target}:{port_number}/{url} --report-save-path {output_dir}/"
 stdout: True

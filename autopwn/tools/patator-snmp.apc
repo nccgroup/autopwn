@@ -1,8 +1,8 @@
 name: patator_snmp
-binary_name: patator
+dependencies: ['patator']
 url: https://github.com/lanjelot/patator/
 description: Patator brute force tool - SNMP module
-autopwn_version: 0.21.2
+autopwn_version: 0.22.0
 assessment_groups: ['brute']
 
 options:
@@ -23,5 +23,5 @@ options:
         required: True
         example_values: ~/community_strings.txt
 
-arguments: "snmp_login host={target} port={port_number} community=FILE0 0={community_file} -x ignore:mesg='No SNMP response received before timeout' 2> {output_dir}/{date}_{target_name}_patator-snmp"
+execute_string: "patator snmp_login host={target} port={port_number} community=FILE0 0={community_file} -x ignore:mesg='No SNMP response received before timeout' 2> {output_dir}/{date}_{target_name}_patator-snmp"
 stdout: False

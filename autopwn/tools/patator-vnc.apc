@@ -1,8 +1,8 @@
 name: patator_vnc
-binary_name: patator
+dependencies: ['patator']
 url: https://github.com/lanjelot/patator/
 description: Patator brute force tool - VNC module
-autopwn_version: 0.21.2
+autopwn_version: 0.22.0
 assessment_groups: ['brute']
 
 options:
@@ -27,5 +27,5 @@ options:
         required: True
         example_values: ~/passwords.txt
 
-arguments: "vnc_login host={target} port={port_number} password=FILE0 0={password_file} -t 1 -x retry:fgrep!='Authentication failure' --max-retries -1 -x quit:code=0 2> {output_dir}/{date}_{target_name}_patator-vnc"
+execute_string: "patator vnc_login host={target} port={port_number} password=FILE0 0={password_file} -t 1 -x retry:fgrep!='Authentication failure' --max-retries -1 -x quit:code=0 2> {output_dir}/{date}_{target_name}_patator-vnc"
 stdout: False

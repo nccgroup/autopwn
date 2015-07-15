@@ -1,8 +1,8 @@
 name: testsslserver
-binary_name: /root/Downloads/TestSSLServer.jar
+dependencies: ['/root/Downloads/TestSSLServer.jar']
 url: http://www.bolet.org/TestSSLServer/
 description: TestSSLServer is a simple command-line tool which contacts a SSL/TLS server (name and port are given as parameters) and obtains some information from it.
-autopwn_version: 0.21.2
+autopwn_version: 0.22.0
 assessment_groups: ['ssl_audit']
 
 options:
@@ -23,5 +23,5 @@ options:
         example_values: http|https
         default_value: https
 
-arguments: "{target} {port_number} > {output_dir}/{date}_{target_name}_testsslserver"
+execute_string: "testsslserver {target} {port_number} > {output_dir}/{date}_{target_name}_testsslserver"
 stdout: False

@@ -7,7 +7,7 @@ name: example
 long_name: Example (Parallel)
 
 # Autopwn version
-autopwn_version: 0.21.2
+autopwn_version: 0.22.0
 
 # Assessment description
 description: Example assessment configuration file

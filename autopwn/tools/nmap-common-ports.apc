@@ -1,8 +1,8 @@
 name: nmap_common_ports
-binary_name: nmap
+dependencies: ['nmap']
 url: http://nmap.org/
 description: Nmap ("Network Mapper") is a free and open source (license) utility for network discovery and security auditing.
-autopwn_version: 0.21.2
+autopwn_version: 0.22.0
 assessment_groups: ['nmap-common-ports', 'infrastructure']
 
 options:
@@ -25,5 +25,5 @@ option-formats:
         option-separator: ' '
         substitution: '{0}'
 
-arguments: "-A -sS -sC -sV {ip_address_list} {target} -oA {output_dir}/{date}_{target_name}_nmap_common_ports"
+execute_string: "nmap -A -sS -sC -sV {ip_address_list} {target} -oA {output_dir}/{date}_{target_name}_nmap_common_ports"
 stdout: True

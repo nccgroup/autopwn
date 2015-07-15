@@ -15,6 +15,8 @@ TODO
 - Harvester?
 - patator
 - recon tools?
+- lynis
+- nessus(?)
 4b) Start looking more into tools
 5 - Windows support?
 6 - Improve Ctrl+c support
@@ -33,3 +35,4 @@ TODO
 15 - No target_name? Name default to target (remember to replace / with _)
 16 - Batch process (option to limit to X number of processes
 17 - Work on documentation (man page, wiki, youtube)
+18 - Post tool execution implementation

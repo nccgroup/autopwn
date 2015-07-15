@@ -1,8 +1,8 @@
 name: skipfish
-binary_name: skipfish
+dependencies: ['skipfish']
 url: https://code.google.com/p/skipfish/
 description: Skipfish is an active web application security reconnaissance tool.
-autopwn_version: 0.21.2
+autopwn_version: 0.22.0
 assessment_groups: ['webapp']
 
 options:
@@ -24,7 +24,7 @@ options:
         default_value: http
 
 option-formats:
-    cookie_arguments:
+    cookie_execute_string:
         option: '-C'
         option-separator: ' '
         substitution: '{0}={1}'
@@ -32,5 +32,5 @@ option-formats:
         argument-separator: ' '
         argument-encapsulation: ''
 
-arguments: "-o {output_dir}/{date}_{target_name}_skipfish {cookie_arguments} -u -U -O {protocol}://{target}:{port_number}/{url}"
+execute_string: "skipfish -o {output_dir}/{date}_{target_name}_skipfish {cookie_arguments} -u -U -O {protocol}://{target}:{port_number}/{url}"
 stdout: True

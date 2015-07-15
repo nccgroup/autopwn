@@ -1,9 +1,8 @@
 name: cmsmap_drupal
-binary_prepend: python2
-binary_name: /root/work/git/CMSmap/cmsmap.py
+dependencies: ['python2', '/root/work/git/CMSmap/cmsmap.py']
 url: https://github.com/Dionach/CMSmap 
 description: CMSmap - Drupal instance.
-autopwn_version: 0.21.2
+autopwn_version: 0.22.0
 assessment_groups: ['drupal']
 
 options:
@@ -24,5 +23,5 @@ options:
         example_values: http|https
         default_value: http
 
-arguments: "-f D -t {protocol}://{target}:{port_number} -o {output_dir}/{date}_{target_name}_cmsmap"
+execute_string: "python2 /root/work/git/CMSmap/cmsmap.py -f D -t {protocol}://{target}:{port_number} -o {output_dir}/{date}_{target_name}_cmsmap"
 stdout: True

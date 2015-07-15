@@ -1,8 +1,8 @@
 name: msfconsole_scanner_smtp_enum
-binary_name: msfconsole
+dependencies: ['msfconsole']
 url: https://www.offensive-security.com/metasploit-unleashed/scanner-smtp-auxiliary-modules/
 description: Enumerate users using SMTP
-autopwn_version: 0.21.2
+autopwn_version: 0.22.0
 assessment_groups: ['infrastructure', 'msf']
 
 options:
@@ -23,5 +23,5 @@ options:
         example_values: 25
         default_value: 25
 
-arguments: "-o {output_dir}/{date}_{target_name}_msf-scanner-smtp-enum -q -x \"use auxiliary/scanner/smtp/smtp_enum; set USER_FILE '{user_file}'; set RHOSTS '{target}'; set RPORT '{port_number}'; run; exit\""
+execute_string: "msfconsole -o {output_dir}/{date}_{target_name}_msf-scanner-smtp-enum -q -x \"use auxiliary/scanner/smtp/smtp_enum; set USER_FILE '{user_file}'; set RHOSTS '{target}'; set RPORT '{port_number}'; run; exit\""
 stdout: True

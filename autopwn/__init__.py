@@ -31,7 +31,7 @@ import yaml
 
 class Arguments:
     argparse_description = '''
-autopwn 0.21.2
+autopwn 0.22.0
 By Aidan Marlin
 Email: aidan [dot] marlin [at] nccgroup [dot] trust'''
 
@@ -120,7 +120,7 @@ Legal purposes only..
         if self.parser.parallel == True:
             config.arguments['parallel'] = True
 
-        print("autopwn v0.21.2 - Autoloading targets and modules")
+        print("autopwn v0.22.0 - Autoloading targets and modules")
         print()
 
         # Check for duplicate target names
@@ -270,6 +270,11 @@ class Use:
 
         for tool in config.tools:
             if tool['name'] == tool_name:
+                for dependency in tool['dependencies']:
+                    if self.binary_exists(dependency) != True:
+                        print("[I] Missing binary/script - " + dependency)
+                        return
+
                 config.status['resource_found'] = True
                 config.instance['tool'].append(tool['name'])
 
@@ -296,6 +301,20 @@ class Use:
                     for assessment_type in tool['assessment_groups']:
                         if assessment_type == assessment_name:
                             config.instance['tool'].append(tool['name'])
+
+    def binary_exists(self, binary_string):
+        try:
+            which_return_code = subprocess.call(["which",binary_string],stdout=open(os.devnull,'wb'),stderr=open(os.devnull,'wb'))
+            if which_return_code == 0:
+                return True
+            else:
+                return False
+        except OSError as e:
+            if e.errno == os.errno.ENOENT:
+                Error(55,"[E] 'which' binary couldn't be found")
+            else:
+                # Not sure what's happening at this point
+                raise
 
 class Show:
     def __init__(self, config, arg):
@@ -473,19 +492,11 @@ class Process:
                                 "_autopwn_" + \
                                 instance['options']['target_name']
 
-            if hasattr(instance,'binary_prepend') == True:
-                if self.binary_exists(instance['binary_prepend']) != True:
-                    print("[I] Missing binary/script - " + instance['binary_prepend'])
-                    #return debug:
-            if self.binary_exists(instance['binary_name']) != True:
-                # Error(50,"[E] Missing binary/script - " + instance['binary_name'])
-                print("[I] Missing binary/script - " + instance['binary_name'])
-                #return debug:
-
-            if hasattr(instance,'binary_prepend') == True:
-                instance['execute_string'] = instance['binary_prepend'] + " " + instance['binary_name'] + " " + instance['arguments']
-            else:
-                instance['execute_string'] = instance['binary_name'] + " " + instance['arguments']
+            # TODO This is no good anymore
+            #if hasattr(instance,'binary_prepend') == True:
+            #    instance['execute_string'] = instance['binary_prepend'] + " " + instance['binary_name'] + " " + instance['arguments']
+            #else:
+            #    instance['execute_string'] = instance['binary_name'] + " " + instance['arguments']
 
             if config.arguments['screen'] == True:
                 if self.binary_exists('screen') != True and self.binary_exists('bash') != True:
@@ -742,7 +753,7 @@ class Log:
             except OSError as e:
                 Error(30,"[E] Error creating log file: " + e)
             if config.status['log_started'] != True:
-                log_file.write("## autopwn 0.21.2 command output\n")
+                log_file.write("## autopwn 0.22.0 command output\n")
                 log_file.write("## Started logging at " + date_time + "...\n")
                 config.status['log_started'] = True
 
@@ -810,7 +821,7 @@ class View:
 
             if config.instance['config']['single_tool'] == True:
                 if config.status['resource_found'] == False:
-                    print("Please specify a valid tool or assessment")
+                    print("Could not load tool or assessment")
                 else:
                     for tool in config.tools:
                         if tool['name'] == config.instance['tool'][0]:
@@ -998,7 +1009,7 @@ def _main(arglist):
         Arguments(sys.argv[1:]).parser
     else:
         # Drop user to shell
-        Shell().cmdloop("autopwn 0.21.2 shell. Type help or ? to list commands.\n")
+        Shell().cmdloop("autopwn 0.22.0 shell. Type help or ? to list commands.\n")
 
 def main():
     try:

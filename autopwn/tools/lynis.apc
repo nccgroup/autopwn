@@ -1,0 +1,33 @@
+name: lynis
+dependencies: ['lynis', 'sshpass']
+url: https://cisofy.com/lynis/
+description: Lynis is an open source security auditing tool.
+autopwn_version: 0.22.0
+assessment_groups: ['unix_audit']
+
+options:
+    target_name:
+        required: True
+        example_values: target1
+    target:
+        type: ip_address
+        required: True
+        example_values: 127.0.0.1|example.org
+    port_number:
+        type: port_number
+        required: True
+        example_values: 22|2222
+        default_value: 22
+    ssh_username:
+        type: user
+        required: True
+        example_values: user|root
+        default_value: root
+    ssh_password:
+        type: password
+        required: True
+        example_values: password|letmein
+
+execute_string: "sshpass -p '{ssh_password}' ssh -p 22 {ssh_username}@{target} 'lynis --no-colors --quick audit system > {date}_{target_name}_lynis.txt'"
+post_tool_execution: "sshpass -p '{ssh_password}' scp -P 22 {ssh_username}@{target}:~/{date}_{target_name}_lynis.txt  {output_dir}/{date}_{target_name}_lynis.txt"
+stdout: True

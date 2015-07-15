@@ -1,3 +1,9 @@
+autopwn v0.22.0 - 20150715
+
+* Replaced binary_name and binary_prepend
+  in tools with dependencies list
+* Added Lynis tool
+
 autopwn v0.21.2 - 20150714
 
 * Bug fixes

@@ -1,8 +1,8 @@
 name: patator_ftp
-binary_name: patator
+dependencies: ['patator']
 url: https://github.com/lanjelot/patator/
 description: Patator brute force tool - FTP module
-autopwn_version: 0.21.2
+autopwn_version: 0.22.0
 assessment_groups: ['brute']
 
 options:
@@ -26,5 +26,5 @@ options:
         required: True
         example_values: ~/passwords.txt
 
-arguments: "ftp_login host={target} port={port_number} user=FILE0 0={user_file} password=FILE1 1={password_file} -x ignore:mesg='Login incorrect.' -x ignore,reset,retry:code=500 2> {output_dir}/{date}_{target_name}_patator-ftp"
+execute_string: "patator ftp_login host={target} port={port_number} user=FILE0 0={user_file} password=FILE1 1={password_file} -x ignore:mesg='Login incorrect.' -x ignore,reset,retry:code=500 2> {output_dir}/{date}_{target_name}_patator-ftp"
 stdout: False
