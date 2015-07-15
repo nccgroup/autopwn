@@ -31,7 +31,7 @@ import yaml
 
 class Arguments:
     argparse_description = '''
-autopwn 0.23.0
+autopwn 0.24.0
 By Aidan Marlin
 Email: aidan [dot] marlin [at] nccgroup [dot] trust'''
 
@@ -136,7 +136,7 @@ Legal purposes only..
         if self.parser.parallel == True:
             config.arguments['parallel'] = True
 
-        print("autopwn v0.23.0 - Autoloading targets and modules")
+        print("autopwn v0.24.0 - Autoloading targets and modules")
         print()
 
         # Check for duplicate target names
@@ -318,7 +318,7 @@ class Use:
         for tool in config.tools:
             if tool['name'] == tool_name:
                 for dependency in tool['dependencies']:
-                    if self.binary_exists(dependency) != True:
+                    if Process.binary_exists(self, dependency) != True:
                         print("[I] Missing binary/script - " + dependency)
                         return
 
@@ -348,20 +348,6 @@ class Use:
                     for assessment_type in tool['assessment_groups']:
                         if assessment_type == assessment_name:
                             config.instance['tool'].append(tool['name'])
-
-    def binary_exists(self, binary_string):
-        try:
-            which_return_code = subprocess.call(["which",binary_string],stdout=open(os.devnull,'wb'),stderr=open(os.devnull,'wb'))
-            if which_return_code == 0:
-                return True
-            else:
-                return False
-        except OSError as e:
-            if e.errno == os.errno.ENOENT:
-                Error(55,"[E] 'which' binary couldn't be found")
-            else:
-                # Not sure what's happening at this point
-                raise
 
 class Show:
     def __init__(self, config, arg):
@@ -490,11 +476,19 @@ class Set:
         args = arg.split(" ")
 
         # Check number of arguments specified
-        if len(args) != 2:
-            print("Wrong number of arguments specified for set")
-            return
-        option = args[0]
-        value = args[1]
+        if args[0] != "command":
+            if len(args) != 2:
+                print("Wrong number of arguments specified for set")
+                return
+            option = args[0]
+            value = args[1]
+        else:
+            if len(args) >= 2:
+                option = args[0]
+                value = re.sub('^command ','', arg)
+            else:
+                print("Wrong number of arguments specified for set")
+                return
 
         # If global.some_option set, switch context
         option_with_context = option.split('.')
@@ -637,24 +631,19 @@ class Save:
                                               (config,option)
 
                         if parameter_found == False and tool_option == True:
-                            #print("debug: remove_instance to be called due to parameter_found == false and tool_option == true")
                             self.remove_instance(config)
                             return
 
                     # Set default option values for options
                     # (An option value becomes another option value)
                     for option in imported_tool['options']:
-                        #print("debug: option == " + option)
                         default_option_value = imported_tool['options'][option].\
                                         get('default_option_value', None)
                         # Is there a default option
                         if default_option_value != None:
-                            #print("debug: config.instance = " + str(config.instance['config']))
                             config.instance['config'][option] = \
                                 str(config.instance['config'][option][default_option_value])
                         #else:
-                        #    print("debug config.instance = " + str(config.instance['config']))
-                        #    print("debug: remove_instance to be called due to default_option set to none")
                         #    self.remove_instance(config)
                         #    return
 
@@ -668,7 +657,6 @@ class Save:
     def remove_instance(self, config):
         # TODO Check this actually works 
         # now that assessments are in
-        #print("debug: remove_instance trigger!")
         config.job_queue.pop()
         config.job_queue_add_success = False
 
@@ -743,7 +731,7 @@ class RunThreads (threading.Thread):
         self.instance = instance
         self.config = config
 
-    def execute_tool(self):
+    def execute_tool(self, config):
         # Always check any tools provided by
         # community members
         # Bad bug using this and no shell for Popen,
@@ -756,10 +744,16 @@ class RunThreads (threading.Thread):
 
         exitcode = proc.returncode
 
+        # Log if tool did not exit with zero status
+        if exitcode != 0:
+            log = Log(self.config, os.getcwd(), False, 'tool_string', "# WARNING: " + \
+                  self.instance['name'] + " for " + \
+                  self.instance['options']['target_name'] + " exited with non-zero return code")
+
     def run(self):
         print("[+] Launching " + self.instance['name'] + \
               " for " + self.instance['options']['target_name'])
-        self.execute_tool()
+        self.execute_tool(self.config)
         print("[-] " + self.instance['name'] + " for " + \
               self.instance['options']['target_name'] + " is done..")
         # Should we create a stdout log for this tool?
@@ -795,7 +789,7 @@ class Log:
             except OSError as e:
                 Error(30,"[E] Error creating log file: " + e)
             if config.status['log_started'] != True:
-                log_file.write("## autopwn 0.23.0 command output\n")
+                log_file.write("## autopwn 0.24.0 command output\n")
                 log_file.write("## Started logging at " + date_time + "...\n")
                 config.status['log_started'] = True
 
@@ -1051,7 +1045,7 @@ def _main(arglist):
         Arguments(sys.argv[1:]).parser
     else:
         # Drop user to shell
-        Shell().cmdloop("autopwn 0.23.0 shell. Type help or ? to list commands.\n")
+        Shell().cmdloop("autopwn 0.24.0 shell. Type help or ? to list commands.\n")
 
 def main():
     try:

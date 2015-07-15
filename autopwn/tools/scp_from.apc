@@ -1,9 +1,9 @@
 name: scp_from
-dependencies: ['scp']
-url: N/A
-description: scp to target
-autopwn_version: 0.23.0
-assessment_groups: ['scp', 'sshpass']
+dependencies: ['scp', 'sshpass']
+url: http://linux.die.net/man/1/scp
+description: scp files from a target
+autopwn_version: 0.24.0
+assessment_groups: ['scp']
 
 options:
     target_name:
@@ -25,7 +25,7 @@ options:
     destination_file:
         type: file
         required: True
-        example_values: ~/some_file|/etc/some_other_file
+        example_values: <output_dir/> some_file|some_other_file
     ssh_username:
         type: user
         required: True
@@ -35,5 +35,5 @@ options:
         required: True
         example_values: password|letmein
 
-execute_string: "sshpass -p '{ssh_password}' scp -P {port_number} {ssh_username}@{target}:{source_file} {destination_file}"
+execute_string: "sshpass -p '{ssh_password}' scp -P {port_number} {ssh_username}@{target}:{source_file} {output_dir}/{destination_file}"
 stdout: False

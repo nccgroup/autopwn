@@ -2,7 +2,7 @@ name: nmap
 dependencies: ['nmap']
 url: http://nmap.org/
 description: Nmap ("Network Mapper") is a free and open source (license) utility for network discovery and security auditing.
-autopwn_version: 0.23.0
+autopwn_version: 0.24.0
 assessment_groups: ['infrastructure', 'nmap']
 
 options:

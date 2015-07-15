@@ -2,7 +2,7 @@ name: httrack
 dependencies: ['httrack']
 url: http://www.httrack.com/
 description: HTTrack is a free (GPL, libre/free software) and easy-to-use offline browser utility. It allows you to download a World Wide Web site from the Internet
-autopwn_version: 0.23.0
+autopwn_version: 0.24.0
 assessment_groups: ['webapp']
 
 # TODO Add cookies?

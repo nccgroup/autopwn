@@ -2,7 +2,7 @@ name: enum4linux
 dependencies: ['enum4linux']
 url: https://labs.portcullis.co.uk/tools/enum4linux/
 description: Enum4linux is a tool for enumerating information from Windows and Samba systems.
-autopwn_version: 0.23.0
+autopwn_version: 0.24.0
 assessment_groups: ['infrastructure', 'windows_audit']
 
 options:

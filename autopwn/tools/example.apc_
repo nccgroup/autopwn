@@ -1,10 +1,10 @@
-# autopwn v0.23.0 yaml tool config file
-# TODO UPDATE
+# autopwn v0.24.0 yaml tool config file
+
 # The name as it will be referenced by in assessments
 name: example
 
-# Location of the file on filesystem
-binary_location: /usr/bin/example
+# Files which should be accessible in PATH
+dependencies: ['binary_1', 'binary_2']
 
 # Website
 url: http://example.net/
@@ -15,7 +15,7 @@ description: Describes which options can be set and what they mean
 
 # Version
 # The autopwn version with which this config file is compatible with
-autopwn_version: 0.23.0
+autopwn_version: 0.24.0
 
 # Assessment groups
 # To which assessments this tool should belong
@@ -111,7 +111,7 @@ post_tool_execution: "/usr/bin/example_report {output_dir}"
 # * output_dir (directory where tool output will be saved for specific target)
 # * ip_address_list (where the IP address option and argument go (e.g. '-i ips.txt')
 # * cookie_arguments (where the cookie arguments go (both the cookie files and cli options)
-execute_string: "{protocol}://{target}:{port_number} {cookie_arguments} -o {output_dir}/{date}_example_{target_name}"
+execute_string: "tool {protocol}://{target}:{port_number} {cookie_arguments} -o {output_dir}/{date}_example_{target_name}"
 
 # Given the arguments option, will this tool generate output? If redirection is used,
 # then this is not going to be the case (excluding stderr).

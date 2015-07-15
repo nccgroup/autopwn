@@ -2,7 +2,7 @@ name: skipfish
 dependencies: ['skipfish']
 url: https://code.google.com/p/skipfish/
 description: Skipfish is an active web application security reconnaissance tool.
-autopwn_version: 0.23.0
+autopwn_version: 0.24.0
 assessment_groups: ['webapp']
 
 options:

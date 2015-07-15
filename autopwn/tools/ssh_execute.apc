@@ -1,9 +1,9 @@
-name: scp_to
-dependencies: ['sshpass', 'scp']
-url: http://linux.die.net/man/1/scp
-description: scp files to a target
+name: ssh_execute
+dependencies: ['ssh']
+url: http://www.openssh.com/
+description: Execute commands on a remote machine via SSH
 autopwn_version: 0.24.0
-assessment_groups: ['scp']
+assessment_groups: ['ssh']
 
 options:
     target_name:
@@ -18,14 +18,6 @@ options:
         required: True
         example_values: 22
         default_value: 22
-    source_file:
-        type: file
-        required: True
-        example_values: ~/some_file|/etc/some_other_file
-    destination_file:
-        type: file
-        required: True
-        example_values: ~/some_file|/etc/some_other_file
     ssh_username:
         type: user
         required: True
@@ -34,6 +26,10 @@ options:
         type: password
         required: True
         example_values: password|letmein
+    command:
+        type: command
+        required: True
+        example_values: echo Hello World!|ls -alh /
 
-execute_string: "sshpass -p '{ssh_password}' scp -P {port_number} {source_file} {ssh_username}@{target}:{destination_file}"
+execute_string: "sshpass -p '{ssh_password}' ssh -p {port_number} {ssh_username}@{target} '{command}'"
 stdout: False

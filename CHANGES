@@ -1,3 +1,8 @@
+autopwn v0.24.0 - 20150715
+
+* New tools
+* Bug fixes
+
 autopwn v0.23.0 - 20150715
 
 * target_list can now be specified.

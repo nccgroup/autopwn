@@ -1,7 +1,7 @@
 TODO
 
 1 - TDD?
-2 - Have online repo where users can share yaml
+2 - Have online repo where users can share
     configs?
 3 - What if tool requires root?
 4 - Add support for:
@@ -13,9 +13,7 @@ TODO
 - davtest?
 - DNS tools
 - Harvester?
-- patator
 - recon tools?
-- lynis
 - nessus(?)
 4b) Start looking more into tools
 5 - Windows support?
@@ -26,13 +24,9 @@ TODO
 9 - Improve exit condition handling
 10 - User agent string modification option is supported by a number of tools
 11 - Man page
-12 - Finish autopwn shell feature
-12a) Description for options
-12b) Cleaner screen death
-13 - stderr handling for tools
+12 - stderr handling for tools
 
-14 - Lists of IPs, target_list..
-15 - No target_name? Name default to target (remember to replace / with _)
-16 - Batch process (option to limit to X number of processes
-17 - Work on documentation (man page, wiki, youtube)
-18 - Post tool execution implementation
+13 - No target_name? Name default to target (remember to replace / with _)
+14 - Batch process (option to limit to X number of processes)
+15 - Work on documentation (man page, wiki, youtube)
+16 - Post tool execution implementation

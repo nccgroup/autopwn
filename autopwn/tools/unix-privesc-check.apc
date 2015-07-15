@@ -1,7 +1,7 @@
-name: lynis
+name: unix-privesc-check
 dependencies: ['sshpass']
-url: https://cisofy.com/lynis/
-description: Lynis is an open source security auditing tool.
+url: https://github.com/pentestmonkey/unix-privesc-check
+description: Shell script to check for simple privilege escalation vectors on Unix systems
 autopwn_version: 0.24.0
 assessment_groups: ['unix_audit']
 
@@ -28,5 +28,5 @@ options:
         required: True
         example_values: password|letmein
 
-execute_string: "sshpass -p '{ssh_password}' ssh -p {port_number} {ssh_username}@{target} 'lynis/lynis --no-colors --quick audit system' > {output_dir}/{date}_{target_name}_lynis.txt"
+execute_string: "sshpass -p '{ssh_password}' ssh -p {port_number} {ssh_username}@{target} 'cd unix-privesc-check; ./upc.sh --type all' > {output_dir}/{date}_{target_name}_unix-privesc-check.txt"
 stdout: False
