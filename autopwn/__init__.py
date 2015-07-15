@@ -31,7 +31,7 @@ import yaml
 
 class Arguments:
     argparse_description = '''
-autopwn 0.22.1
+autopwn 0.23.0
 By Aidan Marlin
 Email: aidan [dot] marlin [at] nccgroup [dot] trust'''
 
@@ -55,6 +55,7 @@ Format of the target file can be be:
 targets:
    - target_name: <name_of_target>
      target: <ip_address/device_name/directory/etc>
+     target_list: <target_list_file>
      port_number: <port>
      protocol: <http|https|ssh|etc>
      url: <path>
@@ -63,13 +64,28 @@ targets:
      modules: <list_of_modules_to_run_against_target> 
 
 Compulsory options are specified by tool, but normally include
-'target_name' and 'target'.
+'target_name' and 'target' or just 'target_list'.
+
+'target_list' allows users to specify a list of targets separated by
+a new line. When specifying 'target_list', 'target' and 'target_name'
+should not be specified.
 
 Example file:
 
 targets:
    - target_name: test
      target: 127.0.0.1
+     url: /test
+     port_number: 80
+     protocol: https
+     user_file: /tmp/users
+     password_file: /tmp/passwords
+     modules: ['tool/nmap', 'tool/hydra', 'assessment/webapp']
+
+Another example file using target_list:
+
+targets:
+   - target_list: file_with_list_of_targets
      url: /test
      port_number: 80
      protocol: https
@@ -120,34 +136,54 @@ Legal purposes only..
         if self.parser.parallel == True:
             config.arguments['parallel'] = True
 
-        print("autopwn v0.22.1 - Autoloading targets and modules")
+        print("autopwn v0.23.0 - Autoloading targets and modules")
         print()
 
         # Check for duplicate target names
         dup_check = {}
 
-        print("debug: config.instance == " + str(config.instance))
-        for target in config.target_objects['targets']:
-            if dup_check.get(target['target_name'],None) == None:
-                dup_check[target['target_name']] = True
-            else:
-                Error(110,"[E] The following duplicate target_name was identified: " + target['target_name'])
+        # TODO Check for dups when target_list specified ...
+        #print("debug: config.instance == " + str(config.instance))
+        #for target in config.target_objects['targets']:
+        #    if dup_check.get(target['target_name'],None) == None:
+        #        dup_check[target['target_name']] = True
+        #    else:
+        #        Error(110,"[E] The following duplicate target_name was identified: " + target['target_name'])
 
         # Check for module presence, which is a requirement when running CLI only
         for target in config.target_objects['targets']:
-            if target.get('modules',False) == False:
-                Error(90,"[E] One of the targets has no modules defined")
-            for module in target['modules']:
-                Use(config,module)
+            if target.get('target', None) == None and target.get('target_list', None) != None:
+                # Open target_list file and assign to type(list)
+                try:
+                    with open(target['target_list']) as f:
+                        target_list = f.read().splitlines() 
+                except:
+                    Error(130, "[E] Could not open target_list file")
+                for individual_target in target_list:
+                    # Check modules
+                    self.check_modules(config, target)
 
-                # Check resource exists
-                if config.status['resource_found'] == False:
-                    Error(100,"[E] A tool or assessment could not be found")
+                    target['target_name'] = individual_target.replace('/', '_')
+                    target['target'] = individual_target.replace('/', '_')
 
-                AutoSet(config,target)
-                View('command_line_pre_save',config,target=target)
-                Save(config)
-                View('command_line_post_save',config,target=target)
+                    # Set and save for each target in list
+                    AutoSet(config,target)
+                    View('command_line_pre_save',config,target=target)
+                    Save(config)
+                    View('command_line_post_save',config,target=target)
+
+                # Execute
+                Run(config)
+                return
+
+            # No target_list, carry on
+            self.check_modules(config, target)
+
+            # Set and save for each target in list
+            AutoSet(config,target)
+            View('command_line_pre_save',config,target=target)
+            Save(config)
+            View('command_line_post_save',config,target=target)
 
             # Reset for next target
             config.instance = {}
@@ -155,6 +191,16 @@ Legal purposes only..
             config.instance['config'] = {}
 
         Run(config)
+
+    def check_modules(self, config, target):
+        if target.get('modules',False) == False:
+            Error(90,"[E] One of the targets has no modules defined")
+        for module in target['modules']:
+            Use(config,module)
+
+            # Check resource exists
+            if config.status['resource_found'] == False:
+                Error(100,"[E] A tool or assessment could not be found")
 
 class Configuration:
     def __init__(self, command_line):
@@ -493,12 +539,6 @@ class Process:
                                 "_autopwn_" + \
                                 instance['options']['target_name']
 
-            # TODO This is no good anymore
-            #if hasattr(instance,'binary_prepend') == True:
-            #    instance['execute_string'] = instance['binary_prepend'] + " " + instance['binary_name'] + " " + instance['arguments']
-            #else:
-            #    instance['execute_string'] = instance['binary_name'] + " " + instance['arguments']
-
             if config.arguments['screen'] == True:
                 if self.binary_exists('screen') != True and self.binary_exists('bash') != True:
                     Error(50,"[E] Missing binary - screen or bash")
@@ -556,7 +596,7 @@ class Load:
                 # If targets exists we must check its type before interrogating
                 if type(target) != dict:
                     Error(3,"[E] Target entry missing target_name and/or target")
-                if target.get('target_name', None) == None or \
+                if target.get('target_list') == None and \
                    target.get('target', None) == None:
                     Error(3,"[E] Target entry missing target_name and/or target")
 
@@ -755,7 +795,7 @@ class Log:
             except OSError as e:
                 Error(30,"[E] Error creating log file: " + e)
             if config.status['log_started'] != True:
-                log_file.write("## autopwn 0.22.1 command output\n")
+                log_file.write("## autopwn 0.23.0 command output\n")
                 log_file.write("## Started logging at " + date_time + "...\n")
                 config.status['log_started'] = True
 
@@ -1011,7 +1051,7 @@ def _main(arglist):
         Arguments(sys.argv[1:]).parser
     else:
         # Drop user to shell
-        Shell().cmdloop("autopwn 0.22.1 shell. Type help or ? to list commands.\n")
+        Shell().cmdloop("autopwn 0.23.0 shell. Type help or ? to list commands.\n")
 
 def main():
     try:

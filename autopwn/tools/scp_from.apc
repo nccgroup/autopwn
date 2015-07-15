@@ -1,0 +1,39 @@
+name: scp_from
+dependencies: ['scp']
+url: N/A
+description: scp to target
+autopwn_version: 0.23.0
+assessment_groups: ['scp', 'sshpass']
+
+options:
+    target_name:
+        required: True
+        example_values: target1
+    target:
+        type: ip_address
+        required: True
+        example_values: 127.0.0.1|example.org
+    port_number:
+        type: port_number
+        required: True
+        example_values: 22
+        default_value: 22
+    source_file:
+        type: file
+        required: True
+        example_values: ~/some_file|/etc/some_other_file
+    destination_file:
+        type: file
+        required: True
+        example_values: ~/some_file|/etc/some_other_file
+    ssh_username:
+        type: user
+        required: True
+        example_values: root|user
+    ssh_password:
+        type: password
+        required: True
+        example_values: password|letmein
+
+execute_string: "sshpass -p '{ssh_password}' scp -P {port_number} {ssh_username}@{target}:{source_file} {destination_file}"
+stdout: False
