@@ -1,1 +1,1 @@
-{parallel: true, scripts_directory: /root/scripts/, update: true, update_check: true}
+{parallel: true, tools_directory: $HOME/tools/}

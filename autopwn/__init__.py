@@ -31,7 +31,7 @@ import yaml
 
 class Arguments:
     argparse_description = '''
-autopwn 0.24.0
+autopwn 0.25.0
 By Aidan Marlin
 Email: aidan [dot] marlin [at] nccgroup [dot] trust'''
 
@@ -136,7 +136,7 @@ Legal purposes only..
         if self.parser.parallel == True:
             config.arguments['parallel'] = True
 
-        print("autopwn v0.24.0 - Autoloading targets and modules")
+        print("autopwn v0.25.0 - Autoloading targets and modules")
         print()
 
         # Check for duplicate target names
@@ -318,6 +318,13 @@ class Use:
         for tool in config.tools:
             if tool['name'] == tool_name:
                 for dependency in tool['dependencies']:
+                    # Placeholder replacement
+                    dependency_placeholder = defaultdict(lambda : '')
+                    dependency_placeholder['tools_directory'] = config.global_config['tools_directory']
+
+                    # Option replacements
+                    dependency = dependency.format(**dependency_placeholder)
+
                     if Process.binary_exists(self, dependency) != True:
                         print("[I] Missing binary/script - " + dependency)
                         return
@@ -529,12 +536,13 @@ class Process:
             instance['parallel'] = config.arguments['parallel'] or config.global_config['parallel']
             instance['options']['date'] = strftime("%Y%m%d_%H%M%S%z")
             instance['options']['date_day'] = strftime("%Y%m%d")
+            instance['options']['tools_directory'] = config.global_config['tools_directory']
             instance['options']['output_dir'] = instance['options']['date_day'] + \
                                 "_autopwn_" + \
                                 instance['options']['target_name']
 
             if config.arguments['screen'] == True:
-                if self.binary_exists('screen') != True and self.binary_exists('bash') != True:
+                if Process.binary_exists('screen') != True and self.binary_exists('bash') != True:
                     Error(50,"[E] Missing binary - screen or bash")
                 instance['screen_name'] = "autopwn_" + \
                         instance['options']['target_name'] + "_" + \
@@ -560,7 +568,11 @@ class Process:
             if which_return_code == 0:
                 return True
             else:
-                return False
+                find_return_code = subprocess.call("find " + binary_string,stdout=open(os.devnull,'wb'),stderr=open(os.devnull,'wb'),shell=True)
+                if find_return_code == 0:
+                    return True
+                else:
+                    return False
         except OSError as e:
             if e.errno == os.errno.ENOENT:
                 Error(55,"[E] 'which' binary couldn't be found")
@@ -789,7 +801,7 @@ class Log:
             except OSError as e:
                 Error(30,"[E] Error creating log file: " + e)
             if config.status['log_started'] != True:
-                log_file.write("## autopwn 0.24.0 command output\n")
+                log_file.write("## autopwn 0.25.0 command output\n")
                 log_file.write("## Started logging at " + date_time + "...\n")
                 config.status['log_started'] = True
 
@@ -1045,7 +1057,7 @@ def _main(arglist):
         Arguments(sys.argv[1:]).parser
     else:
         # Drop user to shell
-        Shell().cmdloop("autopwn 0.24.0 shell. Type help or ? to list commands.\n")
+        Shell().cmdloop("autopwn 0.25.0 shell. Type help or ? to list commands.\n")
 
 def main():
     try:

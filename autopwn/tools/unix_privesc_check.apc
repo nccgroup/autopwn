@@ -1,8 +1,8 @@
-name: unix-privesc-check
-dependencies: ['sshpass']
+name: unix_privesc_check
+dependencies: ['sshpass','unix-privesc-check']
 url: https://github.com/pentestmonkey/unix-privesc-check
 description: Shell script to check for simple privilege escalation vectors on Unix systems
-autopwn_version: 0.24.0
+autopwn_version: 0.25.0
 assessment_groups: ['unix_audit']
 
 options:
@@ -28,5 +28,5 @@ options:
         required: True
         example_values: password|letmein
 
-execute_string: "sshpass -p '{ssh_password}' ssh -p {port_number} {ssh_username}@{target} 'cd unix-privesc-check; ./upc.sh --type all' > {output_dir}/{date}_{target_name}_unix-privesc-check.txt"
+execute_string: "sshpass -p '{ssh_password}' ssh -o StrictHostKeyChecking=no -p {port_number} {ssh_username}@{target} 'cd unix-privesc-check; ./upc.sh --type all' > {output_dir}/{date}_{target_name}_unix-privesc-check.txt"
 stdout: False

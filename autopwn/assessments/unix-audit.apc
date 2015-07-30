@@ -1,4 +1,4 @@
 name: unix_audit
 long_name: Unix Audit
-autopwn_version: 0.24.0
+autopwn_version: 0.25.0
 description: Run Unix auditing tools against target
