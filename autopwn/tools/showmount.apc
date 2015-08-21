@@ -2,7 +2,7 @@ name: showmount
 dependencies: ['showmount']
 url: http://linuxcommand.org/man_pages/showmount8.html
 description: showmount - show mount information for an NFS server
-autopwn_version: 0.25.0
+autopwn_version: 0.25.1
 assessment_groups: ['infrastructure', 'showmount']
 
 options:

@@ -2,7 +2,7 @@ name: msfconsole_scanner_smb_version
 dependencies: ['msfconsole']
 url: http://www.rapid7.com/db/modules/auxiliary/scanner/smb/smb_version
 description: Display version information about each system
-autopwn_version: 0.25.0
+autopwn_version: 0.25.1
 assessment_groups: ['infrastructure', 'msf']
 
 options:

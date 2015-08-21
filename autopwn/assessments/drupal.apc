@@ -1,4 +1,4 @@
 name: drupal
 long_name: Drupal Scans
-autopwn_version: 0.25.0
+autopwn_version: 0.25.1
 description: Run CMSmap Drupal scans against target.

@@ -31,7 +31,7 @@ import yaml
 
 class Arguments:
     argparse_description = '''
-autopwn 0.25.0
+autopwn 0.25.1
 By Aidan Marlin
 Email: aidan [dot] marlin [at] nccgroup [dot] trust'''
 
@@ -136,7 +136,7 @@ Legal purposes only..
         if self.parser.parallel == True:
             config.arguments['parallel'] = True
 
-        print("autopwn v0.25.0 - Autoloading targets and modules")
+        print("autopwn v0.25.1 - Autoloading targets and modules")
         print()
 
         # Check for duplicate target names
@@ -654,10 +654,7 @@ class Save:
                         # Is there a default option
                         if default_option_value != None:
                             config.instance['config'][option] = \
-                                str(config.instance['config'][option][default_option_value])
-                        #else:
-                        #    self.remove_instance(config)
-                        #    return
+                                str(config.instance['config'][option])
 
         if config.status['command_line'] != True:
             if len(config.job_queue) == 1:
@@ -801,7 +798,7 @@ class Log:
             except OSError as e:
                 Error(30,"[E] Error creating log file: " + e)
             if config.status['log_started'] != True:
-                log_file.write("## autopwn 0.25.0 command output\n")
+                log_file.write("## autopwn 0.25.1 command output\n")
                 log_file.write("## Started logging at " + date_time + "...\n")
                 config.status['log_started'] = True
 
@@ -1047,6 +1044,15 @@ class Shell(cmd.Cmd):
         quote.append("F*ck it, we'll do it in production.")
         quote.append("Programmers are tools for converting caffeine into code.")
         quote.append("Those who can't write programs, write help files.")
+        quote.append("Should array indices start at 0 or 1? My compromise of 0.5 was rejected without, I thought, proper consideration.")
+        quote.append("Fifty years of programming language research, and we end up with C++?")
+        quote.append("Software is like sex: It’s better when it’s free.")
+        quote.append("If debugging is the process of removing bugs, then programming must be the process of putting them in.")
+        quote.append("Always code as if the guy who ends up maintaining your code will be a violent psychopath who knows where you live.")
+        quote.append("C programmers never die. They are just cast into void.")
+        quote.append("19 Jan 2038 at 3:14:07 AM")
+        quote.append("If Python is executable pseudocode, then perl is executable line noise.")
+        quote.append("The only difference between a bug and a feature is the documentation.")
         print(random.choice(quote))
         CleanUp()
         sys.exit(0)
@@ -1057,7 +1063,7 @@ def _main(arglist):
         Arguments(sys.argv[1:]).parser
     else:
         # Drop user to shell
-        Shell().cmdloop("autopwn 0.25.0 shell. Type help or ? to list commands.\n")
+        Shell().cmdloop("autopwn 0.25.1 shell. Type help or ? to list commands.\n")
 
 def main():
     try:

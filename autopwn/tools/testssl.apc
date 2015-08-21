@@ -2,7 +2,7 @@ name: testssl
 dependencies: ['{tools_directory}/testssl.sh/testssl.sh']
 url: https://github.com/drwetter/testssl.sh
 description: testssl.sh is a free command line tool which checks a server's service on any port for the support of TLS/SSL ciphers, protocols as well as some cryptographic flaws.
-autopwn_version: 0.25.0
+autopwn_version: 0.25.1
 assessment_groups: ['ssl_audit']
 
 options:

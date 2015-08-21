@@ -2,7 +2,7 @@ name: ssh_execute
 dependencies: ['ssh']
 url: http://www.openssh.com/
 description: Execute commands on a remote machine via SSH
-autopwn_version: 0.25.0
+autopwn_version: 0.25.1
 assessment_groups: ['ssh']
 
 options:

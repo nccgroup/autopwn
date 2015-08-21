@@ -33,3 +33,7 @@ TODO
 15 - Work on documentation (man page, wiki, youtube)
 16 - Post tool execution implementation
 17 - Figure out $HOME/tools/ for autopwn.. Not all packages can be installed via distro package manager
+18 - Fix ssl_audit assessment problem/assessemnts bug
+19 - Figure out how to deal with docker terminal limitation (width)
+20 - Figure out how to pull files from docker image
+21 - Figure out testssl problem with getting IP from domain

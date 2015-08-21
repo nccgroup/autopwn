@@ -2,7 +2,7 @@ name: lynis
 dependencies: ['sshpass']
 url: https://cisofy.com/lynis/
 description: Lynis is an open source security auditing tool.
-autopwn_version: 0.25.0
+autopwn_version: 0.25.1
 assessment_groups: ['unix_audit']
 
 options:
