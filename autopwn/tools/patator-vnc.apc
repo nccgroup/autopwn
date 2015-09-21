@@ -2,7 +2,7 @@ name: patator_vnc
 dependencies: ['patator']
 url: https://github.com/lanjelot/patator/
 description: Patator brute force tool - VNC module
-autopwn_version: 0.25.2
+autopwn_version: 0.25.3
 assessment_groups: ['brute']
 
 options:

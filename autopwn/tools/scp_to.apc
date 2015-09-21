@@ -2,7 +2,7 @@ name: scp_to
 dependencies: ['sshpass', 'scp']
 url: http://linux.die.net/man/1/scp
 description: scp files to a target
-autopwn_version: 0.25.2
+autopwn_version: 0.25.3
 assessment_groups: ['scp']
 
 options:

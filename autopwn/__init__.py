@@ -31,7 +31,7 @@ import yaml
 
 class Arguments:
     argparse_description = '''
-autopwn 0.25.2
+autopwn 0.25.3
 By Aidan Marlin
 Email: aidan [dot] marlin [at] nccgroup [dot] trust'''
 
@@ -136,7 +136,7 @@ Legal purposes only..
         if self.parser.parallel == True:
             config.arguments['parallel'] = True
 
-        print("autopwn v0.25.2 - Autoloading targets and modules")
+        print("autopwn v0.25.3 - Autoloading targets and modules")
         print()
 
         # Check for duplicate target names
@@ -159,25 +159,30 @@ Legal purposes only..
                         target_list = f.read().splitlines() 
                 except:
                     Error(130, "[E] Could not open target_list file")
+
                 for individual_target in target_list:
                     # Check modules
-                    self.check_modules(config, target)
+                    if target.get('modules',False) == False:
+                        Error(90,"[E] One of the targets has no modules defined")
+                    else:
+                        for module in target['modules']:
+                            self.check_modules(config, target, module)
 
-                    target['target_name'] = individual_target.replace('/', '_')
-                    target['target'] = individual_target.replace('/', '_')
+                            target['target_name'] = individual_target.replace('/', '_')
+                            target['target'] = individual_target.replace('/', '_')
 
-                    # Set and save for each target in list
-                    AutoSet(config,target)
-                    View('command_line_pre_save',config,target=target)
-                    Save(config)
-                    View('command_line_post_save',config,target=target)
+                            # Set and save for each target in list
+                            AutoSet(config,target)
+                            View('command_line_pre_save',config,target=target)
+                            Save(config)
+                            View('command_line_post_save',config,target=target)
 
                 # Execute
                 Run(config)
                 return
 
             # No target_list, carry on
-            self.check_modules(config, target)
+            self.check_modules(config, target, module)
 
             # Set and save for each target in list
             AutoSet(config,target)
@@ -192,10 +197,10 @@ Legal purposes only..
 
         Run(config)
 
-    def check_modules(self, config, target):
-        if target.get('modules',False) == False:
+    def check_modules(self, config, target, module = None):
+        if module == None:
             Error(90,"[E] One of the targets has no modules defined")
-        for module in target['modules']:
+        else:
             Use(config,module)
 
             # Check resource exists
@@ -798,7 +803,7 @@ class Log:
             except OSError as e:
                 Error(30,"[E] Error creating log file: " + e)
             if config.status['log_started'] != True:
-                log_file.write("## autopwn 0.25.2 command output\n")
+                log_file.write("## autopwn 0.25.3 command output\n")
                 log_file.write("## Started logging at " + date_time + "...\n")
                 config.status['log_started'] = True
 
@@ -840,11 +845,12 @@ class View:
             pass
         if view == 'command_line_pre_save':
             for key, value in kwargs.items():
-                print("Loading " + value['target_name'] + " with " + config.instance['tool'][-1] + "...",end="")
+                for tool in config.instance['tool']:
+                    print("Loading " + value['target_name'] + " with " + tool + "...")
         if view == 'command_line_post_save':
             for key, value in kwargs.items():
                 if  config.job_queue_add_success == True:
-                    print("Done!")
+                    print("OK!")
                 else:
                     print("Failed!")
         if view == 'use':
@@ -1063,7 +1069,7 @@ def _main(arglist):
         Arguments(sys.argv[1:]).parser
     else:
         # Drop user to shell
-        Shell().cmdloop("autopwn 0.25.2 shell. Type help or ? to list commands.\n")
+        Shell().cmdloop("autopwn 0.25.3 shell. Type help or ? to list commands.\n")
 
 def main():
     try:

@@ -1,4 +1,4 @@
 name: dir_brute
 long_name: Directory Brute Forcing
-autopwn_version: 0.25.2
+autopwn_version: 0.25.3
 description: Brute force web application files.
