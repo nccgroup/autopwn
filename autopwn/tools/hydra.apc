@@ -2,7 +2,7 @@ name: hydra
 dependencies: ['hydra']
 url: http://sectools.org/tool/hydra/
 description: Hydra can perform rapid dictionary attacks against more then 30 protocols, including telnet, ftp, http, https, smb, several databases, and more.
-autopwn_version: 0.25.1
+autopwn_version: 0.25.2
 assessment_groups: ['brute']
 
 options:

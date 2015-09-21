@@ -7,7 +7,7 @@ long_desc = '''autopwn is designed to make a pentester's life easier and more co
 
 setup(
     name='autopwn',
-    version='0.25.1',
+    version='0.25.2',
     description='Specify targets and run sets of tools against them',
     long_description=long_desc,
     author='Aidan Marlin',

@@ -2,7 +2,7 @@ name: sslyze
 dependencies: ['sslyze']
 url: https://github.com/iSECPartners/sslyze
 description: Fast and full-featured SSL scanner.
-autopwn_version: 0.25.1
+autopwn_version: 0.25.2
 assessment_groups: ['ssl_audit']
 
 options:

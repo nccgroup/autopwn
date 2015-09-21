@@ -2,7 +2,7 @@ name: patator_mysql
 dependencies: ['patator']
 url: https://github.com/lanjelot/patator/
 description: Patator brute force tool - MySQL/MariaDB module
-autopwn_version: 0.25.1
+autopwn_version: 0.25.2
 assessment_groups: ['brute']
 
 options:

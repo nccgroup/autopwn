@@ -31,7 +31,7 @@ import yaml
 
 class Arguments:
     argparse_description = '''
-autopwn 0.25.1
+autopwn 0.25.2
 By Aidan Marlin
 Email: aidan [dot] marlin [at] nccgroup [dot] trust'''
 
@@ -136,7 +136,7 @@ Legal purposes only..
         if self.parser.parallel == True:
             config.arguments['parallel'] = True
 
-        print("autopwn v0.25.1 - Autoloading targets and modules")
+        print("autopwn v0.25.2 - Autoloading targets and modules")
         print()
 
         # Check for duplicate target names
@@ -798,7 +798,7 @@ class Log:
             except OSError as e:
                 Error(30,"[E] Error creating log file: " + e)
             if config.status['log_started'] != True:
-                log_file.write("## autopwn 0.25.1 command output\n")
+                log_file.write("## autopwn 0.25.2 command output\n")
                 log_file.write("## Started logging at " + date_time + "...\n")
                 config.status['log_started'] = True
 
@@ -1063,7 +1063,7 @@ def _main(arglist):
         Arguments(sys.argv[1:]).parser
     else:
         # Drop user to shell
-        Shell().cmdloop("autopwn 0.25.1 shell. Type help or ? to list commands.\n")
+        Shell().cmdloop("autopwn 0.25.2 shell. Type help or ? to list commands.\n")
 
 def main():
     try:

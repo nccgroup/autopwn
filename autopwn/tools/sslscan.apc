@@ -2,7 +2,7 @@ name: sslscan
 dependencies: ['sslscan']
 url: http://sourceforge.net/projects/sslscan/
 description: sslscan tests SSL/TLS enabled services to discover supported cipher suites.
-autopwn_version: 0.25.1
+autopwn_version: 0.25.2
 assessment_groups: ['ssl_audit']
 
 options:

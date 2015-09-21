@@ -2,7 +2,7 @@ name: linenum
 dependencies: ['sshpass', '{tools_directory}/LinEnum/LinEnum.sh']
 url: https://github.com/rebootuser/LinEnum
 description: Scripted Local Linux Enumeration & Privilege Escalation Checks.
-autopwn_version: 0.25.1
+autopwn_version: 0.25.2
 assessment_groups: ['unix_audit']
 
 options:
