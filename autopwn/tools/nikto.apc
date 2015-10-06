@@ -2,7 +2,7 @@ name: nikto
 dependencies: ['nikto']
 url: https://cirt.net/Nikto2
 description: Nikto is an Open Source (GPL) web server scanner which performs comprehensive tests against web servers for multiple items.
-autopwn_version: 0.25.3
+autopwn_version: 0.25.4
 assessment_groups: ['webapp']
 
 # TODO Add cookies? Add list option?

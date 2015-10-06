@@ -2,7 +2,7 @@ name: snmpcheck
 dependencies: ['ruby', '{tools_directory}/snmpcheck-1.9.rb']
 url: http://www.nothink.org/codes/snmpcheck/
 description: snmpcheck allows you to enumerate the SNMP devices and places the output in a very human readable friendly format.
-autopwn_version: 0.25.3
+autopwn_version: 0.25.4
 assessment_groups: ['infrastructure', 'snmpcheck']
 
 options:

@@ -1,1 +1,1 @@
-{parallel: true, tools_directory: $HOME/tools/}
+{parallel: false, tools_directory: $HOME/tools/}

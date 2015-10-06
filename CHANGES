@@ -1,3 +1,7 @@
+autopwn v0.25.4 - 20151006
+
+* Added aggressive full TCP nmap scan
+
 autopwn v0.25.3 - 20150921
 
 * Bug fix
