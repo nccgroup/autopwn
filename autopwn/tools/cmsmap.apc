@@ -2,7 +2,7 @@ name: cmsmap_drupal
 dependencies: ['python2', '{tools_directory}/CMSmap/cmsmap.py']
 url: https://github.com/Dionach/CMSmap 
 description: CMSmap - Drupal instance.
-autopwn_version: 0.25.4
+autopwn_version: 0.25.5
 assessment_groups: ['drupal']
 
 options:

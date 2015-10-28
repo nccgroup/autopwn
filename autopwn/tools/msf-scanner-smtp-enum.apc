@@ -2,7 +2,7 @@ name: msfconsole_scanner_smtp_enum
 dependencies: ['msfconsole']
 url: https://www.offensive-security.com/metasploit-unleashed/scanner-smtp-auxiliary-modules/
 description: Enumerate users using SMTP
-autopwn_version: 0.25.4
+autopwn_version: 0.25.5
 assessment_groups: ['infrastructure', 'msf']
 
 options:

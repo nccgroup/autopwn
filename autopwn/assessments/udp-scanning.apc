@@ -1,4 +1,4 @@
 name: udp_scan
 long_name: UDP Scanning
-autopwn_version: 0.25.4
+autopwn_version: 0.25.5
 description: Run UDP scans against target.

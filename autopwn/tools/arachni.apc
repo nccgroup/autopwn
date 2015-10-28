@@ -2,7 +2,7 @@ name: arachni
 dependencies: ['arachni']
 url: http://www.arachni-scanner.com/
 description: Arachni is a Free/Open-Source Web Application Security Scanner aimed towards helping users evaluate the security of web applications.
-autopwn_version: 0.25.4
+autopwn_version: 0.25.5
 assessment_groups: ['webapp']
 
 options:

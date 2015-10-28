@@ -31,7 +31,7 @@ import yaml
 
 class Arguments:
     argparse_description = '''
-autopwn 0.25.4
+autopwn 0.25.5
 By Aidan Marlin
 Email: aidan [dot] marlin [at] nccgroup [dot] trust'''
 
@@ -136,7 +136,7 @@ Legal purposes only..
         if self.parser.parallel == True:
             config.arguments['parallel'] = True
 
-        print("autopwn v0.25.4 - Autoloading targets and modules")
+        print("autopwn v0.25.5 - Autoloading targets and modules")
         print()
 
         # Check for duplicate target names
@@ -542,12 +542,12 @@ class Process:
             instance['options']['date'] = strftime("%Y%m%d_%H%M%S%z")
             instance['options']['date_day'] = strftime("%Y%m%d")
             instance['options']['tools_directory'] = config.global_config['tools_directory']
-            instance['options']['output_dir'] = instance['options']['date_day'] + \
+            instance['options']['output_dir'] = os.getcwd() + '/' + instance['options']['date_day'] + \
                                 "_autopwn_" + \
                                 instance['options']['target_name']
 
             if config.arguments['screen'] == True:
-                if Process.binary_exists('screen') != True and self.binary_exists('bash') != True:
+                if self.binary_exists('screen') != True and self.binary_exists('bash') != True:
                     Error(50,"[E] Missing binary - screen or bash")
                 instance['screen_name'] = "autopwn_" + \
                         instance['options']['target_name'] + "_" + \
@@ -773,7 +773,7 @@ class RunThreads (threading.Thread):
         # Should we create a stdout log for this tool?
         stdout_boolean = self.instance['stdout']
         if stdout_boolean == True:
-            log = Log(self.config, os.getcwd() + "/" + self.instance['options']['output_dir'],
+            log = Log(self.config, self.instance['options']['output_dir'],
                       self.instance['options']['target_name'] + "_" + self.instance['name'],
                       'tool_output', self.tool_stdout)
         log = Log(self.config, os.getcwd(), False, 'tool_string', "# " + \
@@ -803,7 +803,7 @@ class Log:
             except OSError as e:
                 Error(30,"[E] Error creating log file: " + e)
             if config.status['log_started'] != True:
-                log_file.write("## autopwn 0.25.4 command output\n")
+                log_file.write("## autopwn 0.25.5 command output\n")
                 log_file.write("## Started logging at " + date_time + "...\n")
                 config.status['log_started'] = True
 
@@ -1069,7 +1069,7 @@ def _main(arglist):
         Arguments(sys.argv[1:]).parser
     else:
         # Drop user to shell
-        Shell().cmdloop("autopwn 0.25.4 shell. Type help or ? to list commands.\n")
+        Shell().cmdloop("autopwn 0.25.5 shell. Type help or ? to list commands.\n")
 
 def main():
     try:

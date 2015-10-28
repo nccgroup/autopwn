@@ -2,7 +2,7 @@ name: msfconsole_scanner_finger_users
 dependencies: ['msfconsole']
 url: http://linux.about.com/library/cmd/blcmdl1_finger.htm
 description: The finger displays information about the system users.
-autopwn_version: 0.25.4
+autopwn_version: 0.25.5
 assessment_groups: ['infrastructure', 'finger']
 
 options:
