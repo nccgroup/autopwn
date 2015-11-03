@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import json
 import os
 import sqlite3
 import sys
@@ -41,9 +42,6 @@ class RunThreads (threading.Thread):
     def execute_tool(self):
         # Always check any tools provided by
         # community members
-        # Bad bug using this and no shell for Popen,
-        # will come back to this
-        #command_arguments = shlex.split(tool_execute_string)
         print("Running")
         proc = Popen(self.tool['execute_string'], stdout=PIPE, stderr=PIPE, shell=True)
 
@@ -75,21 +73,20 @@ class Tools(Resource):
     def get(self):
         args = parser.parse_args()
         con = sqlite3.connect('assets.db')
+        con.row_factory = sqlite3.Row
         cur = con.cursor()
 
         # If /tools?search=xxx not specified then SELECT *
         if args['search'] != None:
-           cur.execute("SELECT * FROM tools WHERE name LIKE ? OR description LIKE ?",('%' + args['search'] + '%','%' + args['search'] + '%'))
+            cur.execute("SELECT * FROM tools WHERE name LIKE ? OR description LIKE ?",('%' + args['search'] + '%','%' + args['search'] + '%'))
         else:
-           cur.execute("SELECT * FROM tools")
-        data = cur.fetchall()
+            cur.execute("SELECT * FROM tools")
+        data = dict(result=[dict(r) for r in cur.fetchall()])
 
         # Close connection
         if con:
             con.close()
-
-        # TODO Make valid
-        return { 'results': data }
+        return data
 
     # Submit a new tool
     def post(self):
@@ -101,14 +98,15 @@ class Jobs(Resource):
     def get (self):
         args = parser.parse_args()
         con = sqlite3.connect('assets.db')
+        con.row_factory = sqlite3.Row
         cur = con.cursor()
 
         # If /jobs?search=xxx not specified then SELECT *
         if args['search'] != None:
            cur.execute("SELECT * FROM jobs WHERE tool LIKE ? OR target LIKE ? OR target_name LIKE ? OR protocol LIKE ? OR port_number LIKE ? OR user like ? OR password LIKE ? OR user_file LIKE ? OR password_file LIKE ?",('%' + args['search'] + '%','%' + args['search'] + '%','%' + args['search'] + '%','%' + args['search'] + '%','%' + args['search'] + '%','%' + args['search'] + '%','%' + args['search'] + '%','%' + args['search'] + '%','%' + args['search'] + '%'))
         else:
-           cur.execute("SELECT * FROM tools")
-        data = cur.fetchall()
+           cur.execute("SELECT * FROM jobs")
+        data = dict(result=[dict(r) for r in cur.fetchall()])
 
         # Close connection
         if con:
@@ -137,10 +135,11 @@ class Jobs(Resource):
 class JobsId(Resource):
     def get(self, job_id):
         con = sqlite3.connect('assets.db')
+        con.row_factory = sqlite3.Row
         cur = con.cursor()
 
         cur.execute("SELECT * FROM jobs WHERE id = ?",(job_id))
-        data = cur.fetchall()
+        data = dict(result=[dict(r) for r in cur.fetchall()])
 
         # Close connection
         if con:
@@ -151,55 +150,38 @@ class JobsId(Resource):
 # Execute job
 class JobsIdExecute(Resource):
     def post(self):
-        # curl -i --data "job=1" http://127.0.0.1:5000/jobs/execute
         # Process placeholders
         tool = {}
         job = {}
         args = parser.parse_args()
         con = sqlite3.connect('assets.db')
+        con.row_factory = sqlite3.Row
         cur = con.cursor()
 
         # Get job id columns
         cur.execute("SELECT * FROM jobs WHERE id = ?",(args['job']))
-        job_result = cur.fetchall()
+        job_data = dict(result=[dict(r) for r in cur.fetchall()])
 
         # Index is now tied to database schema, yuck
-        job['id'] = job_result[0][0]
-        job['tool'] = job_result[0][1]
-        job['target'] = job_result[0][2]
-        job['target_name'] = job_result[0][3]
-        job['protocol'] = job_result[0][4]
-        job['port_number'] = job_result[0][5]
-        job['user'] = job_result[0][6]
-        job['password'] = job_result[0][7]
-        job['user_file'] = job_result[0][8]
-        job['password_file'] = job_result[0][9]
-        job['executed'] = job_result[0][10]
-        job['completed'] = job_result[0][11]
+        job = job_data['result'][0]
         job['date'] = strftime("%Y%m%d_%H%M%S%z")
         job['output_dir'] = os.getcwd() + '/' + strftime("%Y%m%d") + \
                                 "_autopwn_" + \
-                                job['target_name']
+                                job_data['result'][0]['target_name']
 
         tool['id'] = job['tool']
         # Get dependencies
         cur.execute("SELECT dependency from dependencies WHERE tool = ?",(str(tool['id'])))
-        dependency = cur.fetchall()
+        dependency = dict(result=[dict(r) for r in cur.fetchall()])
 
         # Get tool execute string
         cur.execute("SELECT * FROM tools WHERE id = ?",(str(tool['id'])))
-        tool_result = cur.fetchall()
+        tool_data = dict(result=[dict(r) for r in cur.fetchall()])
+        tool = tool_data['result'][0]
 
         # Close connection
         if con:
             con.close()
-
-        tool['id'] = tool_result[0][0]
-        tool['name'] = tool_result[0][1]
-        tool['url'] = tool_result[0][2]
-        tool['description'] = tool_result[0][3]
-        tool['execute_string'] = tool_result[0][4]
-        tool['stdout'] = tool_result[0][5]
 
         ddict_options = defaultdict(lambda:'')
         for option in job:
@@ -221,10 +203,11 @@ class JobsIdExecute(Resource):
 class Dependencies(Resource):
     def get(self):
         con = sqlite3.connect('assets.db')
+        con.row_factory = sqlite3.Row
         cur = con.cursor()
 
         cur.execute("SELECT * FROM dependency_names")
-        data = cur.fetchall()
+        data = dict(result=[dict(r) for r in cur.fetchall()])
 
         # Close connection
         if con:
@@ -236,10 +219,11 @@ class Dependencies(Resource):
 class DependenciesId(Resource):
     def get(self, tool_id):
         con = sqlite3.connect('assets.db')
+        con.row_factory = sqlite3.Row
         cur = con.cursor()
 
         cur.execute("SELECT dependency FROM dependencies WHERE tool = ?",(tool_id))
-        data = cur.fetchall()
+        data = dict(result=[dict(r) for r in cur.fetchall()])
 
         # Close connection
         if con:
@@ -248,16 +232,22 @@ class DependenciesId(Resource):
         return data
 
 # Pong!
+# curl -i http://127.0.0.1:5000/ping
 api.add_resource(Pong, '/ping')
 # Fetch all tools
+# curl -i http://127.0.0.1:5000/tools
 api.add_resource(Tools, '/tools')
 # Fetch all jobs
+# curl -i http://127.0.0.1:5000/jobs
 api.add_resource(Jobs, '/jobs')
 # Fetch job id
+# curl -i http://127.0.0.1:5000/jobs/1
 api.add_resource(JobsId, '/jobs/<job_id>')
 # Execute job id
+# curl -i --data "job=1" http://127.0.0.1:5000/jobs/execute
 api.add_resource(JobsIdExecute, '/jobs/execute')
 # Fetch all dependencies
+# curl -i http://127.0.0.1:5000/dependencies
 api.add_resource(Dependencies, '/dependencies')
 # Fetch all dependencies for tool id
 api.add_resource(DependenciesId, '/dependencies/<tool_id>')

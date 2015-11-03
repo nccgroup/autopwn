@@ -35,17 +35,18 @@ class Configuration:
 
 class Search:
     def __init__(self, glob, search_string):
-        self.search(glob, "/assessments", search_string)
-        self.search(glob, "/tools", search_string)
+        self.search(glob, "Assessment", "/assessments", search_string)
+        self.search(glob, "Tool", "/tools", search_string)
 
-    def search(self, glob, url, search_string):
-        r = requests.get(glob.config['server'] + url + '?search=' + search_string)
-        # TODO Finish JSON
-        json_response = json.loads(r.content.decode('utf8'))
-        print(json_response)
-        print('{0:30} {1}'.format(item_type_string, "Description"))
-        print("-"*64)
-        print()
+    def search(self, glob, result_text, url, search_string):
+        # Submit search
+        data = requests.get(glob.config['server'] + url + '?search=' + search_string)
+        if data.status_code == 200:
+            json_response = json.loads(data.content.decode('utf8'))
+            print('{0:30} {1}'.format(result_text, "Description"))
+            print("-"*64)
+            for row in json_response['result']:
+                print('{0:30} {1}'.format(row['name'], row['description']))
 
 class Ping:
     def __init__(self, glob):
