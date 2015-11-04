@@ -16,6 +16,12 @@ import requests
 
 class Configuration:
     def __init__(self):
+        self.state = {}
+        self.state['assessments'] = {}
+        self.state['tools'] = {}
+        self.state['jobs'] = {}
+        self.state['updated'] = False
+
         self.config = {}
         self.config['server'] = 'http://127.0.0.1:5000'
         self.config['connected'] = False
@@ -35,18 +41,29 @@ class Configuration:
 
 class Search:
     def __init__(self, glob, search_string):
-        self.search(glob, "Assessment", "/assessments", search_string)
-        self.search(glob, "Tool", "/tools", search_string)
+        self.search(glob, "Assessment", "/assessments", "assessments", search_string)
+        self.search(glob, "Tool", "/tools", "tools", search_string)
 
-    def search(self, glob, result_text, url, search_string):
-        # Submit search
-        data = requests.get(glob.config['server'] + url + '?search=' + search_string)
-        if data.status_code == 200:
-            json_response = json.loads(data.content.decode('utf8'))
-            print('{0:30} {1}'.format(result_text, "Description"))
-            print("-"*64)
-            for row in json_response['result']:
-                print('{0:30} {1}'.format(row['name'], row['description']))
+    def search(self, glob, result_text, url, arg, search_string):
+        # Submit search (let's completely ignore the local cache of results here)
+        try:
+            data = requests.get(glob.config['server'] + url + '?search=' + search_string)
+            if data.status_code == 200:
+                json_response = json.loads(data.content.decode('utf8'))
+                print('{0:30} {1}'.format(result_text, "Description"))
+                print("-"*64)
+                for row in json_response['result']:
+                    print('{0:30} {1}'.format(row['name'], row['description']))
+        except requests.exceptions.RequestException as e:
+            print("Fail! Service still up?")
+        print()
+
+class Use:
+    def __init__(self, glob, arg):
+        asset = ((item for item in glob.state['tools'] if item["name"] == arg).__next__())
+        for key in asset:
+            print(key)
+        return
 
 class Ping:
     def __init__(self, glob):
@@ -60,12 +77,39 @@ class Ping:
         except requests.exceptions.RequestException as e:
             pass
 
+class Update:
+    def __init__(self, glob):
+        self.fetch(glob, "/tools", "tools")
+        self.fetch(glob, "/assessments", "assessments")
+        self.fetch(glob, "/jobs", "jobs")
+        print()
+
+    def fetch(self, glob, url, arg):
+        # Tools, assessments and jobs
+        print("Updating " + arg + "...",end='')
+        try:
+            data = requests.get(glob.config['server'] + url)
+            if data.status_code == 200:
+                glob.state[arg] = json.loads(data.content.decode('utf8'))['result']
+                glob.state['updated'] = True
+                print("Done!")
+            else:
+                print("Fail!")
+        except requests.exceptions.RequestException as e:
+            print("Fail! Server might be down!")
+            return
+
 class Shell(cmd.Cmd):
     glob = Configuration()
+
     # Test connectivity
     Ping(glob)
     if glob.config['connected'] == False:
         print("Not connected to an autopwn node!\n")
+
+    # Fetch tools and assesments
+    Update(glob)
+
     prompt = 'autopwn > '
 
     def cmdloop(self, intro=None):
@@ -77,13 +121,22 @@ class Shell(cmd.Cmd):
             self.cmdloop()
 
     def emptyline(self):
+        'Update assets from service'
+        Update(self.glob)
         pass
 
     def do_shell(self, arg):
         'Execute shell commands'
         os.system(arg)
     def do_search(self, arg):
+        'Search for a tool or assessment'
         Search(self.glob, arg)
+    def do_use(self, arg):
+        'Select a tool to use'
+        Use(self.glob, arg)
+    def do_reload(self, arg):
+        'Update assets from service'
+        Update(self.glob)
     def do_bye(self, arg):
         'Quit autopwn'
         self.terminate()
