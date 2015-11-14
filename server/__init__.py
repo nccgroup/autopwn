@@ -138,7 +138,7 @@ class JobsId(Resource):
         con.row_factory = sqlite3.Row
         cur = con.cursor()
 
-        cur.execute("SELECT * FROM jobs WHERE id = ?",(job_id))
+        cur.execute("SELECT * FROM jobs WHERE id = ?",(job_id,))
         data = dict(result=[dict(r) for r in cur.fetchall()])
 
         # Close connection
@@ -159,7 +159,7 @@ class JobsIdExecute(Resource):
         cur = con.cursor()
 
         # Get job id columns
-        cur.execute("SELECT * FROM jobs WHERE id = ?",(args['job']))
+        cur.execute("SELECT * FROM jobs WHERE id = ?",(args['job'],))
         job_data = dict(result=[dict(r) for r in cur.fetchall()])
 
         # Index is now tied to database schema, yuck
@@ -171,11 +171,11 @@ class JobsIdExecute(Resource):
 
         tool['id'] = job['tool']
         # Get dependencies
-        cur.execute("SELECT dependency from dependencies WHERE tool = ?",(str(tool['id'])))
+        cur.execute("SELECT dependency from dependencies WHERE tool = ?",(tool['id'],))
         dependency = dict(result=[dict(r) for r in cur.fetchall()])
 
         # Get tool execute string
-        cur.execute("SELECT * FROM tools WHERE id = ?",(str(tool['id'])))
+        cur.execute("SELECT * FROM tools WHERE id = ?",(tool['id'],))
         tool_data = dict(result=[dict(r) for r in cur.fetchall()])
         tool = tool_data['result'][0]
 
@@ -215,6 +215,37 @@ class Dependencies(Resource):
 
         return data
 
+class Options(Resource):
+    def get(self):
+        con = sqlite3.connect('assets.db')
+        con.row_factory = sqlite3.Row
+        cur = con.cursor()
+
+        cur.execute("SELECT * FROM options")
+        data = dict(result=[dict(r) for r in cur.fetchall()])
+
+        # Close connection
+        if con:
+            con.close()
+
+        return data
+
+# Retrieve options for tool
+class OptionsId(Resource):
+    def get(self, tool_id):
+        con = sqlite3.connect('assets.db')
+        con.row_factory = sqlite3.Row
+        cur = con.cursor()
+
+        cur.execute("SELECT option FROM tool_options WHERE tool = ?",(tool_id,))
+        data = dict(result=[dict(r) for r in cur.fetchall()])
+
+        # Close connection
+        if con:
+            con.close()
+
+        return data
+
 # Retrieve dependencies for tool
 class DependenciesId(Resource):
     def get(self, tool_id):
@@ -222,7 +253,7 @@ class DependenciesId(Resource):
         con.row_factory = sqlite3.Row
         cur = con.cursor()
 
-        cur.execute("SELECT dependency FROM dependencies WHERE tool = ?",(tool_id))
+        cur.execute("SELECT dependency FROM dependencies WHERE tool = ?",(tool_id,))
         data = dict(result=[dict(r) for r in cur.fetchall()])
 
         # Close connection
@@ -251,6 +282,12 @@ api.add_resource(JobsIdExecute, '/jobs/execute')
 api.add_resource(Dependencies, '/dependencies')
 # Fetch all dependencies for tool id
 api.add_resource(DependenciesId, '/dependencies/<tool_id>')
+# Fetch all options
+# curl -i http://127.0.0.1:5000/options
+api.add_resource(Options, '/options')
+# Fetch all options for tool id
+# curl -i http://127.0.0.1:5000/options/1
+api.add_resource(OptionsId, '/options/<tool_id>')
 
 if __name__ == '__main__':
     app.run(debug=True)

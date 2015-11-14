@@ -19,9 +19,12 @@ class Configuration:
         self.state = {}
         self.state['assessments'] = {}
         self.state['tools'] = {}
+        self.state['options'] = {}
         self.state['jobs'] = {}
         self.state['updated'] = False
         self.state['selected_resource'] = None
+        self.state['selected_resource_id'] = None
+        self.state['resource_options'] = None
 
         self.config = {}
         self.config['server'] = 'http://127.0.0.1:5000'
@@ -70,6 +73,15 @@ class Use:
         except:
             glob.state['selected_resource'] = None
             print("Not a valid tool or assessment")
+            return
+        try:
+            # TODO Fix static tool_id
+            data = requests.get(glob.config['server'] + '/options/' + glob.state['selected_resource_id'])
+            if data.status_code == 200:
+                glob.state['resource_options'] = json.loads(data.content.decode('utf8'))
+                print(json_response)
+        except requests.exceptions.RequestException as e:
+            print("Fail! Service still up?")
 
 class Ping:
     def __init__(self, glob):
@@ -90,7 +102,7 @@ class Update:
         self.fetch(glob, "/tools", "tools")
         self.fetch(glob, "/assessments", "assessments")
         self.fetch(glob, "/jobs", "jobs")
-        print()
+        self.fetch(glob, "/options", "options")
 
     def fetch(self, glob, url, arg):
         # Tools, assessments and jobs
@@ -122,9 +134,13 @@ class Show:
         if glob.state['selected_resource'] != None:
             print(glob.state['selected_resource'])
             resource = ((item for item in glob.state['tools'] if item["name"] == glob.state['selected_resource']).__next__())
-            for key in resource:
-                print(key)
-            print('show_options')
+            # Determine what options are needed for tool(s)
+            print("Options for tool/assessment.")
+            print()
+            print("        {0:16} {1:16} {2:32} {3}".format("Option", "Value", "Example Values", "Required"))
+            print("        "+"-"*96)
+            for option in glob.state['options']:
+                print(option)
         else:
             print("No tool or assessment selected")
 
