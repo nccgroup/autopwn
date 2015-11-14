@@ -21,6 +21,7 @@ class Configuration:
         self.state['tools'] = {}
         self.state['jobs'] = {}
         self.state['updated'] = False
+        self.state['selected_resource'] = None
 
         self.config = {}
         self.config['server'] = 'http://127.0.0.1:5000'
@@ -60,10 +61,15 @@ class Search:
 
 class Use:
     def __init__(self, glob, arg):
-        asset = ((item for item in glob.state['tools'] if item["name"] == arg).__next__())
-        for key in asset:
-            print(key)
-        return
+        try:
+            asset = ((item for item in glob.state['tools'] if item["name"] == arg).__next__())
+            glob.state['selected_resource'] = arg
+            print(glob.state['selected_resource'])
+            for key in asset:
+                print(key)
+        except:
+            glob.state['selected_resource'] = None
+            print("Not a valid tool or assessment")
 
 class Ping:
     def __init__(self, glob):
@@ -74,7 +80,9 @@ class Ping:
             json_response = json.loads(r.content.decode('utf8'))
             if json_response['message'] == 'pong':
                 glob.config['connected'] = True
+            print("Connected!")
         except requests.exceptions.RequestException as e:
+            print("Not connected!")
             pass
 
 class Update:
@@ -99,13 +107,41 @@ class Update:
             print("Fail! Server might be down!")
             return
 
+class Show:
+    def __init__(self, glob, arg):
+        if arg == 'options':
+            self.show_options(glob)
+        elif arg == 'jobs':
+            self.show_jobs(glob)
+        elif arg == 'config':
+            self.show_config(glob)
+        else:
+            self.show_help(glob)
+
+    def show_options(self, glob):
+        if glob.state['selected_resource'] != None:
+            print(glob.state['selected_resource'])
+            resource = ((item for item in glob.state['tools'] if item["name"] == glob.state['selected_resource']).__next__())
+            for key in resource:
+                print(key)
+            print('show_options')
+        else:
+            print("No tool or assessment selected")
+
+    def show_jobs(self, glob):
+        print("1. Swap bits")
+        print("2. Periodically switch on Caps Lock")
+        print("3. Send scan results home")
+        print("4. ...")
+        print("5. Fragment drive")
+        print("6. Emulate single blown pixel")
+        print("7. Recommend Windows to the user")
+
 class Shell(cmd.Cmd):
     glob = Configuration()
 
     # Test connectivity
     Ping(glob)
-    if glob.config['connected'] == False:
-        print("Not connected to an autopwn node!\n")
 
     # Fetch tools and assesments
     Update(glob)
@@ -131,20 +167,58 @@ class Shell(cmd.Cmd):
     def do_search(self, arg):
         'Search for a tool or assessment'
         Search(self.glob, arg)
+    def do_show(self, arg):
+        'Show options'
+        Show(self.glob, arg)
     def do_use(self, arg):
-        'Select a tool to use'
+        'Select a tool or assessment to use'
         Use(self.glob, arg)
+        # Set autopwn prompt if tool found (or if not)
+        if self.glob.state['selected_resource'] != None:
+            if (sys.stdout.isatty()) == True:
+                arg = '\x1b[%sm%s\x1b[0m' % \
+                    (';'.join(['31']), arg)
+            self.prompt = 'autopwn (' + arg + ') > '
+        else:
+            self.prompt = 'autopwn > '
+
+    def complete_use(self, text, line, begin, end):
+        completions = ''
+        if not text:
+            # Add assessments
+            completions = [ assessment['name']
+                            for assessment in self.glob.state['assessments']
+                          ]
+            # Add tools
+            completions = completions + [ tool['name']
+                            for tool in self.glob.state['tools']
+                          ]
+        else:
+            # Add assessments which match
+            completions = [ assessment['name']
+                            for assessment in self.glob.state['assessments']
+                                if line.split(' ')[1] in assessment['name']
+                          ]
+
+            # Add tools which match
+            completions = completions + [ tool['name']
+                            for tool in self.glob.state['tools']
+                                if line.split(' ')[1] in tool['name']
+                          ]
+        return completions
+
     def do_reload(self, arg):
         'Update assets from service'
         Update(self.glob)
     def do_bye(self, arg):
         'Quit autopwn'
         self.terminate()
-
+    def do_ping(self, arg):
+        'Test connectivity'
+        Ping(self.glob)
     def do_exit(self, arg):
         'Quit autopwn'
         self.terminate()
-
     def do_quit(self, arg):
         'Quit autopwn'
         self.terminate()
