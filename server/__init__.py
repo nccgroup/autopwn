@@ -20,7 +20,7 @@ parser = reqparse.RequestParser()
 # for /tools
 parser.add_argument('search')
 # for /jobs
-parser.add_argument('job')
+parser.add_argument('id')
 parser.add_argument('tool')
 parser.add_argument('target')
 parser.add_argument('target_name')
@@ -159,7 +159,7 @@ class JobsIdExecute(Resource):
         cur = con.cursor()
 
         # Get job id columns
-        cur.execute("SELECT * FROM jobs WHERE id = ?",(args['job'],))
+        cur.execute("SELECT * FROM jobs WHERE id = ?",(args['id'],))
         job_data = dict(result=[dict(r) for r in cur.fetchall()])
 
         # Index is now tied to database schema, yuck
@@ -275,7 +275,7 @@ api.add_resource(Jobs, '/jobs')
 # curl -i http://127.0.0.1:5000/jobs/1
 api.add_resource(JobsId, '/jobs/<job_id>')
 # Execute job id
-# curl -i --data "job=1" http://127.0.0.1:5000/jobs/execute
+# curl -i --data "id=1" http://127.0.0.1:5000/jobs/execute
 api.add_resource(JobsIdExecute, '/jobs/execute')
 # Fetch all dependencies
 # curl -i http://127.0.0.1:5000/dependencies

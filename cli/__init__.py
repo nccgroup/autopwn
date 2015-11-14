@@ -18,7 +18,6 @@ from collections import OrderedDict, defaultdict
 
 # TODO Default options need to be known/set
 #      Option required local knowledge should be improved?
-#      Save command
 #      Run command
 #      Assessments
 
@@ -34,6 +33,7 @@ class Configuration:
         self.state['selected_resource']['option'] = defaultdict(lambda : '')
         self.state['selected_resource']['name'] = None
         self.state['resource_options'] = None
+        self.state['job'] = None
 
         self.config = {}
         self.config['server'] = 'http://127.0.0.1:5000'
@@ -81,7 +81,9 @@ class Use:
                 if tool['name'] == glob.state['selected_resource']['name']:
                     glob.state['selected_resource']['id'] = tool['id']
         except:
+            # Reset
             glob.state['selected_resource']['name'] = None
+            glob.state['job'] = None
             print("Not a valid tool or assessment")
             return
         # Fetch options for tool id
@@ -172,9 +174,44 @@ class Show:
 
 class Set:
     def __init__(self, glob, arg):
+        if len(arg.split(' ')) != 2:
+            print("Incorrect number of arguments")
+            return
         option_name = arg.split(' ')[0]
         option_value = arg.split(' ')[1]
         glob.state['selected_resource']['option'][option_name] = option_value
+
+class Save:
+    def __init__(self, glob):
+        if glob.state['selected_resource']['name'] != None:
+            # TODO Add tool options
+            post_data = {}
+            post_data['tool'] = glob.state['selected_resource']['id']
+            post_data['target'] = glob.state['selected_resource']['option']['target']
+            post_data['target_name'] = glob.state['selected_resource']['option']['target_name']
+            post_data['protocol'] = glob.state['selected_resource']['option']['protocol']
+            post_data['port_number'] = glob.state['selected_resource']['option']['port_number']
+            post_data['user'] = glob.state['selected_resource']['option']['user']
+            post_data['password'] = glob.state['selected_resource']['option']['password']
+            post_data['user_file'] = glob.state['selected_resource']['option']['user_file']
+            post_data['password_file'] = glob.state['selected_resource']['option']['password_file']
+            data = requests.post(glob.config['server'] + '/jobs', data = post_data)
+            glob.state['job'] = json.loads(data.content.decode('utf8'))
+            print("Saved.")
+        else:
+            print("You need to 'use' a tool first")
+
+class Run:
+    def __init__(self, glob):
+        if glob.state['job'] != None:
+            data = requests.post(glob.config['server'] + '/jobs/execute', \
+                   data = glob.state['job'])
+            if data.status_code == 201:
+                print("Command executed")
+            else:
+                print("Error indicated by server")
+        else:
+            print("Save a tool with options first")
 
 class Shell(cmd.Cmd):
     glob = Configuration()
@@ -206,12 +243,6 @@ class Shell(cmd.Cmd):
     def do_search(self, arg):
         'Search for a tool or assessment'
         Search(self.glob, arg)
-    def do_show(self, arg):
-        'Show options'
-        Show(self.glob, arg)
-    def do_set(self, arg):
-        'Set resource options'
-        Set(self.glob, arg)
     def do_use(self, arg):
         'Select a tool or assessment to use'
         Use(self.glob, arg)
@@ -223,6 +254,29 @@ class Shell(cmd.Cmd):
             self.prompt = 'autopwn (' + arg + ') > '
         else:
             self.prompt = 'autopwn > '
+    def do_set(self, arg):
+        'Set resource options'
+        Set(self.glob, arg)
+    def do_show(self, arg):
+        'Show options'
+        Show(self.glob, arg)
+    def do_save(self, arg):
+        'Create new job on service using options'
+        Save(self.glob)
+
+    def complete_set(self, text, line, begin, end):
+        completions = ''
+        if not text:
+            completions = [ option['option_name']
+                            for option in self.glob.state['options']
+                          ]
+        else:
+            # TODO Fix this (not all options should be selectable)
+            completions = [ option['option_name']
+                            for option in self.glob.state['options']
+                                if line.split(' ')[1] in option['option_name']
+                          ]
+        return completions
 
     def complete_use(self, text, line, begin, end):
         completions = ''
@@ -258,6 +312,9 @@ class Shell(cmd.Cmd):
     def do_ping(self, arg):
         'Test connectivity'
         Ping(self.glob)
+    def do_run(self, arg):
+        'Execute job list on server'
+        Run(self.glob)
     def do_exit(self, arg):
         'Quit autopwn'
         self.terminate()
