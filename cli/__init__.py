@@ -9,10 +9,18 @@ import re
 import readline
 import requests
 
+from collections import OrderedDict, defaultdict
+
 # Aidan Marlin @ NCC Group
 # Project born 201502 (oh god, hardcoded tools)
 # Project reborn 201505 (eh, logic and views)
 # Project re-reborn 201511 (JSON server and clients, yay!)
+
+# TODO Default options need to be known/set
+#      Option required local knowledge should be improved?
+#      Save command
+#      Run command
+#      Assessments
 
 class Configuration:
     def __init__(self):
@@ -22,8 +30,9 @@ class Configuration:
         self.state['options'] = {}
         self.state['jobs'] = {}
         self.state['updated'] = False
-        self.state['selected_resource'] = None
-        self.state['selected_resource_id'] = None
+        self.state['selected_resource'] = {}
+        self.state['selected_resource']['option'] = defaultdict(lambda : '')
+        self.state['selected_resource']['name'] = None
         self.state['resource_options'] = None
 
         self.config = {}
@@ -64,22 +73,22 @@ class Search:
 
 class Use:
     def __init__(self, glob, arg):
+        # Set selected resource and selected resource id
         try:
             asset = ((item for item in glob.state['tools'] if item["name"] == arg).__next__())
-            glob.state['selected_resource'] = arg
-            print(glob.state['selected_resource'])
-            for key in asset:
-                print(key)
+            glob.state['selected_resource']['name'] = arg
+            for tool in glob.state['tools']:
+                if tool['name'] == glob.state['selected_resource']['name']:
+                    glob.state['selected_resource']['id'] = tool['id']
         except:
-            glob.state['selected_resource'] = None
+            glob.state['selected_resource']['name'] = None
             print("Not a valid tool or assessment")
             return
+        # Fetch options for tool id
         try:
-            # TODO Fix static tool_id
-            data = requests.get(glob.config['server'] + '/options/' + glob.state['selected_resource_id'])
+            data = requests.get(glob.config['server'] + '/options/' + str(glob.state['selected_resource']['id']))
             if data.status_code == 200:
                 glob.state['resource_options'] = json.loads(data.content.decode('utf8'))
-                print(json_response)
         except requests.exceptions.RequestException as e:
             print("Fail! Service still up?")
 
@@ -131,16 +140,24 @@ class Show:
             self.show_help(glob)
 
     def show_options(self, glob):
-        if glob.state['selected_resource'] != None:
-            print(glob.state['selected_resource'])
-            resource = ((item for item in glob.state['tools'] if item["name"] == glob.state['selected_resource']).__next__())
+        if glob.state['selected_resource']['name'] != None:
+            print(glob.state['selected_resource']['name'])
+            resource = ((item for item in glob.state['tools'] if item["name"] == glob.state['selected_resource']['name']).__next__())
             # Determine what options are needed for tool(s)
             print("Options for tool/assessment.")
             print()
             print("        {0:16} {1:16} {2:32} {3}".format("Option", "Value", "Example Values", "Required"))
             print("        "+"-"*96)
-            for option in glob.state['options']:
-                print(option)
+            for tool_option in glob.state['resource_options']['result']:
+                for option in glob.state['options']:
+                    option_required = False
+                    if option['id'] == tool_option['option']:
+                        if tool_option['required'] == 1:
+                            option_required = True
+                        print("        {0:16} {1:16} {2:32} {3}".format(option['option_name'], \
+                                glob.state['selected_resource']['option'][option['option_name']], \
+                                option['option_example'], option_required))
+            print()
         else:
             print("No tool or assessment selected")
 
@@ -152,6 +169,12 @@ class Show:
         print("5. Fragment drive")
         print("6. Emulate single blown pixel")
         print("7. Recommend Windows to the user")
+
+class Set:
+    def __init__(self, glob, arg):
+        option_name = arg.split(' ')[0]
+        option_value = arg.split(' ')[1]
+        glob.state['selected_resource']['option'][option_name] = option_value
 
 class Shell(cmd.Cmd):
     glob = Configuration()
@@ -186,11 +209,14 @@ class Shell(cmd.Cmd):
     def do_show(self, arg):
         'Show options'
         Show(self.glob, arg)
+    def do_set(self, arg):
+        'Set resource options'
+        Set(self.glob, arg)
     def do_use(self, arg):
         'Select a tool or assessment to use'
         Use(self.glob, arg)
         # Set autopwn prompt if tool found (or if not)
-        if self.glob.state['selected_resource'] != None:
+        if self.glob.state['selected_resource']['name'] != None:
             if (sys.stdout.isatty()) == True:
                 arg = '\x1b[%sm%s\x1b[0m' % \
                     (';'.join(['31']), arg)

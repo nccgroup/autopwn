@@ -237,7 +237,7 @@ class OptionsId(Resource):
         con.row_factory = sqlite3.Row
         cur = con.cursor()
 
-        cur.execute("SELECT option FROM tool_options WHERE tool = ?",(tool_id,))
+        cur.execute("SELECT option, required FROM tool_options WHERE tool = ?",(tool_id,))
         data = dict(result=[dict(r) for r in cur.fetchall()])
 
         # Close connection
