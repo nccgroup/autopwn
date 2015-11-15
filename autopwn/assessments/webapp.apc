@@ -1,4 +1,0 @@
-name: webapp
-long_name: Web Application
-autopwn_version: 0.25.5
-description: Run web application specific tools against target

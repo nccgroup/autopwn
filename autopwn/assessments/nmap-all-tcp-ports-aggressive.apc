@@ -1,4 +1,0 @@
-name: nmap_all_tcp_ports_aggressive
-long_name: Nmap Scan (All TCP Ports (aggressive / quick))
-autopwn_version: 0.25.5
-description: Run nmap scanner against all TCP ports on target.

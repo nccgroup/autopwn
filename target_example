@@ -1,9 +1,0 @@
-targets:
-   - target_name: test
-     target: 127.0.0.1
-     url: /test
-     port_number: 80
-     protocol: https
-     user_file: /tmp/users
-     password_file: /tmp/passwords
-     modules: ['tool/nmap', 'tool/hydra', 'assessment/webapp']

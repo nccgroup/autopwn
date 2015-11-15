@@ -1,0 +1,20 @@
+This is the autopwn API package. Clients will now interface with autopwn in
+order to carry out tasks. This has a number of advantages over the previous
+autopwn version, which combined logic and views to create the CLI-only package
+which once was. With views now handled beyond this package, focus can
+be placed solely on the API.
+
+One of the problems I had when developing autopwn was setting up a suitable
+environment with all the tools which autopwn uses. The solution was to dockerize
+autopwn, but this had problems (such as obtaining tool output and working on
+files (cracking zips etc)). With the API approach, the API package can exist
+in a docker container, and any endpoints which interface with this API can now
+exist outside the docker container. When considering local work (cracking zips)
+and obtaining tool output, this can be built into the API (for example, /import
+and /export).
+
+There are still a couple of issues with this setup. Firstly, running autopwn
+on a local machine is still problematic because the API should be dockerized
+(the API is responsible for actually running the tools). So for now, autopwn
+isn't really suitable for running tools designed to check the local system
+(unix-privesc-check is a good example).
