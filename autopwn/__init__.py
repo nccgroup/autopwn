@@ -293,4 +293,8 @@ if __name__ == '__main__':
     app.run(debug=True)
 
 def main():
-    app.run(debug=True)
+    if os.path.isfile('/.dockerinit'):
+        print("Running in docker")
+        app.run(host='0.0.0.0', debug=True)
+    else
+        app.run(debug=True)
