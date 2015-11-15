@@ -25,8 +25,8 @@ will be required, but for now, don't be a moron.
 TODO - pull docker image, execute while exposing TCP 5000
 
 1. Execute ``docker pull rascal999/autopwn``
-2. Run ``docker run -i -t rascal999/autopwn /bin/autopwn``
-3. In the container run ``autopwn``
+2. Run ``docker run -i -t -p 127.0.0.1:5000:5000 rascal999/autopwn /usr/sbin/autopwn``
+3. Run autopwn client
 
 #### From the Python Package Index
 
