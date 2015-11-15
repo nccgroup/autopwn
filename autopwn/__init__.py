@@ -52,7 +52,7 @@ class RunThreads (threading.Thread):
         return_code = proc.returncode
 
         # Update completed and return_code field in db
-        con = sqlite3.connect('assets.db')
+        con = sqlite3.connect(os.path.dirname(os.path.abspath(__file__)) + '/assets.db')
         cur = con.cursor()
         cur.execute("UPDATE jobs SET executed = 1, return_code = ? WHERE id = ?",(str(return_code),str(self.job['id'])))
         con.commit()
@@ -72,7 +72,7 @@ class Tools(Resource):
     # Get tools
     def get(self):
         args = parser.parse_args()
-        con = sqlite3.connect('assets.db')
+        con = sqlite3.connect(os.path.dirname(os.path.abspath(__file__)) + '/assets.db')
         con.row_factory = sqlite3.Row
         cur = con.cursor()
 
@@ -97,7 +97,7 @@ class Jobs(Resource):
     # List jobs
     def get (self):
         args = parser.parse_args()
-        con = sqlite3.connect('assets.db')
+        con = sqlite3.connect(os.path.dirname(os.path.abspath(__file__)) + '/assets.db')
         con.row_factory = sqlite3.Row
         cur = con.cursor()
 
@@ -117,7 +117,7 @@ class Jobs(Resource):
     # Submit new job
     def post(self):
         args = parser.parse_args()
-        con = sqlite3.connect('assets.db')
+        con = sqlite3.connect(os.path.dirname(os.path.abspath(__file__)) + '/assets.db')
         cur = con.cursor()
 
         # curl -i --data "tool=1&target=localhost&target_name=target_name&protocol=https&port_number=1337&user=a_user&password=a_password&user_file=/user/file&password_file=/password/file" http://127.0.0.1:5000/jobs
@@ -134,7 +134,7 @@ class Jobs(Resource):
 # List individual jobs
 class JobsId(Resource):
     def get(self, job_id):
-        con = sqlite3.connect('assets.db')
+        con = sqlite3.connect(os.path.dirname(os.path.abspath(__file__)) + '/assets.db')
         con.row_factory = sqlite3.Row
         cur = con.cursor()
 
@@ -154,7 +154,7 @@ class JobsIdExecute(Resource):
         tool = {}
         job = {}
         args = parser.parse_args()
-        con = sqlite3.connect('assets.db')
+        con = sqlite3.connect(os.path.dirname(os.path.abspath(__file__)) + '/assets.db')
         con.row_factory = sqlite3.Row
         cur = con.cursor()
 
@@ -202,7 +202,7 @@ class JobsIdExecute(Resource):
 
 class Dependencies(Resource):
     def get(self):
-        con = sqlite3.connect('assets.db')
+        con = sqlite3.connect(os.path.dirname(os.path.abspath(__file__)) + '/assets.db')
         con.row_factory = sqlite3.Row
         cur = con.cursor()
 
@@ -217,7 +217,7 @@ class Dependencies(Resource):
 
 class Options(Resource):
     def get(self):
-        con = sqlite3.connect('assets.db')
+        con = sqlite3.connect(os.path.dirname(os.path.abspath(__file__)) + '/assets.db')
         con.row_factory = sqlite3.Row
         cur = con.cursor()
 
@@ -233,7 +233,7 @@ class Options(Resource):
 # Retrieve options for tool
 class OptionsId(Resource):
     def get(self, tool_id):
-        con = sqlite3.connect('assets.db')
+        con = sqlite3.connect(os.path.dirname(os.path.abspath(__file__)) + '/assets.db')
         con.row_factory = sqlite3.Row
         cur = con.cursor()
 
@@ -249,7 +249,7 @@ class OptionsId(Resource):
 # Retrieve dependencies for tool
 class DependenciesId(Resource):
     def get(self, tool_id):
-        con = sqlite3.connect('assets.db')
+        con = sqlite3.connect(os.path.dirname(os.path.abspath(__file__)) + '/assets.db')
         con.row_factory = sqlite3.Row
         cur = con.cursor()
 
@@ -290,4 +290,7 @@ api.add_resource(Options, '/options')
 api.add_resource(OptionsId, '/options/<tool_id>')
 
 if __name__ == '__main__':
+    app.run(debug=True)
+
+def main():
     app.run(debug=True)
