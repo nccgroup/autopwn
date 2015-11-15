@@ -164,10 +164,13 @@ class JobsIdExecute(Resource):
 
         # Index is now tied to database schema, yuck
         job = job_data['result'][0]
+        # TODO Allow set in config file
+        job['tools_directory'] = "/root/tools"
         job['date'] = strftime("%Y%m%d_%H%M%S%z")
         job['output_dir'] = os.getcwd() + '/' + strftime("%Y%m%d") + \
                                 "_autopwn_" + \
                                 job_data['result'][0]['target_name']
+        os.makedirs(job['output_dir'])
 
         tool['id'] = job['tool']
         # Get dependencies
