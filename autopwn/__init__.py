@@ -2,18 +2,20 @@
 
 import json
 import os
+import shutil
 import sqlite3
 import sys
 import threading
 
 from collections import OrderedDict, defaultdict
-from flask import Flask
+from flask import Flask, make_response
 from flask_restful import reqparse, abort, Api, Resource
 from time import gmtime, strftime
 from locale import getlocale
 from subprocess import Popen, PIPE
 
-app = Flask(__name__)
+# TODO Fix exports
+app = Flask(__name__, static_url_path=os.path.dirname(os.path.abspath(__file__)))
 api = Api(app)
 
 parser = reqparse.RequestParser()
@@ -39,7 +41,7 @@ class RunThreads (threading.Thread):
         self.tool = tool
         self.job = job
 
-    def execute_tool(self):
+    def execute_tool(self, job):
         # Always check any tools provided by
         # community members
         print("Running")
@@ -50,11 +52,16 @@ class RunThreads (threading.Thread):
 
         # Callback / pause from here
         return_code = proc.returncode
+        # Zip resulting directory
+        zip_file = None
+        if return_code == 0:
+            zip_file = job['target_name'] + '_' + str(job['id'])
+            shutil.make_archive(zip_file, 'zip', job['output_dir'])
 
         # Update completed and return_code field in db
         con = sqlite3.connect(os.path.dirname(os.path.abspath(__file__)) + '/assets.db')
         cur = con.cursor()
-        cur.execute("UPDATE jobs SET executed = 1, return_code = ? WHERE id = ?",(str(return_code),str(self.job['id'])))
+        cur.execute("UPDATE jobs SET executed = 1, return_code = ?, zip_file = ? WHERE id = ?",(str(return_code),str(zip_file),str(job['id'])))
         con.commit()
 
         # Close connection
@@ -62,7 +69,7 @@ class RunThreads (threading.Thread):
             con.close()
 
     def run(self):
-        self.execute_tool()
+        self.execute_tool(self.job)
 
 class Pong(Resource):
     def get(self):
@@ -249,6 +256,39 @@ class OptionsId(Resource):
 
         return data
 
+class Exports(Resource):
+    def get(self):
+        con = sqlite3.connect(os.path.dirname(os.path.abspath(__file__)) + '/assets.db')
+        con.row_factory = sqlite3.Row
+        cur = con.cursor()
+
+        cur.execute("SELECT zip_file FROM jobs")
+        data = dict(result=[dict(r) for r in cur.fetchall()])
+        print(data)
+
+        # Close connection
+        if con:
+            con.close()
+
+        return data
+
+# Retrieve output for job id
+class ExportsId(Resource):
+    def get(self, job_id):
+        con = sqlite3.connect(os.path.dirname(os.path.abspath(__file__)) + '/assets.db')
+        con.row_factory = sqlite3.Row
+        cur = con.cursor()
+
+        cur.execute("SELECT zip_file FROM jobs WHERE id = ?",(job_id,))
+        data = dict(result=[dict(r) for r in cur.fetchall()])
+        zip_file = data['result'][0]['zip_file'] + '.zip'
+
+        # Close connection
+        if con:
+            con.close()
+
+        return app.send_static_file(zip_file)
+
 # Retrieve dependencies for tool
 class DependenciesId(Resource):
     def get(self, tool_id):
@@ -291,6 +331,13 @@ api.add_resource(Options, '/options')
 # Fetch all options for tool id
 # curl -i http://127.0.0.1:5000/options/1
 api.add_resource(OptionsId, '/options/<tool_id>')
+# Fetch all tool outputs
+# curl -i http://127.0.0.1:5000/exports
+api.add_resource(Exports, '/exports')
+# Fetch tool output from job id
+# curl -i http://127.0.0.1:5000/exports/1
+api.add_resource(ExportsId, '/exports/<job_id>')
+
 
 if __name__ == '__main__':
     app.run(debug=True)
