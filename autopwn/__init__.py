@@ -55,7 +55,8 @@ class RunThreads (threading.Thread):
         # Zip resulting directory
         zip_file = None
         if return_code == 0:
-            zip_file = job['target_name'] + '_' + str(job['id'])
+            zip_file = os.path.dirname(os.path.abspath(__file__)) + \
+                "/" + job['target_name'] + '_' + str(job['id'])
             shutil.make_archive(zip_file, 'zip', job['output_dir'])
 
         # Update completed and return_code field in db
