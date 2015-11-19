@@ -8,7 +8,7 @@ import sys
 import threading
 
 from collections import OrderedDict, defaultdict
-from flask import Flask, make_response
+from flask import Flask, make_response, send_file
 from flask_restful import reqparse, abort, Api, Resource
 from time import gmtime, strftime
 from locale import getlocale
@@ -170,6 +170,7 @@ class JobsIdExecute(Resource):
         job_data = dict(result=[dict(r) for r in cur.fetchall()])
 
         # Index is now tied to database schema, yuck
+        print(args['id'])
         job = job_data['result'][0]
         # TODO Allow set in config file
         job['tools_directory'] = "/root/tools"
@@ -262,7 +263,7 @@ class Exports(Resource):
         con.row_factory = sqlite3.Row
         cur = con.cursor()
 
-        cur.execute("SELECT zip_file FROM jobs")
+        cur.execute("SELECT id, zip_file FROM jobs")
         data = dict(result=[dict(r) for r in cur.fetchall()])
         print(data)
 
@@ -287,7 +288,7 @@ class ExportsId(Resource):
         if con:
             con.close()
 
-        return app.send_static_file(zip_file)
+        return send_file(zip_file, as_attachment=True)
 
 # Retrieve dependencies for tool
 class DependenciesId(Resource):
@@ -338,13 +339,13 @@ api.add_resource(Exports, '/exports')
 # curl -i http://127.0.0.1:5000/exports/1
 api.add_resource(ExportsId, '/exports/<job_id>')
 
-
 if __name__ == '__main__':
-    app.run(debug=True)
+    print(os.path.dirname(os.path.abspath(__file__)))
+    app.run(debug=True,threaded=True)
 
 def main():
     if os.path.isfile('/.dockerinit'):
         print("Running in docker")
-        app.run(host='0.0.0.0', debug=True)
+        app.run(host='0.0.0.0', debug=True,threaded=True)
     else:
-        app.run(debug=True)
+        app.run(debug=True,threaded=True)
