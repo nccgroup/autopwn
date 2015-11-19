@@ -175,7 +175,8 @@ class JobsIdExecute(Resource):
         # TODO Allow set in config file
         job['tools_directory'] = "/root/tools"
         job['date'] = strftime("%Y%m%d_%H%M%S%z")
-        job['output_dir'] = os.getcwd() + '/' + strftime("%Y%m%d") + \
+        job['output_dir'] = os.path.dirname(os.path.abspath(__file__)) + \
+                                '/' + strftime("%Y%m%d") + \
                                 "_autopwn_" + \
                                 job_data['result'][0]['target_name']
         os.makedirs(job['output_dir'])
