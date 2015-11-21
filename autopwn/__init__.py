@@ -58,12 +58,11 @@ class RunThreads (threading.Thread):
 
         # Callback / pause from here
         return_code = proc.returncode
-        # Zip resulting directory
-        zip_file = None
-        if return_code == 0:
-            zip_file = os.path.dirname(os.path.abspath(__file__)) + \
-                "/" + job['target_name'] + '_' + str(job['id'])
-            shutil.make_archive(zip_file, 'zip', job['output_dir'])
+        # Zip resulting directory - This is crap because when doing assessment
+        # this will be run at each tool execution.
+        zip_file = os.path.dirname(os.path.abspath(__file__)) + \
+            "/" + job['target_name'] + '_' + str(job['id'])
+        shutil.make_archive(zip_file, 'zip', job['output_dir'])
 
         # Update completed and return_code field in db
         con = sqlite3.connect(os.path.dirname(os.path.abspath(__file__)) + '/assets.db')
