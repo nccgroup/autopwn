@@ -348,7 +348,7 @@ class AssessmentsJobsIdExecute(Resource):
                 return {'message':'Directory exists'}, 500
 
         assessment['id'] = job['assessment']
-        cur.execute("SELECT tool FROM assessment_tools WHERE assessment = ?",(str(assessment['id'])))
+        cur.execute("SELECT tool FROM assessment_tools WHERE assessment = ?",(str(assessment['id']),))
         tool_ids = dict(result=[dict(r) for r in cur.fetchall()])
         assessment['tools'] = tool_ids['result']
 
