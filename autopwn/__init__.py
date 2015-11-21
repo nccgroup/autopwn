@@ -4,7 +4,7 @@ import errno
 import json
 import os
 import shutil
-import ssl
+#import ssl
 import sqlite3
 import sys
 import threading
