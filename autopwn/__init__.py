@@ -348,11 +348,13 @@ class AssessmentsJobsIdExecute(Resource):
                 return {'message':'Directory exists'}, 500
 
         assessment['id'] = job['assessment']
+        print("DEBUG: assessment['id'] == " + str(assessment['id']))
         cur.execute("SELECT tool FROM assessment_tools WHERE assessment = ?",(str(assessment['id']),))
         tool_ids = dict(result=[dict(r) for r in cur.fetchall()])
         assessment['tools'] = tool_ids['result']
 
         for i, data in enumerate(assessment['tools']):
+            print("cunt")
             # Get dependencies
             cur.execute("SELECT dependency from dependencies WHERE tool = ?",(data['tool'],))
             dependency = dict(result=[dict(r) for r in cur.fetchall()])
@@ -580,7 +582,7 @@ def main():
         app.run(host='0.0.0.0', debug=True,threaded=True)
     else:
         #app.run(debug=True,threaded=True,ssl_context=context)
-        app.run(debug=True,threaded=True)
+        app.run(debug=True,threaded=True,port=5001)
 
 if __name__ == '__main__':
     main()
