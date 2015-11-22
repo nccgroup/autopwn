@@ -132,7 +132,8 @@ class AssessmentsId(Resource):
 
         # Add tools to assessment
         cur.execute("SELECT tool FROM assessment_tools WHERE assessment = ?",(str(assessment_id),))
-        data['tools'] = dict(result=[dict(r) for r in cur.fetchall()])
+        tool_ids = dict(result=[dict(r) for r in cur.fetchall()])
+        data['tools'] = tool_ids['result']
 
         # Close connection
         if con:
