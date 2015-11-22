@@ -131,20 +131,13 @@ class AssessmentsId(Resource):
         data = dict(result=[dict(r) for r in cur.fetchall()])
 
         # Add tools to assessment
-        for i, assessment in enumerate(data['result']):
-            cur.execute("SELECT tool FROM assessment_tools WHERE assessment = ?",(str(i+1),))
-            tool_ids = dict(result=[dict(r) for r in cur.fetchall()])
-            assessment['tools'] = tool_ids['result']
+        cur.execute("SELECT tool FROM assessment_tools WHERE assessment = ?",(str(assessment_id),))
+        data['tools'] = dict(result=[dict(r) for r in cur.fetchall()])
 
         # Close connection
         if con:
             con.close()
         return data
-
-    # Submit a new tool
-    def post(self):
-        args = parser.parse_args()
-        return args
 
 class Tools(Resource):
     # Get tools
