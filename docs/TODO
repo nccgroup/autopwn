@@ -2,3 +2,11 @@ autopwn (API package)
 
 * Add new tools
 * Develop assessments (could be client side?)
+- Tried to develop assessments on server side. This included a new job list for
+  assessments and tried to work with return code on this (which was badly coded and
+  broken anyway). Have decided to only provide assessments and assessment tools server
+  side. It is the responsibility of the client to submit each tool in the assesment
+  to the job list while specifying the correct parameters. I believe this is a better
+  approach, however now in order to export a successful assessment, it becomes necessary
+  to export each individual tool for that assessment, as opposed to one zip. This may
+  need handling client side also.
