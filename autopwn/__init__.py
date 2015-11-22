@@ -263,13 +263,21 @@ class ToolsJobsIdExecute(Resource):
 
         # Index is now tied to database schema, yuck
         job = job_data['result'][0]
+        tool['id'] = job['tool']
+
+        # Get tool execute string and tool name
+        cur.execute("SELECT * FROM tools WHERE id = ?",(tool['id'],))
+        tool_data = dict(result=[dict(r) for r in cur.fetchall()])
+        tool = tool_data['result'][0]
+
         # TODO Allow set in config file
         job['tools_directory'] = "/root/tools"
         job['date'] = strftime("%Y%m%d_%H%M%S%z")
         job['output_dir'] = os.path.dirname(os.path.abspath(__file__)) + \
                                 '/' + strftime("%Y%m%d") + \
                                 "_autopwn_" + \
-                                job_data['result'][0]['target_name']
+                                job_data['result'][0]['target_name'] + \
+                                "_" + tool['name']
         try:
             os.makedirs(job['output_dir'])
         except OSError as e:
@@ -277,15 +285,9 @@ class ToolsJobsIdExecute(Resource):
             #if e.errno == errno.EEXIST:
             #    return {'message':'Directory exists'}, 500
 
-        tool['id'] = job['tool']
         # Get dependencies
         cur.execute("SELECT dependency from dependencies WHERE tool = ?",(tool['id'],))
         dependency = dict(result=[dict(r) for r in cur.fetchall()])
-
-        # Get tool execute string
-        cur.execute("SELECT * FROM tools WHERE id = ?",(tool['id'],))
-        tool_data = dict(result=[dict(r) for r in cur.fetchall()])
-        tool = tool_data['result'][0]
 
         # Close connection
         if con:
