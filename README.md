@@ -24,9 +24,10 @@ will be required, but for now, don't be a moron.
 
 1. Execute ``docker pull rascal999/autopwn``
 2. Run ``docker run -i -t -p 127.0.0.1:5000:5000 rascal999/autopwn /usr/sbin/autopwn``
-3. Run autopwn client
+3. Run autopwn client (you can get the Java application at
+   https://github.com/rascal999/autopwn-gui)
 
-#### From the Python Package Index
+#### From the Python Package Index (for development)
 
 1. Execute ``pip install autopwn``
 
@@ -49,9 +50,10 @@ Running autopwn will start the web server.
 127.0.0.1 - - [15/Nov/2015 11:04:41] "GET /favicon.ico HTTP/1.1" 404 -
 ```
 
-In order to interface with autopwn you should use autopwn-cli
-(available at https://github.com/rascal999/autopwn-cli). If you're
-interested in the API, you can also do stuff in the browser.
+In order to interface with autopwn you should use autopwn-gui
+(available at https://github.com/rascal999/autopwn-gui). You can
+also use autopwn-cli (available at https://github.com/rascal999/autopwn-cli).
+If you're interested in the API, you can also do stuff in the browser.
 
 ## Contributing
 
