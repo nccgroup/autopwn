@@ -1,3 +1,8 @@
+autopwn v1.1.0 - 20190214
+
+* updated requirements for pip install
+* removed static_url_path to allow it to run on windows
+
 autopwn v1.0.0 - 20151115
 
 * autopwn API package created
