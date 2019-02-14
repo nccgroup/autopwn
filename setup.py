@@ -6,7 +6,7 @@ long_desc = '''autopwn is designed to make a pentester's life easier and more co
 
 setup(
     name='autopwn',
-    version='1.0.0',
+    version='1.1.0',
     description='Specify targets and run sets of tools against them',
     long_description=long_desc,
     author='Aidan Marlin',
@@ -15,8 +15,7 @@ setup(
     license='GNU Affero GPL v3',
     packages=['autopwn'],
     install_requires=[
-        'PyYAML', 'screenutils', 'inquirer',
-        'readchar<=0.7' # https://github.com/magmax/python-inquirer/issues/8
+        'PyYAML', 'screenutils', 'inquirer', 'readchar', 'Flask', 'Flask-RESTful', ' aniso8601', 'pytz'
     ],
     include_package_data=True,
     zip_safe=False,
