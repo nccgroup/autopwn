@@ -1,4 +1,4 @@
-import autopwn
+import autopwn2
 import builtins
 import os
 import pytest

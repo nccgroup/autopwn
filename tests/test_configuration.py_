@@ -1,4 +1,4 @@
-import autopwn
+import autopwn2
 import os
 import unittest
 import mock

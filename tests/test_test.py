@@ -1,5 +1,5 @@
 import unittest
-import autopwn
+import autopwn2
 
 class TestsContainer(unittest.TestCase):
     longMessage = True
