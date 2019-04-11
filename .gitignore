@@ -68,3 +68,4 @@ target/
 *_autopwn_*
 target
 cookie*
+/autopwn2/db.sqlite

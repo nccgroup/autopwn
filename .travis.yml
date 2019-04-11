@@ -1,12 +1,10 @@
 language: python
 sudo: false
 python:
-  - 3.4
+  - 3.6
 env:
   matrix:
-    - TOXENV="py32"
-    - TOXENV="py33"
-    - TOXENV="py34"
+    - TOXENV="py36"
 
 install: pip install tox
 script: tox -e $TOXENV
