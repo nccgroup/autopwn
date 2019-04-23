@@ -10,10 +10,11 @@ without having to type them in a shell or write a script. This tool will
 probably be useful during certain exams as well..
 
 ## Installation
-
+<del>
 It is recommended that you use the docker image while exposing TCP 5000
 for autopwn clients to connect to. This is because the autopwn docker
 image is already setup (tools are installed and in the right place).
+</del>
 
 Only allow this package to listen on a loopback IP address. If you have
 this package listen on a public IP, you're allowing arbitrary users to
@@ -64,6 +65,7 @@ Running autopwn will start the web server.
 
 Developed by Aidan Marlin (aidan [dot] marlin [at] nccgroup [dot] com)
 while working at NCC Group.
+Second release by Steven van der Baan.
 
 I'd like to thank the following contributors for
 their work on previous autopwn versions:
@@ -71,3 +73,4 @@ their work on previous autopwn versions:
 - Selfegris
 - 0xsauby
 - [berdario](https://github.com/berdario/)
+- [rascal999](https://github.com/rascal999)
